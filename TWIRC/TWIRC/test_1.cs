@@ -4,7 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Meebey.SmartIrc4net;
-//This is an example of a working IRC client
+//This is an example of a working IRC client 
+
 
 namespace TWIRC
 {
@@ -84,9 +85,10 @@ namespace TWIRC
             System.Console.WriteLine("Received: " + e.Data.RawMessage);
         }
 
-
+/*
     public static void Main(string[] args)
     {
+        Exit();
         Thread.CurrentThread.Name = "Main";
         
         // UTF-8 test
@@ -158,7 +160,7 @@ namespace TWIRC
             Exit();
         }
     }
-    
+    */
     public static void ReadCommands()
     {
         // here we read the commands from the stdin and send it to the IRC API
