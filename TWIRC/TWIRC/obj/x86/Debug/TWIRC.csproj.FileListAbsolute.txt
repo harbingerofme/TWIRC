@@ -1,0 +1,5 @@
+D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojResolveAssemblyReference.cache
+D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.exe
+D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.pdb
+D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
+D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
