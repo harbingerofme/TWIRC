@@ -3,3 +3,5 @@ D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.exe
 D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.pdb
 D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
 D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
+E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
+E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
