@@ -13,9 +13,10 @@ namespace TWIRC
         public static IrcClient irc = new IrcClient();
         public static IrcClient irc2 = new IrcClient();//backup connection (to check if our messages arive)
         public bool running = true;
+        private bool reconnect = true;
 
         public string bot_name = "harbbot";//gonna hardcode this in for now, but will be loaded from a file soonish
-        public string[] channels = { "#rngplayspokemon", "#harbbot", "harbingerofme" };
+        public string[] channels = { "#rngplayspokemon"};
         public string oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";//might be invalid
 
         public HarbBot()
@@ -30,12 +31,14 @@ namespace TWIRC
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
             irc2 = irc;
+
             irc.OnQueryMessage += ircQuery;
             irc.OnRawMessage += ircRaw;
-            irc2.OnQueryMessage += irc2Query;
-            irc2.OnRawMessage += ircRaw;
+            irc.OnChannelAction += ircChanActi;
+            irc.OnChannelMessage += ircChanMess;
+            irc2.OnChannelMessage += irc2Query;
             
-            
+
             Thread two = new Thread(run_2);
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
@@ -54,14 +57,24 @@ namespace TWIRC
                 catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 2 Connection error: " + e.Message); }
         }
 
+        public void checkSpam(string channel, string user, string message)
+        {
 
+        }
+
+        public void checkCommand(string channel, string user, string message)
+        {
+
+        }
+
+        //eventbinders
         public void ircConnected(object sender, EventArgs e)
         {
             IrcClient a = (IrcClient)sender;
             a.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             a.RfcJoin(channels);
             a.Listen();
-            System.Diagnostics.Debug.WriteLine("Joined Twitch chat");
+            Console.WriteLine("Joined Twitch chat");
         }
 
         public void ircJoined(object sender, EventArgs e)
@@ -76,11 +89,28 @@ namespace TWIRC
 
         public void ircError(object sender, EventArgs e)
         {
+            reconnect = true;
             System.Diagnostics.Debug.WriteLine("IRC error");
         }
         public static void ircRaw(object sender, IrcEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine("IRC1: " + e.Data.RawMessage);
+        }
+        public static void ircChanMess(object sender, IrcEventArgs e)
+        {
+            string channel = e.Data.Channel;
+            string nick = e.Data.Nick;
+            string message = e.Data.Message;
+            Console.WriteLine(channel + ": <" + nick + "> " + message);
+        }
+        public static void ircChanActi(object sender, IrcEventArgs e)
+        {
+            string channel = e.Data.Channel;
+            string nick = e.Data.Nick;
+            string message = e.Data.Message;
+            message = message.Remove(0, 8);
+            message = message.Remove(message.Length - 1);
+            Console.WriteLine(channel + ": " + nick +" "+ message);
         }
         public void ircQuery(object sender, EventArgs e)
         {
