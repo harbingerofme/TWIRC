@@ -16,9 +16,9 @@ namespace TWIRC
         private bool reconnect = false;
 
         public string bot_name = "harbbot";//gonna hardcode this in for now, but will be loaded from a file soonish
-        public string[] channels = { "#rngplayspokemon"};
+        public string[] channels = { "#rngplayspokemon","harbbot"};
         public string oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";//might be invalid
-        public com[] comlist;
+        public List<com> comlist = new List<com>();
 
         public HarbBot()
         {
@@ -42,8 +42,8 @@ namespace TWIRC
             /*debug*/
             string[] temp = { "Harb is the on who wrote my code","He's pretty cool for that"};
             string[] temp2= { "!harbingerofme"};
-            comlist[0] = new command("!harbbot", "Heyo!");
-            comlist[1] = new command("!harb", temp, temp2);
+            comlist.Add(new command("!harbbot", "Heyo!"));
+            comlist.Add(new command("!harb", temp, temp2));
             /*debug*/
 
             Thread two = new Thread(run_2);
@@ -72,16 +72,26 @@ namespace TWIRC
         public void checkCommand(string channel, string user, string message)
         {
             int a = 0;
+            string[] str;
             foreach (com c in comlist)
             {
-                if (message.StartsWith(c.keyword)) 
+                System.Diagnostics.Debug.Write("Checking command");
+                if (c.doesMatch(message))
                 {
-                    foreach (string str1 in c.responses)
+                    System.Diagnostics.Debug.Write(": it matches");
+                    if(c.canTrigger())
                     {
-                        irc.SendMessage(SendType.Message, channel, str1);
+                        System.Diagnostics.Debug.Write(": it can trigger");
+                        str = c.getResponses();
+                        foreach (string b in str)
+                        {
+                            irc.SendMessage(SendType.Message, channel, b);
+                            Console.WriteLine("->" + channel + ": " + b);
+                            c.updateTime();
+                        }
                     }
-                    
                 }
+                System.Diagnostics.Debug.Write(".\n");
                 a++;
             }
         }
@@ -98,50 +108,50 @@ namespace TWIRC
 
         public void ircJoined(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Joined a channel!");
+            
         }
 
         public void ircConError(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Connection error");
+            
         }
 
         public void ircError(object sender, EventArgs e)
         {
             reconnect = true;
-            System.Diagnostics.Debug.WriteLine("IRC error");
         }
         public static void ircRaw(object sender, IrcEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("IRC1: " + e.Data.RawMessage);
+            
         }
-        public static void ircChanMess(object sender, IrcEventArgs e)
+        public void ircChanMess(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
-            Console.WriteLine(channel + ": <" + nick + "> " + message);
+            Console.WriteLine("<-" + channel + ": <" + nick + "> " + message);
+            this.checkCommand(channel,nick,message);
         }
-        public static void ircChanActi(object sender, IrcEventArgs e)
+        public void ircChanActi(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            Console.WriteLine(channel + ": " + nick +" "+ message);
+            Console.WriteLine("<-" + channel + ": " + nick + " " + message);
         }
         public void ircQuery(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("query message on irc1");
+            
         }
         public void irc2Raw(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("raw Message received on irc2");
+            
         }
         public void irc2Query(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("query message on irc1");
+            
         }
     }
 }

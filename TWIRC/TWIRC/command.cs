@@ -8,113 +8,85 @@ namespace TWIRC
 {
     public class com//allows us to check for coms, I guess. I could have prob made h
     {
-        public string _keyword;
-        public string[] _responses;
-        public string[] _aliases;
-        public int _lastTime = 0;
-        public int _authlevel;
-        public int _cooldown;
+        protected string keyword{get;set;}
+        protected List<string> aliases{get;set;}
+        protected List<string> responses { get; set; }
+        protected int cooldown{get;set;}
+        protected int lastTime { get; set; }
+        protected int authLevel { get; set; }
 
-        public string keyword
+        public bool doesMatch(string input)
         {
-            get { return _keyword; }
-            set { _keyword = value; }
+            if (input.StartsWith(keyword)) { return true; }
+            foreach (string a in aliases) { if(input.StartsWith(a)){return true;}}
+            return false;
         }
-        public string[] responses
+
+        public bool canTrigger()
         {
-            get { return _responses; }
-            set { _responses = value; }
+            if(lastTime+cooldown<DateTime.Now.Second){return true;}
+            return false;
         }
-        public string[] aliases
+
+        public void addAlias(string input)
         {
-            get { return _aliases; }
-            set { _aliases = value; }
+            aliases.Add(input);
         }
-        public int authlevel
+        public void addResponse(string input)
         {
-            get { return _authlevel; }
-            set { _authlevel = value; }
+            responses.Add(input);
         }
-        public int cooldown
+        public string[] getResponses()
         {
-            get { return _cooldown; }
-            set { _cooldown = value; }
+            return responses.ToArray();
         }
-        public int lastTime
+        public void updateTime()
         {
-            get { return _lastTime; }
-            set { _lastTime = value; }
+            lastTime = DateTime.Now.Second;
         }
     }
 
     public class command : com
     {
-
-        public command(string keyword,string response)
+        public command() { throw new ArgumentException(); }//CAUSE I CAN
+        public command(string kw,string response)
         {
-            _cooldown = 20;
-            _lastTime = 0;
-            _keyword = keyword;
-            string[] _responses ={response};
-            _aliases = null;
-            _authlevel = 0;
+            aliases = new List<string>(); responses = new List<string>();
+            keyword = kw;
+            responses.Add(response);
+            authLevel = 0;
         }
 
-        public command(string keyword, string response,string[] aliases)
+        public command(string kw, string[] response)
         {
-            _keyword = keyword;
-            _responses[0] = response;
-            _aliases = aliases;
-            _authlevel = 0;
+            aliases = new List<string>(); responses = new List<string>();
+            keyword = kw;
+            responses = response.ToList<string>();
+            authLevel = 0;
         }
-
-        public command(string keyword, string[] responses)
+        public command(string kw, string response, string[] aliasess)//not a typo, just to avoid collision
         {
-            _keyword = keyword;
-            _responses = responses;
-            _aliases = null;
-            _authlevel = 0;
+            aliases = new List<string>(); responses = new List<string>();
+            keyword = kw;
+            responses.Add(response);
+            aliases = aliasess.ToList<string>();
+            authLevel = 0;
         }
-
-        public command(string keyword, string[] responses,string[] aliases)
+        public command(string kw, string[] response, string[] aliasess)
         {
-            _keyword = keyword;
-            _responses = responses;
-            _aliases = aliases;
-            _authlevel = 0;
+            aliases = new List<string>(); responses = new List<string>();
+            keyword = kw;
+            responses = response.ToList<string>();
+            aliases = aliasess.ToList<string>();
+            authLevel = 0;
         }
-    }
-    public class keycom : com
-    {
-        int _cooldown = 3;
-        int _authlevel = 3;//I have yet to define 3, but let's say 3.
-
-        public keycom(string keyword,int keycode,string response)
+        public command(string kw, string[] response, string[] aliasess, int auth)
         {
-            _keyword = keyword;
-            _responses[0] = response;
-            _aliases = null;
-        }
-
-        public keycom(string keyword, int keycode,string response,string[] aliases)
-        {
-            _keyword = keyword;
-            _responses[0] = response;
-            _aliases = aliases;
-        }
-
-        public keycom(string keyword, int keycode,string[] responses)
-        {
-            _keyword = keyword;
-            _responses = responses;
-            _aliases = null;
-        }
-
-        public keycom(string keyword, int keycode,string[] responses,string[] aliases)
-        {
-            _keyword = keyword;
-            _responses = responses;
-            _aliases = aliases;
+            aliases = new List<string>(); responses = new List<string>();
+            keyword = kw;
+            responses = response.ToList<string>();
+            aliases = aliasess.ToList<string>();
+            authLevel = auth;
         }
     }
 }
