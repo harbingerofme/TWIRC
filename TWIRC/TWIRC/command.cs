@@ -6,25 +6,56 @@ using System.Threading.Tasks;
 
 namespace TWIRC
 {
-    class com//allows us to check for coms, I guess. I could have prob made h
+    public class com//allows us to check for coms, I guess. I could have prob made h
     {
+        public string _keyword;
+        public string[] _responses;
+        public string[] _aliases;
+        public int _lastTime = 0;
+        public int _authlevel;
+        public int _cooldown;
+
+        public string keyword
+        {
+            get { return _keyword; }
+            set { _keyword = value; }
+        }
+        public string[] responses
+        {
+            get { return _responses; }
+            set { _responses = value; }
+        }
+        public string[] aliases
+        {
+            get { return _aliases; }
+            set { _aliases = value; }
+        }
+        public int authlevel
+        {
+            get { return _authlevel; }
+            set { _authlevel = value; }
+        }
+        public int cooldown
+        {
+            get { return _cooldown; }
+            set { _cooldown = value; }
+        }
+        public int lastTime
+        {
+            get { return _lastTime; }
+            set { _lastTime = value; }
+        }
     }
 
-    class command : com
+    public class command : com
     {
-                string _keyword;
-        string[] _responses;
-        string[] _aliases;
-        int _cooldown = 20;
-        int _lastTime = 0;
-        int _authlevel;
 
         public command(string keyword,string response)
         {
             _cooldown = 20;
             _lastTime = 0;
             _keyword = keyword;
-            _responses[0] = response;
+            string[] _responses ={response};
             _aliases = null;
             _authlevel = 0;
         }
@@ -53,20 +84,13 @@ namespace TWIRC
             _authlevel = 0;
         }
     }
-    class keycom : com
+    public class keycom : com
     {
-        string _keyword;
-        string[] _responses;
-        string[] _aliases;
         int _cooldown = 3;
-        int _lastTime = 0;
-        int _keycode;
         int _authlevel = 3;//I have yet to define 3, but let's say 3.
 
         public keycom(string keyword,int keycode,string response)
         {
-            _cooldown = 20;
-            _lastTime = 0;
             _keyword = keyword;
             _responses[0] = response;
             _aliases = null;

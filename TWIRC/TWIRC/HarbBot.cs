@@ -13,11 +13,12 @@ namespace TWIRC
         public static IrcClient irc = new IrcClient();
         public static IrcClient irc2 = new IrcClient();//backup connection (to check if our messages arive)
         public bool running = true;
-        private bool reconnect = true;
+        private bool reconnect = false;
 
         public string bot_name = "harbbot";//gonna hardcode this in for now, but will be loaded from a file soonish
         public string[] channels = { "#rngplayspokemon"};
         public string oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";//might be invalid
+        public com[] comlist;
 
         public HarbBot()
         {
@@ -38,6 +39,12 @@ namespace TWIRC
             irc.OnChannelMessage += ircChanMess;
             irc2.OnChannelMessage += irc2Query;
             
+            /*debug*/
+            string[] temp = { "Harb is the on who wrote my code","He's pretty cool for that"};
+            string[] temp2= { "!harbingerofme"};
+            comlist[0] = new command("!harbbot", "Heyo!");
+            comlist[1] = new command("!harb", temp, temp2);
+            /*debug*/
 
             Thread two = new Thread(run_2);
             try { irc.Connect("irc.twitch.tv", 6667); }
@@ -64,7 +71,19 @@ namespace TWIRC
 
         public void checkCommand(string channel, string user, string message)
         {
-
+            int a = 0;
+            foreach (com c in comlist)
+            {
+                if (message.StartsWith(c.keyword)) 
+                {
+                    foreach (string str1 in c.responses)
+                    {
+                        irc.SendMessage(SendType.Message, channel, str1);
+                    }
+                    
+                }
+                a++;
+            }
         }
 
         //eventbinders
