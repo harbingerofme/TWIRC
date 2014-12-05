@@ -24,7 +24,7 @@ namespace TWIRC
 
         public bool canTrigger()
         {
-            if(lastTime+cooldown<DateTime.Now.Second){return true;}
+            if(lastTime+cooldown<getNow()){return true;}
             return false;
         }
 
@@ -42,7 +42,13 @@ namespace TWIRC
         }
         public void updateTime()
         {
-            lastTime = DateTime.Now.Second;
+            lastTime = getNow();
+        }
+        public int getNow()
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
+            return (int)Math.Floor(diff.TotalSeconds);
         }
     }
 

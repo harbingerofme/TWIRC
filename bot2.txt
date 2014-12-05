@@ -1,0 +1,17 @@
+//order is as follows: index type access_level count keyword(s) [keycode] <message|keyword(s)>
+// a same index indicates a type 4 or 5
+//type 1 means normal command, no key presses
+//type 2 means key press, which has an extra parameter, but can also include a message
+//type 3 means Overload (which happens when the same parameters are given as the overload needs, or the access_level matches in a way that doesn't match earlier ones, the keyword will be exactly the same,leaving the message blank will cause nothing to appear when no pars are given)
+//type 4 means Addition (which happens if the command with the index is called, this message is also send)
+//type 5 means Key-Addition (which happens if the command with the index is called, this key is pressed, and the message is also send)
+//type 6 is an alias for the command, in fact, all aliases are stored on this line.
+//count is based on keyword
+1 1 0 2872 !what This is a random number generator playing Pokémon Fire Red and Leaf Green with random input. That means it is being played by a computer, not a human. Like a robot playing Gameboy, except without the fancy technology. Sometimes we assist it if it gets really stuck. Finally, as I said 200@cnt@ times before, you can't use chat inputs, this is not Twitch Plays!
+2 1 0 345 !why Why not? We do what we want! Especially TWIICZ and TT!
+3 2 1 1003 <!setbias left> num_4 @user@: Bias set: LEFT
+4 1 1 234 !timeout .timeout @par1@ 100
+4 4 1 234 !timeout Shots have been fired! @par1@ has been critically wounded! (timed out by @user@)
+5 3 1 234 !timeout (no user entered)
+6 3 0 234 !timeout I'm sorry, you don't have permission to use this.
+7 6 0 234 !timeout !to !shoot

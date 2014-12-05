@@ -19,6 +19,8 @@ namespace TWIRC
         public string[] channels = { "#rngplayspokemon","harbbot"};
         public string oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";//might be invalid
         public List<com> comlist = new List<com>();
+        public bool hasSend;
+        public int time;
 
         public HarbBot()
         {
@@ -40,7 +42,7 @@ namespace TWIRC
             irc2.OnChannelMessage += irc2Query;
             
             /*debug*/
-            string[] temp = { "Harb is the on who wrote my code","He's pretty cool for that"};
+            string[] temp = { "Harb is the one who wrote my code","He's pretty cool for that"};
             string[] temp2= { "!harbingerofme"};
             comlist.Add(new command("!harbbot", "Heyo!"));
             comlist.Add(new command("!harb", temp, temp2));
@@ -85,7 +87,7 @@ namespace TWIRC
                         str = c.getResponses();
                         foreach (string b in str)
                         {
-                            irc.SendMessage(SendType.Message, channel, b);
+                             sendMess(channel, b);
                             Console.WriteLine("->" + channel + ": " + b);
                             c.updateTime();
                         }
@@ -95,6 +97,20 @@ namespace TWIRC
                 a++;
             }
         }
+
+        public void sendMess(string channel, string message)
+        {
+            hasSend = true;
+            time = getNow();
+            irc.SendMessage(SendType.Message, channel, message);
+        }
+
+        public int getNow(){
+         DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+          TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
+        return (int)Math.Floor(diff.TotalSeconds);
+        }
+
 
         //eventbinders
         public void ircConnected(object sender, EventArgs e)
