@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace TWIRC
 {
     public class com//allows us to check for coms, I guess. I could have prob made h
     {
         protected string keyword{get;set;}
-        protected List<string> aliases{get;set;}
         protected List<string> responses { get; set; }
         protected int cooldown{get;set;}
         protected int lastTime { get; set; }
         protected int authLevel { get; set; }
+        protected int count { get; set; }
 
         public bool doesMatch(string input)
         {
-            if (input.StartsWith(keyword)) { return true; }
-            foreach (string a in aliases) { if(input.StartsWith(a)){return true;}}
+            string a =input.ToLower();
+            string b = keyword.ToLower();
+            if (a.StartsWith(keyword+ " ")||a==keyword) { return true; }
             return false;
         }
 
@@ -26,11 +28,6 @@ namespace TWIRC
         {
             if(lastTime+cooldown<getNow()){return true;}
             return false;
-        }
-
-        public void addAlias(string input)
-        {
-            aliases.Add(input);
         }
         public void addResponse(string input)
         {
@@ -50,6 +47,76 @@ namespace TWIRC
             TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
             return (int)Math.Floor(diff.TotalSeconds);
         }
+        public int setCount(int amount)
+        {
+            count = amount;
+            return count;
+        }
+        public int getCount()
+        {
+            return count;
+        }
+        public int addCount(int amount)
+        {
+            return count;
+        }
+        public string[] getResponse(string input, string user)
+        {
+            System.Diagnostics.Debugger.Break();
+            string reg1 = "[^" + keyword + "[ ]?|  ]";//remove the keyword and double spaces
+            string newPut = Regex.Replace(input,reg1,"");
+            string[] pars = newPut.Split(' ');
+            if(pars.Count()>10){
+                for(int i = 10;i<=pars.Count();i++){
+                    pars[9]+=" "+pars[i];//merge all results bigger than 10 in the last parameter
+                }
+            }
+            string[] output = responses.ToArray();
+            int a=0;
+            //I actually should make a list of regexes to be cleaner, but oh well
+            Regex reg2 = new Regex("@rand(\\d+)@");
+            Regex reg3 = new Regex("@rand(\\d+)-(\\d+)@");
+            string str2, str3,returnString;
+            foreach( string str1 in output)
+            {
+                returnString = str1;
+                for (int b = 1; b < pars.Count(); b++)
+                {
+                    returnString = returnString.Replace("@par" + a + "@", pars[a - 1]);
+                }
+
+                for (int b = 1; b < pars.Count(); b++)
+                {
+                    str2 = "";
+                    for (int c = b; c < pars.Count(); c++) { str2 += pars[c]; }
+                    returnString = returnString.Replace("@par" + b + "-@", str2);
+                }
+                returnString = returnString.Replace("@count@", count.ToString());
+                returnString = returnString.Replace("@user@", user);
+                Random rnd = new Random();
+                while (reg2.Match(returnString).Success)
+                {
+                    Match mat = reg2.Match(returnString);
+                    str2 = returnString.Substring(0, mat.Index);//expertly split the string (of course we could use a replace, but we want different random numbers, don't we?
+                    str3 = returnString.Substring(mat.Index + mat.Captures[0].Value.Length + 3);
+                    returnString = str2 + rnd.Next(int.Parse(mat.Captures[0].Value)).ToString() + str3;
+                }
+
+                while (reg3.Match(returnString).Success)
+                {
+                    Match mat = reg2.Match(returnString);
+                    str2 = returnString.Substring(0, mat.Index);//expertly split the string (of course we could use a replace, but we want different random numbers, don't we?
+                    str3 = returnString.Substring(mat.Index + mat.Captures[0].Value.Length + mat.Captures[1].Value.Length + 7);
+                    returnString = str2 + rnd.Next(int.Parse(mat.Captures[0].Value), int.Parse(mat.Captures[1].Value)) + str3;
+                }
+                output[a] = returnString;
+                a++;
+
+            }
+
+            return output;
+
+        }
     }
 
     public class command : com
@@ -57,42 +124,59 @@ namespace TWIRC
         public command() { throw new ArgumentException(); }//CAUSE I CAN
         public command(string kw,string response)
         {
-            aliases = new List<string>(); responses = new List<string>();
-            keyword = kw;
+            responses = new List<string>();
+            keyword = kw.ToLower();
             responses.Add(response);
             authLevel = 0;
+            count = 0;
+            responses = makeLowerCase(responses.ToArray()).ToList();
         }
 
         public command(string kw, string[] response)
         {
-            aliases = new List<string>(); responses = new List<string>();
-            keyword = kw;
+            responses = new List<string>();
+            keyword = kw.ToLower();
             responses = response.ToList<string>();
             authLevel = 0;
+            count = 0;
+            responses = makeLowerCase(responses.ToArray()).ToList();
         }
-        public command(string kw, string response, string[] aliasess)//not a typo, just to avoid collision
+        public command(string kw, string[] response, int auth)
         {
-            aliases = new List<string>(); responses = new List<string>();
-            keyword = kw;
-            responses.Add(response);
-            aliases = aliasess.ToList<string>();
-            authLevel = 0;
-        }
-        public command(string kw, string[] response, string[] aliasess)
-        {
-            aliases = new List<string>(); responses = new List<string>();
-            keyword = kw;
+            responses = new List<string>();
+            keyword = kw.ToLower();
             responses = response.ToList<string>();
-            aliases = aliasess.ToList<string>();
-            authLevel = 0;
-        }
-        public command(string kw, string[] response, string[] aliasess, int auth)
-        {
-            aliases = new List<string>(); responses = new List<string>();
-            keyword = kw;
-            responses = response.ToList<string>();
-            aliases = aliasess.ToList<string>();
             authLevel = auth;
+            count = 0;
+            responses = makeLowerCase(responses.ToArray()).ToList();
+        }
+        public string[] makeLowerCase(string[] respos){
+            string[] ret = respos;
+            String[] regs = new String[4];
+            regs[0] = "@count@";
+            regs[1] = @"@par([\d|(\d-)|(\d-\d)])@";
+            regs[2] = @"@rand([\d|(\d-\d)])@";
+            regs[3] = "@user@";
+
+            for(int a =0; a< respos.Count();a++){
+                respos[a] = Regex.Replace(respos[a],regs[0],"@count@");
+                respos[a] = Regex.Replace(respos[a],regs[3], "@user@");
+                respos[a] = Regex.Replace(respos[a], regs[1], @"@par$1@");
+                respos[a] = Regex.Replace(respos[a],regs[2], @"@rand$1@");
+
+            }
+            return ret;
+        }
+
+        public override string ToString()
+        { //order is as follows: index type access_level count keyword(s) [keycode] <message|keyword(s)>
+            string result = "1 " + authLevel + " " + count + " " + keyword + " "+responses.Count+ " ";
+            foreach (string response in responses)
+            {
+                result += responses + "}}}}||||>>>>"//that is some neato escape string right? Better not ever tell our users. I cannot predict what will happen if they make it this way.
+;
+            }
+            return result;//caller should prepend a index number himself, and append a line ending
         }
     }
 }

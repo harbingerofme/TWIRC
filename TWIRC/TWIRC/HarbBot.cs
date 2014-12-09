@@ -44,12 +44,15 @@ namespace TWIRC
             
             /*debug*/
             string[] temp = { "Harb is the one who wrote my code","He's pretty cool for that"};
-            string[] temp2= { "!harbingerofme"};
-            comlist.Add(new command("!harbbot", "Heyo!"));
-            comlist.Add(new command("!harb", temp, temp2));
+            comlist.Add(new command("!harbbot", "Heyo, @user@!"));
+            comlist.Add(new command("!harb", temp,5));
+            comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
+            comlist.Add(new command("!parexample", "You said \"@par1@\", followed by \"@par2@\", and then ended it all with \"@par3-@\"."));
+            comlist.Add(new command("!rnd", "@rand200@ <- random number between 0 and 200. @rand1-2@ <- either 1 or 2"));
+            comlist[2].setCount(230);
             /*debug*/
 
-            two = new Thread(run_2);
+            //two = new Thread(run_2);
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
         }
@@ -106,7 +109,7 @@ namespace TWIRC
                     if(c.canTrigger())
                     {
                         System.Diagnostics.Debug.Write(": it can trigger");
-                        str = c.getResponses();
+                        str = c.getResponse(message,user);
                         foreach (string b in str)
                         {
                              sendMess(channel, b);
