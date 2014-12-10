@@ -114,6 +114,7 @@ namespace TWIRC
                         {
                              sendMess(channel, b);
                             Console.WriteLine("->" + channel + ": " + b);
+                            c.addCount(1);  
                             c.updateTime();
                         }
                     }
