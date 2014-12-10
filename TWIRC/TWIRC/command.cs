@@ -63,24 +63,21 @@ namespace TWIRC
         public string[] getResponse(string input, string user)
         {
             //System.Diagnostics.Debugger.Break();
-            string reg1 = "("+ keyword + " )|(  )";//remove the keyword and double spaces
+            string reg1 = "("+ keyword + "[ ]?)";//remove the keyword
             string newPut = Regex.Replace(input,reg1,"");
-            string[] pars = newPut.Split(' ');
-            if(pars.Count()>10){
-                for(int i = 10;i<=pars.Count();i++){
-                    pars[9]+=" "+pars[i];//merge all results bigger than 10 in the last parameter
+            string[] pars = {"","","","","","","","","",""};
+                for(int i =0;i< newPut.Split(' ').Count()&&i<10;i++){
+                    pars[i] = newPut.Split(' ')[i];
                 }
-            }
-            foreach (string absd in pars)
-            {
-                Console.Write(absd + ";");
+            if( newPut.Split(' ').Count()>10){
+                for (int i = 10; i <= newPut.Split(' ').Count(); i++)
+                {
+                    pars[9] += " " + newPut.Split(' ')[i];//merge all results bigger than 10 in the last parameter
+                }
             }
             Console.Write("\n");
             string[] output = responses.ToArray();
             int a=0;
-            //I actually should make a list of regexes to be cleaner, but oh well
-            Regex reg2 = new Regex("@rand(\\d+)@");
-            Regex reg3 = new Regex("@rand(\\d+)-(\\d+)@");
             string str2, str3,returnString;
             foreach( string str1 in output)
             {
@@ -99,9 +96,9 @@ namespace TWIRC
                 returnString = returnString.Replace("@count@", count.ToString());
                 returnString = returnString.Replace("@user@", user);
                 Random rnd = new Random();
-                foreach (Match match in Regex.Matches(returnString, "@rand(\\d+)@"))
+                while (Regex.Match(returnString, "@rand(\\d+)@").Success)
                 {
-                    //http://puu.sh/dogkG/4b5408be02.png
+                    Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
                     Console.WriteLine("Match: {0}", match.Value);
                     for (int groupCtr = 0; groupCtr < match.Groups.Count; groupCtr++)
                     {
@@ -110,23 +107,31 @@ namespace TWIRC
                         for (int captureCtr = 0; captureCtr < group.Captures.Count; captureCtr++)
                             Console.WriteLine("      Capture {0}: {1}", captureCtr,
                                               group.Captures[captureCtr].Value);
-
                     }
+                    //http://puu.sh/dogkG/4b5408be02.png
+                    str2 = returnString.Substring(0, match.Index);
+                    str3 = returnString.Substring(match.Groups[1].Captures[0].Value.Length + match.Index + 6);
+                    returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value)) + str3;
                 }
-                    /*
-                while (reg3.Match(returnString).Success)
+                    
+                while(Regex.Match(returnString, "@rand(\\d+)-(\\d+)@").Success)
                 {
-                    
-                    Match mat = reg2.Match(returnString);
-                    System.Diagnostics.Debugger.Break();
-                    str2 = returnString.Substring(0, mat.Index);//expertly split the string (of course we could use a replace, but we want different random numbers, don't we?
-                    Console.WriteLine("" + mat.Captures[0].Value + ";" + mat.Captures[1].Value);
-                    
-                    str3 = returnString.Substring(mat.Index + mat.Captures[0].Value.Length + mat.Captures[1].Value.Length + 7);
-                    returnString = str2 + rnd.Next(int.Parse(mat.Captures[0].Value), int.Parse(mat.Captures[1].Value)) + str3;
+                    Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
+                    Console.WriteLine("Match: {0}: index: {1}", match.Value,match.Index);
+                    for (int groupCtr = 0; groupCtr < match.Groups.Count; groupCtr++)
+                    {
+                        Group group = match.Groups[groupCtr];
+                        Console.WriteLine("   Group {0}: {1}", groupCtr, group.Value);
+                        for (int captureCtr = 0; captureCtr < group.Captures.Count; captureCtr++)
+                            Console.WriteLine("      Capture {0}: {1}", captureCtr,
+                                              group.Captures[captureCtr].Value);
+                    }
+                    str2 = returnString.Substring(0, match.Index);
+                    str3 = returnString.Substring(match.Index + match.Value.Length);
+                    returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value), int.Parse(match.Groups[2].Captures[0].Value)+1) + str3;
                      
                 }
-                */
+                
                 output[a] = returnString;
                 a++;
 

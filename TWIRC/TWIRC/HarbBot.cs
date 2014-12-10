@@ -48,7 +48,7 @@ namespace TWIRC
             comlist.Add(new command("!longtext", temp,5));
             comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
             comlist.Add(new command("!parexample", "You said \"@par1@\", followed by \"@par2@\", and then ended it all with \"@par3-@\"."));
-            comlist.Add(new command("!rnd", "HEre's an example of rng'ing. @rand200@ <- random number between 0 and 200. @rand1-2@ <- either 1 or 2"));
+            comlist.Add(new command("!rnd", "6 Random numbers between other things: @rand1-10@, @rand20-40@, @ran90-130@, @rand23-29@, @rand900-1200@, @rand0-2014@"));
             comlist[2].setCount(230);
             /*debug*/
 
