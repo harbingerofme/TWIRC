@@ -62,8 +62,8 @@ namespace TWIRC
         }
         public string[] getResponse(string input, string user)
         {
-            System.Diagnostics.Debugger.Break();
-            string reg1 = "[^" + keyword + "[ ]?|  ]";//remove the keyword and double spaces
+            //System.Diagnostics.Debugger.Break();
+            string reg1 = "("+ keyword + " )|(  )";//remove the keyword and double spaces
             string newPut = Regex.Replace(input,reg1,"");
             string[] pars = newPut.Split(' ');
             if(pars.Count()>10){
@@ -71,6 +71,11 @@ namespace TWIRC
                     pars[9]+=" "+pars[i];//merge all results bigger than 10 in the last parameter
                 }
             }
+            foreach (string absd in pars)
+            {
+                Console.Write(absd + ";");
+            }
+            Console.Write("\n");
             string[] output = responses.ToArray();
             int a=0;
             //I actually should make a list of regexes to be cleaner, but oh well
@@ -80,35 +85,48 @@ namespace TWIRC
             foreach( string str1 in output)
             {
                 returnString = str1;
-                for (int b = 1; b < pars.Count(); b++)
+                for (int b = 1; b < pars.Count()+1; b++)
                 {
-                    returnString = returnString.Replace("@par" + a + "@", pars[a - 1]);
+                    returnString = returnString.Replace("@par" + b + "@", pars[b - 1]);
                 }
 
-                for (int b = 1; b < pars.Count(); b++)
+                for (int b = 1; b < pars.Count()+1; b++)
                 {
                     str2 = "";
-                    for (int c = b; c < pars.Count(); c++) { str2 += pars[c]; }
+                    for (int c = b; c < pars.Count()+1; c++) { str2 += pars[c-1]+ " "; }
                     returnString = returnString.Replace("@par" + b + "-@", str2);
                 }
                 returnString = returnString.Replace("@count@", count.ToString());
                 returnString = returnString.Replace("@user@", user);
                 Random rnd = new Random();
-                while (reg2.Match(returnString).Success)
+                foreach (Match match in Regex.Matches(returnString, "@rand(\\d+)@"))
                 {
-                    Match mat = reg2.Match(returnString);
-                    str2 = returnString.Substring(0, mat.Index);//expertly split the string (of course we could use a replace, but we want different random numbers, don't we?
-                    str3 = returnString.Substring(mat.Index + mat.Captures[0].Value.Length + 3);
-                    returnString = str2 + rnd.Next(int.Parse(mat.Captures[0].Value)).ToString() + str3;
-                }
+                    //http://puu.sh/dogkG/4b5408be02.png
+                    Console.WriteLine("Match: {0}", match.Value);
+                    for (int groupCtr = 0; groupCtr < match.Groups.Count; groupCtr++)
+                    {
+                        Group group = match.Groups[groupCtr];
+                        Console.WriteLine("   Group {0}: {1}", groupCtr, group.Value);
+                        for (int captureCtr = 0; captureCtr < group.Captures.Count; captureCtr++)
+                            Console.WriteLine("      Capture {0}: {1}", captureCtr,
+                                              group.Captures[captureCtr].Value);
 
+                    }
+                }
+                    /*
                 while (reg3.Match(returnString).Success)
                 {
+                    
                     Match mat = reg2.Match(returnString);
+                    System.Diagnostics.Debugger.Break();
                     str2 = returnString.Substring(0, mat.Index);//expertly split the string (of course we could use a replace, but we want different random numbers, don't we?
+                    Console.WriteLine("" + mat.Captures[0].Value + ";" + mat.Captures[1].Value);
+                    
                     str3 = returnString.Substring(mat.Index + mat.Captures[0].Value.Length + mat.Captures[1].Value.Length + 7);
                     returnString = str2 + rnd.Next(int.Parse(mat.Captures[0].Value), int.Parse(mat.Captures[1].Value)) + str3;
+                     
                 }
+                */
                 output[a] = returnString;
                 a++;
 

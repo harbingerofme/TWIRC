@@ -1,8 +1,3 @@
-D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojResolveAssemblyReference.cache
-D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.exe
-D:\Own projects\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.pdb
-D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
-D:\Own projects\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
 C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
@@ -13,3 +8,5 @@ C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojReso
 E:\Github\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.exe
 E:\Github\TWIRC\TWIRC\TWIRC\bin\Debug\TWIRC.pdb
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojResolveAssemblyReference.cache
+D:\TWIRC.exe
+D:\TWIRC.pdb

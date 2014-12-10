@@ -43,12 +43,12 @@ namespace TWIRC
             irc2.OnChannelMessage += irc2ChanMess;
             
             /*debug*/
-            string[] temp = { "Harb is the one who wrote my code","He's pretty cool for that"};
+            string[] temp = { "Harb is the one who wrote my code","He's pretty cool for that","line 3","bla","more bla","line 6","another line","I should really limit this","line 9"};
             comlist.Add(new command("!harbbot", "Heyo, @user@!"));
-            comlist.Add(new command("!harb", temp,5));
+            comlist.Add(new command("!longtext", temp,5));
             comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
             comlist.Add(new command("!parexample", "You said \"@par1@\", followed by \"@par2@\", and then ended it all with \"@par3-@\"."));
-            comlist.Add(new command("!rnd", "@rand200@ <- random number between 0 and 200. @rand1-2@ <- either 1 or 2"));
+            comlist.Add(new command("!rnd", "HEre's an example of rng'ing. @rand200@ <- random number between 0 and 200. @rand1-2@ <- either 1 or 2"));
             comlist[2].setCount(230);
             /*debug*/
 
