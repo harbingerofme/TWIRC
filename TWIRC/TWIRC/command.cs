@@ -58,6 +58,7 @@ namespace TWIRC
         }
         public int addCount(int amount)
         {
+            count += amount;
             return count;
         }
         public string[] getResponse(string input, string user)
@@ -79,9 +80,25 @@ namespace TWIRC
             string[] output = responses.ToArray();
             int a=0;
             string str2, str3,returnString;
+            bool failure = false;
             foreach( string str1 in output)
             {
                 returnString = str1;
+                
+                while(Regex.Match(returnString,@"#par([123456789])#",RegexOptions.IgnoreCase).Success && !failure){
+                    Match match = Regex.Match(returnString, @"#par(\d)#", RegexOptions.IgnoreCase);
+                        if (pars[int.Parse(match.Groups[1].Captures[0].Value) - 1].Length > 0)
+                        {
+                            str2 = returnString.Substring(0, match.Index);
+                            str3 = returnString.Substring(match.Index + 6);
+                            returnString = str2 + pars[int.Parse(match.Groups[1].Captures[0].Value) - 1] + str3;
+                        }
+                        else
+                        {
+                            failure = true;
+                        }
+                }
+
                 for (int b = 1; b < pars.Count()+1; b++)
                 {
                     returnString = returnString.Replace("@par" + b + "@", pars[b - 1]);
@@ -99,16 +116,6 @@ namespace TWIRC
                 while (Regex.Match(returnString, "@rand(\\d+)@").Success)
                 {
                     Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
-                    Console.WriteLine("Match: {0}", match.Value);
-                    for (int groupCtr = 0; groupCtr < match.Groups.Count; groupCtr++)
-                    {
-                        Group group = match.Groups[groupCtr];
-                        Console.WriteLine("   Group {0}: {1}", groupCtr, group.Value);
-                        for (int captureCtr = 0; captureCtr < group.Captures.Count; captureCtr++)
-                            Console.WriteLine("      Capture {0}: {1}", captureCtr,
-                                              group.Captures[captureCtr].Value);
-                    }
-                    //http://puu.sh/dogkG/4b5408be02.png
                     str2 = returnString.Substring(0, match.Index);
                     str3 = returnString.Substring(match.Groups[1].Captures[0].Value.Length + match.Index + 6);
                     returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value)) + str3;
@@ -117,15 +124,7 @@ namespace TWIRC
                 while(Regex.Match(returnString, "@rand(\\d+)-(\\d+)@").Success)
                 {
                     Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
-                    Console.WriteLine("Match: {0}: index: {1}", match.Value,match.Index);
-                    for (int groupCtr = 0; groupCtr < match.Groups.Count; groupCtr++)
-                    {
-                        Group group = match.Groups[groupCtr];
-                        Console.WriteLine("   Group {0}: {1}", groupCtr, group.Value);
-                        for (int captureCtr = 0; captureCtr < group.Captures.Count; captureCtr++)
-                            Console.WriteLine("      Capture {0}: {1}", captureCtr,
-                                              group.Captures[captureCtr].Value);
-                    }
+                    if (int.Parse(match.Groups[1].Captures[0].Value) > int.Parse(match.Groups[2].Captures[0].Value)) { break; }
                     str2 = returnString.Substring(0, match.Index);
                     str3 = returnString.Substring(match.Index + match.Value.Length);
                     returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value), int.Parse(match.Groups[2].Captures[0].Value)+1) + str3;
@@ -136,7 +135,7 @@ namespace TWIRC
                 a++;
 
             }
-
+            if (failure) { output= new string[]{""};}
             return output;
 
         }

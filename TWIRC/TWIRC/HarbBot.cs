@@ -43,9 +43,8 @@ namespace TWIRC
             irc2.OnChannelMessage += irc2ChanMess;
             
             /*debug*/
-            string[] temp = { "Harb is the one who wrote my code","He's pretty cool for that","line 3","bla","more bla","line 6","another line","I should really limit this","line 9"};
             comlist.Add(new command("!harbbot", "Heyo, @user@!"));
-            comlist.Add(new command("!longtext", temp,5));
+            comlist.Add(new command("!morepars","This is a mandatory parameter: #par1#, while this is not: @par2@"));
             comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
             comlist.Add(new command("!parexample", "You said \"@par1@\", followed by \"@par2@\", and then ended it all with \"@par3-@\"."));
             comlist.Add(new command("!rnd", "6 Random numbers between other things: @rand1-10@, @rand20-40@, @ran90-130@, @rand23-29@, @rand900-1200@, @rand0-2014@"));
@@ -110,12 +109,12 @@ namespace TWIRC
                     {
                         System.Diagnostics.Debug.Write(": it can trigger");
                         str = c.getResponse(message,user);
+                        c.addCount(1);
+                        c.updateTime();
                         foreach (string b in str)
                         {
                              sendMess(channel, b);
-                            Console.WriteLine("->" + channel + ": " + b);
-                            c.addCount(1);  
-                            c.updateTime();
+                            Console.WriteLine("->" + channel + ": " + b); 
                         }
                     }
                 }
