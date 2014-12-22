@@ -61,6 +61,17 @@ namespace TWIRC
             count += amount;
             return count;
         }
+        public int setCooldown(int amount)
+        {
+            if (amount > -1) { 
+            cooldown = amount;
+            return amount;
+            }
+            else{
+                return -1;
+            }
+
+
         public string[] getResponse(string input, string user)
         {
             //System.Diagnostics.Debugger.Break();
@@ -144,6 +155,24 @@ namespace TWIRC
     public class command : com
     {
         public command() { throw new ArgumentException(); }//CAUSE I CAN
+        public command(string fromString)
+        {
+            string[] a = fromString.Split(' ');
+            string c="";
+            for (int b = 1; b < a.Count(); b++)
+            {
+                switch (b)
+                {
+                    case 1: authLevel = int.Parse(a[b]); break;
+                    case 2: count = int.Parse(a[b]); break;
+                    case 3: keyword = a[b]; break;
+                    default: c += a[b]; if (b + 1 < a.Count()) { c += " "; }; break;
+                }
+
+            }
+            responses = c.Split(new string[] { "}}}}||||>>>>" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (responses.Count() == 0) { throw new MissingFieldException(); }//having none of that shit.
+        }
         public command(string kw,string response)
         {
             responses = new List<string>();
@@ -191,11 +220,11 @@ namespace TWIRC
         }
 
         public override string ToString()
-        { //order is as follows: index type access_level count keyword(s) [keycode] <message|keyword(s)>
-            string result = "1 " + authLevel + " " + count + " " + keyword + " "+responses.Count+ " ";
+        { //order is as follows: index type access_level count keyword(s) amount of responses <message|keyword(s)>
+            string result = "1 " + authLevel + " " + count + " " + keyword + " ";
             foreach (string response in responses)
             {
-                result += responses + "}}}}||||>>>>"//that is some neato escape string right? Better not ever tell our users. I cannot predict what will happen if they make it this way.
+                result += response + "}}}}||||>>>>"//that is some neato escape string right? Better not ever tell our users. I cannot predict what will happen if they make it this way.
 ;
             }
             return result;//caller should prepend a index number himself, and append a line ending
