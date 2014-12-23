@@ -63,13 +63,16 @@ namespace TWIRC
         }
         public int setCooldown(int amount)
         {
-            if (amount > -1) { 
-            cooldown = amount;
-            return amount;
+            if (amount > -1)
+            {
+                cooldown = amount;
+                return amount;
             }
-            else{
+            else
+            {
                 return -1;
             }
+        }
 
 
         public string[] getResponse(string input, string user)
