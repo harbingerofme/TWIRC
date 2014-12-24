@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace TWIRC
+namespace TWIRC//contains the com (, sub :  com) and ali classes
 {
-    public class com//allows us to check for coms, I guess. I could have prob made h
+    public class com//allows us to check for coms, I guess. I could have prob made it smaller
     {
         protected string keyword{get;set;}
         protected List<string> responses { get; set; }
@@ -231,6 +231,74 @@ namespace TWIRC
 ;
             }
             return result;//caller should prepend a index number himself, and append a line ending
+        }
+    }
+
+
+    public class ali//these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
+    {
+        protected string[] from;//since multiple paths can lead to rome, we allow that
+        protected string to;//there's only 1 Rome (right?)
+        public ali(string fromString, string toString)
+        {
+            from = new string[1]{fromString};
+            to = toString;
+        }
+        public ali(string[] fromStrings, string toString)
+        {
+            from = fromStrings;
+            to = toString;
+        }
+        public override string ToString()
+        {
+            string result ="";
+            foreach (string str1 in from)
+            {
+                str1.Replace(" ","<><>");//replace spaces with <><>
+                result += str1 + " ";
+
+            }
+            result += to;//so it would look like this: "wtf !whatisthis what<><>is<><>this !what"
+            return result;
+        }
+
+        public ali(string rawString)
+        {
+            string[] splitted = rawString.Split(' ');
+            string str1;
+            to = splitted[splitted.Count() - 1];
+            from = new string[splitted.Count()-1];
+            for (int a = 0; a < splitted.Count() - 2; a++)
+            {
+                str1 = splitted[a].Replace("<><>", "  ");
+                from[a] = str1;
+            }
+
+        }
+
+        public void addFrom(string str1){
+            List<string> temp = from.ToList();
+            temp.Add(str1);
+            from = temp.ToArray();
+        }
+        public void addFrom(string[] str1)
+        {
+            List<string> temp = from.ToList();
+            foreach(string str2 in str1){
+                temp.Add(str2);
+            }
+            from = temp.ToArray();
+        }
+        public string filter(string input)
+        {
+            string result = input;
+            foreach(string str1 in from){
+                if (input.StartsWith(str1 + " ") || input == str1)
+                {
+                    result = Regex.Replace(input, "^" + str1, to);
+                }
+            }
+            return result;
         }
     }
 }

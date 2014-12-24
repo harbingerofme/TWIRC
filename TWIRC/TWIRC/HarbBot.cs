@@ -13,16 +13,18 @@ namespace TWIRC
     public class HarbBot
     {
         public static IrcClient irc = new IrcClient();
-        public static IrcClient irc2 = new IrcClient();//backup connection (to check if our messages arive)
+        public static IrcClient irc2 = new IrcClient();//backup connection (to check if our messages arrive)//currently we are not using this, for I have not thought of a good way to implement this (might be a future thing)
         public bool running = true;
 
         public string bot_name;
         public string[] channels;
         public string oauth;
         public List<com> comlist = new List<com>();
+        public List<ali> aliList = new List<ali>();
         public bool hasSend;
         public int time;
         public int globalCooldown;
+        public bool antispam = false;
 
         public Thread two;
 
@@ -131,12 +133,34 @@ oauth:thisisasampletoken123
             }
             else
             {
-                Console.WriteLine("Command File non-existant, making a new one.");
+                Console.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
                 writeFile("Commands.twirc","");
             }
 
 
-            
+            if(File.Exists("Aliases.twirc"))
+            {
+                try
+                {
+                    string[] tempString = FileLines("Commands.twirc");
+                    foreach (string tempString1 in tempString)
+                    {
+                        aliList.Add(new ali(tempString1));
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("'Aliases.twirc' contains an error and I was unable to parse it. Please check the file.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Aliases File non-existant, making a new one. (none loaded)");
+                writeFile("Aliases.twirc", "");
+            }
+
+
+            /*
             comlist.Add(new command("!harbbot", "Heyo, @user@!"));
             comlist.Add(new command("!morepars","This is a mandatory parameter: #par1#, while this is not: @par2@"));
             comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
@@ -188,6 +212,17 @@ oauth:thisisasampletoken123
         {
 
         }
+
+        public string filter(string message)
+        {
+            string result = message;
+            foreach (ali alias in aliList)
+            {
+                result = alias.filter(message);//shouldn't matter much
+            }
+            return result;
+        }
+            
 
         public void checkCommand(string channel, string user, string message)
         {
@@ -265,6 +300,8 @@ oauth:thisisasampletoken123
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             Console.WriteLine("<-" + channel + ": <" + nick + "> " + message);
+            if (antispam) { checkSpam(channel, nick, message); };
+            message = filter(message);
             this.checkCommand(channel,nick,message);
         }
         public void ircChanActi(object sender, IrcEventArgs e)
