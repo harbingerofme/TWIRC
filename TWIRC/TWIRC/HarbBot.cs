@@ -13,7 +13,6 @@ namespace TWIRC
     public class HarbBot
     {
         public static IrcClient irc = new IrcClient();
-        public static IrcClient irc2 = new IrcClient();//backup connection (to check if our messages arrive)//currently we are not using this, for I have not thought of a good way to implement this (might be a future thing)
         public bool running = true;
 
         public string bot_name;
@@ -25,6 +24,8 @@ namespace TWIRC
         public int time;
         public int globalCooldown;
         public bool antispam = false;
+        public bool debug_mode = true;//Remove me
+        public string[] oplist;//might be deleted
 
         public Thread two;
 
@@ -39,17 +40,28 @@ namespace TWIRC
             irc.OnJoin += ircJoined;
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
-            irc2 = irc;
 
             irc.OnQueryMessage += ircQuery;
             irc.OnRawMessage += ircRaw;
             irc.OnChannelAction += ircChanActi;
             irc.OnChannelMessage += ircChanMess;
-            irc2.OnChannelMessage += irc2ChanMess;
             
             //LoadCommands
             Console.WriteLine("Booting up, shouldn't take long!");
-            Console.ReadLine();
+            /*DEBUG*/
+            if (debug_mode)
+            {
+                try{
+                Console.WriteLine("Debug mode enabled, this is a major security issue!");
+                oplist = FileLines("DEBUG.txt");
+                }
+                catch
+                {
+                    Console.WriteLine("DEBUG.txt failed to open (does it exist?), maybe it's incorrect data, idk, I don't check.");
+                }
+            }
+            /*DEBUG*/
+
             if (File.Exists("Settings.txt"))
             {
                 try
@@ -123,7 +135,7 @@ oauth:thisisasampletoken123
                             }
                         }
                     }
-                    Console.WriteLine("Loaded up "+comlist.Count()+ "commands.");
+                    Console.WriteLine("Loaded up "+comlist.Count()+ " commands.");
                     File.Copy("Commands.twirc", "backupCommands.twirc",true);
                 }
                 catch
@@ -169,7 +181,7 @@ oauth:thisisasampletoken123
             comlist[2].setCount(230);
             //*debug*/
 
-            //two = new Thread(run_2);
+            two = new Thread(run_2);//manages saving of commandlists, etc.
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
         }
@@ -179,11 +191,8 @@ oauth:thisisasampletoken123
             try
             {
                 irc.Disconnect();
-                irc2.Disconnect();
             }
             catch { };
-            two.Abort();
-            two = new Thread(run_2);
             try{
                 irc.Connect("irc.twitch.tv", 6667);
             }
@@ -195,17 +204,25 @@ oauth:thisisasampletoken123
 
         }
 
-        public void run_1()
-        {
-            Thread.Sleep(100);
-                
-        }
-
         public void run_2()
         {
-            Thread.Sleep(1);
-                try { irc2.Connect("irc.twitch.tv", 6667); }
-                catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 2 Connection error: " + e.Message); }
+            string temp;
+            while (true)
+            {
+                Thread.Sleep(1000 * 60 * 15);//every 15 min  
+                temp ="";
+                foreach (com acom in comlist)
+                {
+                    temp += acom.ToString() + "\n";
+                }
+                writeFile("Commands.twirc",temp);//we can be sure it works, but I don't feel comfortable overwrtiting the backup.
+                temp = "";
+                foreach (ali aali in aliList)
+                {
+                    temp += aali.ToString() + "\n";
+                }
+                writeFile("Aliases.twirc", temp);
+            }
         }
 
         public void checkSpam(string channel, string user, string message)
@@ -316,21 +333,6 @@ oauth:thisisasampletoken123
         public void ircQuery(object sender, EventArgs e)
         {
             
-        }
-        public void irc2Raw(object sender, EventArgs e)
-        {
-            
-        }
-        public void irc2ChanMess(object sender, IrcEventArgs e)
-        {
-            if (hasSend)
-            {
-                if (e.Data.Nick == bot_name)
-                {
-                    hasSend = false;
-                }
-                
-            }
         }
         public string[] FileLines(string path)
         {

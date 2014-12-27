@@ -4,9 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace TWIRC
-{ //name will be changed later, care for it.
-    class Our_own_implementation
-    {
+{ //file should be deleted later
+    class tempMain{
         public static void Main(string[] args)
         {
 

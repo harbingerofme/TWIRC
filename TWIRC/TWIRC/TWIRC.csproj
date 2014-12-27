@@ -48,8 +48,7 @@
   <ItemGroup>
     <Compile Include="command.cs" />
     <Compile Include="HarbBot.cs" />
-    <Compile Include="Our own implementation.cs" />
-    <Compile Include="test_1.cs" />
+    <Compile Include="tempMain.cs" />
     <Compile Include="SmartIrc4net\AssemblyInfo.cs" />
     <Compile Include="SmartIrc4net\Consts.cs" />
     <Compile Include="SmartIrc4net\EventArgs.cs" />
