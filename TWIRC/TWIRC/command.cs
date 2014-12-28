@@ -42,10 +42,19 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             string[] pars;
             if (doesMatch(input))
             {
-                pars = input.Split(' ',parameters,StringSplitOptions.RemoveEmptyEntries);
-
+                pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
+                if (pars.Count() >= parameters)
+                {
+                    return true;
+                }
             }
             return false;
+        }
+        public string[] returnPars(string input)//gives the parameters as a string[], while all else is put in the next one.
+        {
+            string[] result;
+            result = input.Split(new string[] { " " }, parameters+1,StringSplitOptions.RemoveEmptyEntries);
+            return result;
         }
     }
 
