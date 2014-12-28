@@ -279,7 +279,7 @@ oauth:thisisasampletoken123
                             {
                                 tempVar1 = 0;
                                 if (Regex.Match(str[2], @"@level(\d)@").Success) { tempVar1 = int.Parse(Regex.Match(str[2], @"@level(\d)@").Groups[1].Captures[0].Value); tempVar2 = str[3]; if (tempVar1 >= 5) { tempVar1 = 5; } }
-                                else { tempVar2 = str[2]+str[3]; }
+                                else { tempVar2 = str[2]+" "+ str[3]; }
                                 tempVar3 = tempVar2.Split(new string[] {"\\n"},StringSplitOptions.RemoveEmptyEntries);
                                 comlist.Add(new command(str[1], tempVar3, tempVar1));
                                 sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
