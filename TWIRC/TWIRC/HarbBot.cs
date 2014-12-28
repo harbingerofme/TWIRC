@@ -20,6 +20,7 @@ namespace TWIRC
         public string oauth;
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
+        public List<hardCom> hardList = new List<hardCom>();
         public bool hasSend;
         public int time;
         public int globalCooldown;
@@ -185,15 +186,20 @@ oauth:thisisasampletoken123
                 writeFile("Aliases.twirc", "");
             }
 
+            //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persitency)
+            hardList.Add(new hardCom("!ac", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
+            hardList.Add(new hardCom("!dc", 3, 1));//delcom
+            hardList.Add(new hardCom("!ec", 3, 2));//editcom
+            hardList.Add(new hardCom("!aa", 3, 2));//addalias
+            hardList.Add(new hardCom("!da", 3, 1));//delete alias
+            hardList.Add(new hardCom("!addReg", 3, 1));
+            hardList.Add(new hardCom("!addMod", 4, 1));
+            hardList.Add(new hardCom("!addAdmin", 5, 1));
+            hardList.Add(new hardCom("!addBan", 2, 1));
+            hardList.Add(new hardCom("!editCount", 3, 2));
+            hardList.Add(new hardCom("!addTrust", 3, 1));
+            hardList.Add(new hardCom("!strip", 5, 1));
 
-            /*
-            comlist.Add(new command("!harbbot", "Heyo, @user@!"));
-            comlist.Add(new command("!morepars","This is a mandatory parameter: #par1#, while this is not: @par2@"));
-            comlist.Add(new command("!countExample", "This command has been called @count@ times!"));
-            comlist.Add(new command("!parexample", "You said \"@par1@\", followed by \"@par2@\", and then ended it all with \"@par3-@\"."));
-            comlist.Add(new command("!rnd", "6 Random numbers between other things: @rand1-10@, @rand20-40@, @ran90-130@, @rand23-29@, @rand900-1200@, @rand0-2014@"));
-            comlist[2].setCount(230);
-            //*debug*/
 
             two = new Thread(run_2);//manages saving of commandlists, etc.
             try { irc.Connect("irc.twitch.tv", 6667); }
@@ -252,10 +258,40 @@ oauth:thisisasampletoken123
         public void checkCommand(string channel, string user, string message)
         {
             int a = 0;
-            string[] str;
+            string[] str,tempVar3;
+            bool done = false;
+            bool fail; int tempVar1 = 0; string tempVar2 = "";
+            foreach (hardCom h in hardList)//hardcoded command
+            {
+                if (h.hardMatch(message))
+                {
+                    str = h.returnPars(message);
+                    switch (h.returnKeyword())
+                    {
+                        case "!ac":
+                            fail = false;
+                            
+                            foreach(command c in comlist){if(c.doesMatch(str[1])){fail=true;break;}}
+                            foreach(hardCom c in hardList){if(c.doesMatch(str[1])||fail){fail=true;break;}}
+                            foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; }}
+                            if(fail){sendMess(channel,"I'm sorry, "+user+". A command or alias with the same name exists already.");}
+                            else
+                            {
+                                tempVar1 = 0;
+                                if (Regex.Match(str[2], @"@level(\d)@").Success) { tempVar1 = int.Parse(Regex.Match(str[2], @"@level(\d)@").Groups[1].Captures[0].Value); tempVar2 = str[3]; if (tempVar1 >= 5) { tempVar1 = 5; } }
+                                else { tempVar2 = str[2]+str[3]; }
+                                tempVar3 = tempVar2.Split(new string[] {"\\n"},StringSplitOptions.RemoveEmptyEntries);
+                                comlist.Add(new command(str[1], tempVar3, tempVar1));
+                                sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
+                            }
+                            break;
+                        case "!ec":
+                            break;
+                    }
+                }
+            }
 
-
-
+        if(!done){
             foreach (command c in comlist)//flexible commands
             {
                 if (c.doesMatch(message))
@@ -283,6 +319,7 @@ oauth:thisisasampletoken123
                 System.Diagnostics.Debug.Write(".\n");
                 a++;
             }
+        }
         }
 
         public void sendMess(string channel, string message)
