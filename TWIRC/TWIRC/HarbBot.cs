@@ -18,14 +18,22 @@ namespace TWIRC
         public string bot_name;
         public string[] channels;
         public string oauth;
-        public List<com> comlist = new List<com>();
+        public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
         public bool hasSend;
         public int time;
         public int globalCooldown;
         public bool antispam = false;
+
+        //debug these
         public bool debug_mode = true;//Remove me
-        public string[] oplist;//might be deleted
+        public string[] opList;//might be deleted
+        public string[] adminList;
+        public string[] trustList;
+        public string[] regList;
+        public string[] banList;
+        //Really
+
 
         public Thread two;
 
@@ -52,12 +60,18 @@ namespace TWIRC
             if (debug_mode)
             {
                 try{
-                Console.WriteLine("Debug mode enabled, this is a major security issue!");
-                oplist = FileLines("DEBUG.txt");
+                Console.WriteLine("Debug mode enabled, this takes names from text files instead of a database!\nWe are not checking if the files ex");
+                adminList = FileLines("DEBUG_admin.txt");
+                opList = FileLines("DEBUG_op.txt");
+                trustList = FileLines("DEBUG_trust.txt");
+                regList = FileLines("DEBUG_reg.txt");
+                banList = FileLines("DEBUG_ban.txt");
+
                 }
                 catch
                 {
-                    Console.WriteLine("DEBUG.txt failed to open (does it exist?), maybe it's incorrect data, idk, I don't check.");
+                    Console.WriteLine("Failed to open files (do they exist?), maybe it's incorrect data, idk, I don't check.");
+                    Environment.Exit(404);
                 }
             }
             /*DEBUG*/
@@ -209,19 +223,13 @@ oauth:thisisasampletoken123
             string temp;
             while (true)
             {
-                Thread.Sleep(1000 * 60 * 15);//every 15 min  
-                temp ="";
+                Thread.Sleep(60000);//every min  
+                temp = "";
                 foreach (com acom in comlist)
                 {
                     temp += acom.ToString() + "\n";
                 }
-                writeFile("Commands.twirc",temp);//we can be sure it works, but I don't feel comfortable overwrtiting the backup.
-                temp = "";
-                foreach (ali aali in aliList)
-                {
-                    temp += aali.ToString() + "\n";
-                }
-                writeFile("Aliases.twirc", temp);
+                writeFile("Commands.twirc", temp);//we can be sure it works, but I don't feel comfortable overwrtiting the backup.
             }
         }
 
@@ -245,22 +253,30 @@ oauth:thisisasampletoken123
         {
             int a = 0;
             string[] str;
-            foreach (com c in comlist)
+
+
+
+            foreach (command c in comlist)//flexible commands
             {
-                System.Diagnostics.Debug.Write("Checking command");
                 if (c.doesMatch(message))
                 {
-                    System.Diagnostics.Debug.Write(": it matches");
+                    System.Diagnostics.Debug.Write("A command has been matched!");
                     if(c.canTrigger())
                     {
                         System.Diagnostics.Debug.Write(": it can trigger");
-                        str = c.getResponse(message,user);
-                        c.addCount(1);
-                        c.updateTime();
-                        foreach (string b in str)
+                        if (c.getAuth() <= pullAuth(user,channel))
                         {
-                             sendMess(channel, b);
-                            Console.WriteLine("->" + channel + ": " + b); 
+                            System.Diagnostics.Debug.Write(": auth level correct");
+
+
+                            str = c.getResponse(message, user);
+                            c.addCount(1);
+                            c.updateTime();
+                            foreach (string b in str)
+                            {
+                                sendMess(channel, b);
+                                Console.WriteLine("->" + channel + ": " + b);
+                            }
                         }
                     }
                 }
@@ -282,6 +298,41 @@ oauth:thisisasampletoken123
         return (int)Math.Floor(diff.TotalSeconds);
         }
 
+        public int pullAuth(string name, string channel)
+        {
+            //fancy code to puul from the database
+            //here
+            //and here
+            if (debug_mode)
+            {
+                if (adminList.Contains(name))
+                {
+                    return 5;//botAdmin
+                }
+                if ("#"+name == channel)
+                {
+                    return 4;//Broadcaster
+                }
+                if (opList.Contains(name))
+                {
+                    return 3;//mod
+                }
+                if (trustList.Contains(name))
+                {
+                    return 2; // (manual)
+                }
+                if (regList.Contains(name))
+                {
+                    return 1;//regular //should be auto
+                }
+                if (banList.Contains(name))
+                {
+                    return -1;//banned
+                }
+                return 0;
+            }
+            return 0;
+        }
 
         //eventbinders
         public void ircConnected(object sender, EventArgs e)
