@@ -52,9 +52,10 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         }
         public string[] returnPars(string input)//gives the keyword and parameters as a string[], while all else is put in the last one.
         {
-            string[] result;
-            result = input.Split(new string[] { " " }, parameters+2,StringSplitOptions.RemoveEmptyEntries);
-            return result;
+            List<string> result;
+            result = input.Split(new string[] { " " }, parameters+2,StringSplitOptions.RemoveEmptyEntries).ToList();
+            result.Add("");//makes sure we don't go out of bounds
+            return result.ToArray();
         }
         public string returnKeyword()
         {
@@ -139,9 +140,13 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             if (lastTime + cooldown < getNow()) { return true; }
             return false;
         }
-        public void addResponse(string input)
+        public void setResponse(string[] input)
         {
-            responses.Add(input);
+            responses = input.ToList();
+        }
+        public void setAuth(int level)
+        {
+            authLevel = level;
         }
         public string[] getResponses()
         {
@@ -281,24 +286,28 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
 
     public class ali//these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
     {
-        protected string[] from;//since multiple paths can lead to rome, we allow that
+        protected List<string> from = new List<string>();//since multiple paths can lead to rome, we allow that
         protected string to;//there's only 1 Rome (right?)
         public ali(string fromString, string toString)
         {
-            from = new string[1]{fromString};
+            from.Add(fromString);
             to = toString;
         }
         public ali(string[] fromStrings, string toString)
         {
-            from = fromStrings;
+            from.AddRange(fromStrings);
             to = toString;
+        }
+        public string getTo()
+        {
+            return to;
         }
         public override string ToString()
         {
             string result ="";
             foreach (string str1 in from)
             {
-                str1.Replace(" ","<><>");//replace spaces with <><>
+                str1.Replace(" ", "<><>");//replace spaces with <><>
                 result += str1 + " ";
 
             }
@@ -308,30 +317,33 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
 
         public ali(string rawString)
         {
-            string[] splitted = rawString.Split(' ');
+            List<string> splitted = rawString.Split(new String[] {" "},StringSplitOptions.RemoveEmptyEntries).ToList();
             string str1;
             to = splitted[splitted.Count() - 1];
-            from = new string[splitted.Count()-1];
-            for (int a = 0; a < splitted.Count() - 2; a++)
+            splitted.Remove(to);
+            from = splitted;
+            for (int a = 0; a < from.Count(); a++)
             {
-                str1 = splitted[a].Replace("<><>", "  ");
+                str1 = from[a].Replace("<><>", " ");
                 from[a] = str1;
             }
 
         }
 
         public void addFrom(string str1){
-            List<string> temp = from.ToList();
-            temp.Add(str1);
-            from = temp.ToArray();
+            from.Add(str1);
         }
         public void addFrom(string[] str1)
         {
-            List<string> temp = from.ToList();
-            foreach(string str2 in str1){
-                temp.Add(str2);
-            }
-            from = temp.ToArray();
+            from.AddRange(str1);
+        }
+        public bool delFrom(string str1)
+        {
+            return from.Remove(str1);
+        }
+        public string[] getFroms()
+        {
+            return from.ToArray();
         }
         public string filter(string input)
         {

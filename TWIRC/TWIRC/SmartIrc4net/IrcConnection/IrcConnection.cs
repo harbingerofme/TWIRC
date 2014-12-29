@@ -501,7 +501,7 @@ namespace Meebey.SmartIrc4net
                 if (OnConnected != null) {
                     OnConnected(this, EventArgs.Empty);
                 }
-            } catch (Exception e) {
+            } catch (Exception e){
                 if (_Reader != null) {
                     try {
                         _Reader.Close();

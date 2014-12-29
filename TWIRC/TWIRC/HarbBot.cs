@@ -28,11 +28,11 @@ namespace TWIRC
 
         //debug these
         public bool debug_mode = true;//Remove me
-        public string[] opList;//might be deleted
-        public string[] adminList;
-        public string[] trustList;
-        public string[] regList;
-        public string[] banList;
+        public List<string> opList;//might be deleted
+        public List<string> adminList;
+        public List<string> trustList;
+        public List<string> regList;
+        public List<string> banList;
         //Really
 
 
@@ -61,12 +61,12 @@ namespace TWIRC
             if (debug_mode)
             {
                 try{
-                Console.WriteLine("Debug mode enabled, this takes names from text files instead of a database!\nWe are not checking if the files ex");
-                adminList = FileLines("DEBUG_admin.txt");
-                opList = FileLines("DEBUG_op.txt");
-                trustList = FileLines("DEBUG_trust.txt");
-                regList = FileLines("DEBUG_reg.txt");
-                banList = FileLines("DEBUG_ban.txt");
+                Console.WriteLine("Debug mode enabled, this takes names from text files instead of a database!\nWe are not checking if the files exist.");
+                adminList = FileLines("DEBUG_admin.txt").ToList();
+                opList = FileLines("DEBUG_op.txt").ToList();
+                trustList = FileLines("DEBUG_trust.txt").ToList();
+                regList = FileLines("DEBUG_reg.txt").ToList();
+                banList = FileLines("DEBUG_ban.txt").ToList();
 
                 }
                 catch
@@ -169,11 +169,13 @@ oauth:thisisasampletoken123
             {
                 try
                 {
-                    string[] tempString = FileLines("Commands.twirc");
+                    string[] tempString = FileLines("Aliases.twirc");
                     foreach (string tempString1 in tempString)
                     {
                         aliList.Add(new ali(tempString1));
                     }
+                    Console.WriteLine("Loaded up " + aliList.Count() + " aliases.");
+                    File.Copy("Aliases.twirc", "backupAliases.twirc", true);
                 }
                 catch
                 {
@@ -192,16 +194,14 @@ oauth:thisisasampletoken123
             hardList.Add(new hardCom("!ec", 3, 2));//editcom
             hardList.Add(new hardCom("!aa", 3, 2));//addalias
             hardList.Add(new hardCom("!da", 3, 1));//delete alias
-            hardList.Add(new hardCom("!addReg", 3, 1));
-            hardList.Add(new hardCom("!addMod", 4, 1));
-            hardList.Add(new hardCom("!addAdmin", 5, 1));
-            hardList.Add(new hardCom("!addBan", 2, 1));
-            hardList.Add(new hardCom("!editCount", 3, 2));
-            hardList.Add(new hardCom("!addTrust", 3, 1));
-            hardList.Add(new hardCom("!strip", 5, 1));
+            hardList.Add(new hardCom("!set", 2, 2));//elevate another user
+            hardList.Add(new hardCom("!editcount", 3, 2));
+            hardList.Add(new hardCom("!banuser", 3, 1));
+            hardList.Add(new hardCom("!strip", 4, 1));
 
 
             two = new Thread(run_2);//manages saving of commandlists, etc.
+            two.Start();
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
         }
@@ -225,17 +225,11 @@ oauth:thisisasampletoken123
         }
 
         public void run_2()
-        {
-            string temp;
+        {       
             while (true)
             {
-                Thread.Sleep(60000);//every min  
-                temp = "";
-                foreach (com acom in comlist)
-                {
-                    temp += acom.ToString() + "\n";
-                }
-                writeFile("Commands.twirc", temp);//we can be sure it works, but I don't feel comfortable overwrtiting the backup.
+                Thread.Sleep(60000);//every SECOND
+                safe();
             }
         }
 
@@ -257,7 +251,6 @@ oauth:thisisasampletoken123
 
         public void checkCommand(string channel, string user, string message)
         {
-            int a = 0;
             string[] str,tempVar3;
             bool done = false;
             bool fail; int tempVar1 = 0; string tempVar2 = "";
@@ -265,6 +258,7 @@ oauth:thisisasampletoken123
             {
                 if (h.hardMatch(message))
                 {
+                    done = true;
                     str = h.returnPars(message);
                     switch (h.returnKeyword())
                     {
@@ -283,15 +277,123 @@ oauth:thisisasampletoken123
                                 tempVar3 = tempVar2.Split(new string[] {"\\n"},StringSplitOptions.RemoveEmptyEntries);
                                 comlist.Add(new command(str[1], tempVar3, tempVar1));
                                 sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
+                                safe();
                             }
                             break;
                         case "!ec":
+                            fail = true;
+                            for (int a = 0; a < comlist.Count() && fail; a++)
+                            {
+                                if (comlist[a].doesMatch(str[1])) {
+                                    tempVar1 = 0;
+                                    if (Regex.Match(str[2], @"@level(\d)@").Success) { tempVar1 = int.Parse(Regex.Match(str[2], @"@level(\d)@").Groups[1].Captures[0].Value); tempVar2 = str[3]; if (tempVar1 >= 5) { tempVar1 = 5; } }
+                                    else { tempVar2 = str[2] + " " + str[3]; }
+                                    tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
+                                    comlist[a].setResponse(tempVar3);
+                                    comlist[a].setAuth(tempVar1);
+                                    sendMess(channel, user+ "-> command \""+str[1]+"\" has been edited.");
+                                    safe();
+                                    fail = false;
+                                }
+                            }
+                            if (fail)
+                            {
+                                sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
+                            }
+                            break;
+                        case "!dc"://delete command
+                            fail = true;
+                            for (int a = 0; a < comlist.Count() && fail; a++)
+                            {
+                                if (comlist[a].doesMatch(str[1])) { comlist.RemoveAt(a); fail = false; sendMess(channel, user + "-> command \"" + str[1] + "\" has been deleted."); safe(); break; }
+
+                            }
+                            if (fail)
+                            {
+                                sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
+                            }
+                                break;
+                        case "!aa": //add alias
+                            fail = false;
+                            foreach(command c in comlist){if(c.doesMatch(str[1])){fail=true;break;}}
+                            foreach(hardCom c in hardList){if(c.doesMatch(str[1])||fail){fail=true;break;}}
+                            foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; }}
+                            if(fail){sendMess(channel,"I'm sorry, "+user+". A command or alias with the same name exists already.");}
+                            else
+                            {
+                                fail = true;
+                                foreach (ali c in aliList)
+                                {
+                                    if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
+                                }
+                                if (fail) { aliList.Add(new ali(str[1],str[2])); }
+                                sendMess(channel, user + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                safe();
+                            }
+                            break;
+                        case "!da":
+                            fail = true;
+                            foreach (ali c in aliList)
+                            {
+                                if (c.delFrom(str[1]))
+                                {
+                                    sendMess(channel, user + " -> Alias \""+str[1]+"\" removed.");
+                                    if (c.getFroms().Count() == 0) { aliList.Remove(c); }
+                                    fail = false;
+                                    safe();
+                                    break;
+                                }
+                            }
+                            if (fail) { sendMess(channel,"I'm sorry, "+user+". I couldn't find any aliases that match it. (maybe it's a command?)");}
+                            break;
+                        case "!set"://!set <name> <level>
+                            if(Regex.Match(str[2],"^[0-"+pullAuth(user,channel)+"]$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                            {
+                                setAuth(str[1].ToLower(), int.Parse(str[2]));
+                                sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ". Note that this doesn't replace any other auth levels");
+                                safe();
+                            }
+                            else
+                            {
+                                sendMess(channel, "I'm sorry, " + user + ". You either lack the authorisation to give such levels, or that level is not a vald number.");
+                            }
+                            break;
+                        case "!editcount":
+                            fail = true;
+                            if(!Regex.Match(str[2],@"^\d+$").Success){
+                                break;
+                            }
+                            foreach (command c in comlist)
+                            {
+                                if (c.doesMatch(str[1]))
+                                {
+                                    fail = false;
+                                    c.setCount(int.Parse(str[2]));
+                                    sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
+                                    safe();
+                                }
+                            }
+                            break;
+                        case "!banuser":
+                            banList.Add(str[1]);
+                            sendMess(channel, user + "-> \""+ str[1] + "\" has been banned from using bot commands (note that this only works for people without a rank)");
+                            safe();
+                            break;
+                        case "!strip":
+                            opList.Remove(str[1]);
+                            banList.Remove(str[1]);
+                            trustList.Remove(str[1]);
+                            regList.Remove(str[1]);
+                            sendMess(channel,user + "-> \""+ str[1]+ "\" has been stripped from all ranks (except admin or broadcaster) and has been unbanned.");
+                            safe();
                             break;
                     }
+                    break;
                 }
             }
 
         if(!done){
+            tempVar1 =0;
             foreach (command c in comlist)//flexible commands
             {
                 if (c.doesMatch(message))
@@ -307,26 +409,26 @@ oauth:thisisasampletoken123
 
                             str = c.getResponse(message, user);
                             c.addCount(1);
-                            c.updateTime();
+                            if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
                             foreach (string b in str)
                             {
                                 sendMess(channel, b);
-                                Console.WriteLine("->" + channel + ": " + b);
                             }
                         }
                     }
                 }
                 System.Diagnostics.Debug.Write(".\n");
-                a++;
+                tempVar1++;
             }
         }
         }
 
         public void sendMess(string channel, string message)
         {
+            Console.WriteLine("->" + channel + ": " + message);
             hasSend = true;
             time = getNow();
-            irc.SendMessage(SendType.Message, channel, message);
+            //irc.SendMessage(SendType.Message, channel, message);
         }
 
         public int getNow(){
@@ -369,6 +471,32 @@ oauth:thisisasampletoken123
                 return 0;
             }
             return 0;
+        }
+        public void setAuth(string user, int level)
+        {
+            //fancy code to edit database
+            //here
+            //and here
+            if (debug_mode)
+            {
+                switch(level){
+                    case 1:
+                        regList.Add(user);
+                        break;
+                    case 2:
+                        trustList.Add(user);
+                        break;
+                    case 3:
+                        opList.Add(user);
+                        break;
+                    case 5:
+                        adminList.Add(user);
+                        break;
+                    case -1:
+                        banList.Add(user);
+                        break;
+                }
+            }
         }
 
         //eventbinders
@@ -422,6 +550,41 @@ oauth:thisisasampletoken123
         {
             
         }
+        public void safe()//saves all data
+        {
+            string temp; 
+            temp = "";
+            foreach (command c in comlist)
+                {
+                    temp += c.ToString() + "\n";
+                }
+            writeFile("Commands.twirc", temp);
+            temp = "";
+            foreach (ali c in aliList)
+            {
+                temp += c.ToString() + "\n";
+            }
+            writeFile("Aliases.twirc", temp);
+            if (debug_mode)
+            {
+                temp ="";
+                foreach(string c in opList){temp+=c+ "\n";}
+                writeFile("DEBUG_op",temp);
+                temp = "";
+                foreach (string c in trustList) { temp += c + "\n"; }
+                writeFile("DEBUG_trust", temp);
+                temp = "";
+                foreach (string c in adminList) { temp += c + "\n"; }
+                writeFile("DEBUG_admin", temp);
+                temp = "";
+                foreach (string c in regList) { temp += c + "\n"; }
+                writeFile("DEBUG_reg", temp);
+                temp = "";
+                foreach (string c in banList) { temp += c + "\n"; }
+                writeFile("DEBUG_ban", temp);
+            }
+        }
+
         public string[] FileLines(string path)
         {
             try
