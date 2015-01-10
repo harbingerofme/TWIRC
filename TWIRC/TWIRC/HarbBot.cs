@@ -48,25 +48,25 @@ namespace TWIRC
             irc.OnRawMessage += ircRaw;
             irc.OnChannelAction += ircChanActi;
             irc.OnChannelMessage += ircChanMess;
-            
+
             //LoadCommands
             Console.WriteLine("Booting up, shouldn't take long!");
             string temp;
-            if(!File.Exists("db.sqlite"))
+            if (!File.Exists("db.sqlite"))
             {
                 Console.WriteLine("First time setup detected, please enter the following data:\nThe name of the bot (default harbbot):");
                 temp = Console.ReadLine();
-                while (!Regex.Match(temp, @"^[\w_]*$").Success) { temp = Console.ReadLine();}
+                while (!Regex.Match(temp, @"^[\w_]*$").Success) { temp = Console.ReadLine(); }
                 if (temp != "") { bot_name = temp; } else { bot_name = "harbbot"; }
 
                 Console.WriteLine("Your channel (default harbbot):");
-                channels = "" ;
+                channels = "";
                 while (channels == "")
                 {
                     temp = Console.ReadLine();
                     if (Regex.Match(temp, @"^[\w_]+$").Success) { channels = "#" + temp; }
                     if (Regex.Match(temp, @"^#[\w_]+$").Success) { channels = temp; }
-                    if (temp == "") { channels = "#harbbot";}
+                    if (temp == "") { channels = "#harbbot"; }
                 }
 
                 Console.WriteLine("The cooldown on commands (default 20):");
@@ -93,22 +93,24 @@ namespace TWIRC
                 while (oauth == "")
                 {
                     temp = Console.ReadLine();
-                    if(temp == "done")
+                    if (temp == "done")
                     {
                         temp3 = FileLines("oauth.txt");
-                        if (temp3.Count()>0) {
-                            if (Regex.Match(temp3[0], @"^oauth:\w+$",RegexOptions.IgnoreCase).Success) { oauth = temp3[0].ToLower(); }
-                            if (Regex.Match(temp3[0], @"^\w+$", RegexOptions.IgnoreCase).Success) { oauth = "oauth:"+temp3[0].ToLower(); }
+                        if (temp3.Count() > 0)
+                        {
+                            if (Regex.Match(temp3[0], @"^oauth:\w+$", RegexOptions.IgnoreCase).Success) { oauth = temp3[0].ToLower(); }
+                            if (Regex.Match(temp3[0], @"^\w+$", RegexOptions.IgnoreCase).Success) { oauth = "oauth:" + temp3[0].ToLower(); }
                         }
                     }
-                    if(oauth==""){
+                    if (oauth == "")
+                    {
                         Console.WriteLine("Oauth invalid, please try again.");
                     }
                 }
                 File.Delete("oauth.txt");
                 Console.WriteLine("That was it, you are done configuring the bot from the command line, if you want to change any of these settings at a later point in time, open the included Settings.exe");
 
-                short temp2 = 0;if(antispam){temp2 =1;}
+                short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
@@ -116,8 +118,8 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,oauth,cooldown) VALUES ('"+bot_name+"','"+channels+"','"+temp2+"','"+oauth+"','"+globalCooldown+"');",dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+channels.Substring(1)+"','4','"+getNowSQL()+"');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,oauth,cooldown) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "','" + oauth + "','" + globalCooldown + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -150,8 +152,8 @@ namespace TWIRC
                             }
                         }
                     }
-                    Console.WriteLine("Loaded up "+comlist.Count()+ " commands.");
-                    File.Copy("Commands.twirc", "backupCommands.twirc",true);
+                    Console.WriteLine("Loaded up " + comlist.Count() + " commands.");
+                    File.Copy("Commands.twirc", "backupCommands.twirc", true);
                 }
                 catch
                 {
@@ -161,11 +163,11 @@ namespace TWIRC
             else
             {
                 Console.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
-                writeFile("Commands.twirc","");
+                writeFile("Commands.twirc", "");
             }
 
 
-            if(File.Exists("Aliases.twirc"))
+            if (File.Exists("Aliases.twirc"))
             {
                 try
                 {
@@ -207,25 +209,27 @@ namespace TWIRC
         }
 
         public void reconnect()
-        { 
+        {
             try
             {
                 irc.Disconnect();
             }
             catch { };
-            try{
+            try
+            {
                 irc.Connect("irc.twitch.tv", 6667);
             }
-            catch (ConnectionException e) {
+            catch (ConnectionException e)
+            {
                 Console.Write("Connection error: " + e.Message + ". Retrying in 5 seconds.");
                 Thread.Sleep(5000);
-                reconnect(); 
+                reconnect();
             };
 
         }
 
         public void run_2()
-        {       
+        {
             while (true)
             {
                 Thread.Sleep(60000);
@@ -247,11 +251,11 @@ namespace TWIRC
             }
             return result;
         }
-            
+
 
         public void checkCommand(string channel, string user, string message)
         {
-            string[] str,tempVar3;
+            string[] str, tempVar3;
             bool done = false;
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             foreach (hardCom h in hardList)//hardcoded command
@@ -263,23 +267,24 @@ namespace TWIRC
                     switch (h.returnKeyword())
                     {
                         case "!adco":
-                            if (pullAuth(user, channel)>2){
-                            fail = false;
-                            
-                            foreach(command c in comlist){if(c.doesMatch(str[1])){fail=true;break;}}
-                            foreach(hardCom c in hardList){if(c.doesMatch(str[1])||fail){fail=true;break;}}
-                            foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; }}
-                            if(fail){sendMess(channel,"I'm sorry, "+user+". A command or alias with the same name exists already.");}
-                            else
+                            if (pullAuth(user, channel) > 2)
                             {
-                                tempVar1 = 0;
-                                if (Regex.Match(str[2], @"@level(\d)@").Success) { tempVar1 = int.Parse(Regex.Match(str[2], @"@level(\d)@").Groups[1].Captures[0].Value); tempVar2 = str[3]; if (tempVar1 >= 5) { tempVar1 = 5; } }
-                                else { tempVar2 = str[2]+" "+ str[3]; }
-                                tempVar3 = tempVar2.Split(new string[] {"\\n"},StringSplitOptions.RemoveEmptyEntries);
-                                comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
-                                safe();
-                            }
+                                fail = false;
+
+                                foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
+                                foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
+                                foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; } }
+                                if (fail) { sendMess(channel, "I'm sorry, " + user + ". A command or alias with the same name exists already."); }
+                                else
+                                {
+                                    tempVar1 = 0;
+                                    if (Regex.Match(str[2], @"@level(\d)@").Success) { tempVar1 = int.Parse(Regex.Match(str[2], @"@level(\d)@").Groups[1].Captures[0].Value); tempVar2 = str[3]; if (tempVar1 >= 5) { tempVar1 = 5; } }
+                                    else { tempVar2 = str[2] + " " + str[3]; }
+                                    tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
+                                    comlist.Add(new command(str[1], tempVar3, tempVar1));
+                                    new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('" + str[1] + "','" + tempVar1 + "','" + 0 + "','" + MySqlEscape(tempVar2) + "');");
+                                    sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
+                                }
                             }
                             break;
                         case "!ec":
@@ -321,27 +326,27 @@ namespace TWIRC
                                     sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             }
-                                break;
+                            break;
                         case "!aa": //add alias
-                                if (pullAuth(user, channel) > 2)
+                            if (pullAuth(user, channel) > 2)
+                            {
+                                fail = false;
+                                foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
+                                foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
+                                foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; } }
+                                if (fail) { sendMess(channel, "I'm sorry, " + user + ". A command or alias with the same name exists already."); }
+                                else
                                 {
-                                    fail = false;
-                                    foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
-                                    foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
-                                    foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; } }
-                                    if (fail) { sendMess(channel, "I'm sorry, " + user + ". A command or alias with the same name exists already."); }
-                                    else
+                                    fail = true;
+                                    foreach (ali c in aliList)
                                     {
-                                        fail = true;
-                                        foreach (ali c in aliList)
-                                        {
-                                            if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
-                                        }
-                                        if (fail) { aliList.Add(new ali(str[1], str[2])); }
-                                        sendMess(channel, user + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
-                                        safe();
+                                        if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
                                     }
+                                    if (fail) { aliList.Add(new ali(str[1], str[2])); }
+                                    sendMess(channel, user + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                    safe();
                                 }
+                            }
                             break;
                         case "!da":
                             if (pullAuth(user, channel) > 2)
@@ -362,7 +367,7 @@ namespace TWIRC
                             }
                             break;
                         case "!set"://!set <name> <level>
-                            if(Regex.Match(str[2],"^([0-"+pullAuth(user,channel)+"])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                            if (Regex.Match(str[2], "^([0-" + pullAuth(user, channel) + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".tha");
@@ -406,7 +411,7 @@ namespace TWIRC
                         case "!unbanuser":
                             if (pullAuth(user, channel) > 1)
                             {
-                                if (pullAuth(str[1],channel) == -1)
+                                if (pullAuth(str[1], channel) == -1)
                                 {
                                     setAuth(str[1], 0);
                                     sendMess(channel, user + "-> \"" + str[1] + "\" has been unbanned.");
@@ -418,35 +423,36 @@ namespace TWIRC
                 }
             }
 
-        if(!done){
-            tempVar1 =0;
-            foreach (command c in comlist)//flexible commands
+            if (!done)
             {
-                if (c.doesMatch(message))
+                tempVar1 = 0;
+                foreach (command c in comlist)//flexible commands
                 {
-                    System.Diagnostics.Debug.Write("A command has been matched!");
-                    if(c.canTrigger())
+                    if (c.doesMatch(message))
                     {
-                        System.Diagnostics.Debug.Write(": it can trigger");
-                        if (c.getAuth() <= pullAuth(user,channel))
+                        System.Diagnostics.Debug.Write("A command has been matched!");
+                        if (c.canTrigger())
                         {
-                            System.Diagnostics.Debug.Write(": auth level correct");
-
-
-                            str = c.getResponse(message, user);
-                            c.addCount(1);
-                            if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
-                            foreach (string b in str)
+                            System.Diagnostics.Debug.Write(": it can trigger");
+                            if (c.getAuth() <= pullAuth(user, channel))
                             {
-                                sendMess(channel, b);
+                                System.Diagnostics.Debug.Write(": auth level correct");
+
+
+                                str = c.getResponse(message, user);
+                                c.addCount(1);
+                                if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
+                                foreach (string b in str)
+                                {
+                                    sendMess(channel, b);
+                                }
                             }
                         }
                     }
+                    System.Diagnostics.Debug.Write(".\n");
+                    tempVar1++;
                 }
-                System.Diagnostics.Debug.Write(".\n");
-                tempVar1++;
             }
-        }
         }
 
         public void sendMess(string channel, string message)
@@ -457,10 +463,11 @@ namespace TWIRC
             //irc.SendMessage(SendType.Message, channel, message);
         }
 
-        public int getNow(){
-         DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-          TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
-        return (int)Math.Floor(diff.TotalSeconds);
+        public int getNow()
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
+            return (int)Math.Floor(diff.TotalSeconds);
         }
 
         public string getNowSQL()
@@ -474,7 +481,7 @@ namespace TWIRC
 
         public int pullAuth(string name, string channel)
         {
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='"+name+"';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
                 new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
@@ -482,8 +489,8 @@ namespace TWIRC
             }
             else
             {
-                
-                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('"+name+"','"+ getNowSQL() +"');", dbConn).ExecuteNonQuery();
+
+                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 return 0;
             }
         }
@@ -512,12 +519,12 @@ namespace TWIRC
 
         public void ircJoined(object sender, EventArgs e)
         {
-            
+
         }
 
         public void ircConError(object sender, EventArgs e)
         {
-            
+
         }
 
         public void ircError(object sender, EventArgs e)
@@ -526,7 +533,7 @@ namespace TWIRC
         }
         public static void ircRaw(object sender, IrcEventArgs e)
         {
-            
+
         }
         public void ircChanMess(object sender, IrcEventArgs e)
         {
@@ -536,7 +543,7 @@ namespace TWIRC
             Console.WriteLine("<-" + channel + ": <" + nick + "> " + message);
             if (antispam) { checkSpam(channel, nick, message); };
             message = filter(message);
-            this.checkCommand(channel,nick,message);
+            this.checkCommand(channel, nick, message);
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
@@ -549,16 +556,16 @@ namespace TWIRC
         }
         public void ircQuery(object sender, EventArgs e)
         {
-            
+
         }
         public void safe()//saves all data
         {
-            string temp; 
+            string temp;
             temp = "";
             foreach (command c in comlist)
-                {
-                    temp += c.ToString() + "\n";
-                }
+            {
+                temp += c.ToString() + "\n";
+            }
             writeFile("Commands.twirc", temp);
             temp = "";
             foreach (ali c in aliList)
@@ -566,6 +573,24 @@ namespace TWIRC
                 temp += c.ToString() + "\n";
             }
             writeFile("Aliases.twirc", temp);
+
+            //rewriting it
+            foreach (command c in comlist)
+            {
+                string str = "UPDATE commands SET authlevel='" + c.getAuth() + "',count='" + c.getCount() + "',response='" + MySqlEscape(c.getResponse()) + "' WHERE keyword='" + c.getKey() + "'; ";
+                new SQLiteCommand(str , dbConn).ExecuteNonQuery();
+            }
+
+        }
+
+        public static string MySqlEscape(string usString)
+        {
+            if (usString == null)
+            {
+                return null;
+            }
+            // it escapes \r, \n, \x00, \x1a, baskslash, single quotes, and double quotes
+            return Regex.Replace(usString, "[\\r\\n\\x00\\x1a\\\'\"]", @"\$1");
         }
 
         public string[] FileLines(string path)

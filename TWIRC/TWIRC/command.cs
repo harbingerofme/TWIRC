@@ -152,6 +152,18 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         {
             return responses.ToArray();
         }
+
+        public string getResponse()
+        {
+            string result = "";
+            foreach (string s in responses)
+            {
+                result += s + "\n";
+            }
+            result = result.Substring(0, result.Length - 1);
+            return result;
+        }
+
         public void updateTime()
         {
             lastTime = getNow();
@@ -187,6 +199,10 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             {
                 return -1;
             }
+        }
+
+        public string getKey(){
+            return keyword;
         }
 
         public string[] getResponse(string input, string user)
