@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace TWIRC//contains the com (, sub :  com) and ali classes
+namespace RNGBot//contains the com (, sub :  com) and ali classes
 {
     public class com//allows us to check for coms, I guess. I could have prob made it smaller
     {

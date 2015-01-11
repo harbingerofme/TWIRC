@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Data.SQLite;
 
-namespace TWIRC
+namespace RNGBot
 {
     public class HarbBot
     {
@@ -28,12 +28,14 @@ namespace TWIRC
         public int globalCooldown;
         public bool antispam;
         SQLiteConnection dbConn;
+        public Logger logger;
 
 
         public Thread two;
 
-        public HarbBot()
+        public HarbBot(Logger logLogger)
         {
+            logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
@@ -50,65 +52,16 @@ namespace TWIRC
             irc.OnChannelMessage += ircChanMess;
 
             //LoadCommands
-            Console.WriteLine("Booting up, shouldn't take long!");
+            logger.WriteLine("Booting up, shouldn't take long!");
             string temp;
             if (!File.Exists("db.sqlite"))
             {
-                Console.WriteLine("First time setup detected, please enter the following data:\nThe name of the bot (default harbbot):");
-                temp = Console.ReadLine();
-                while (!Regex.Match(temp, @"^[\w_]*$").Success) { temp = Console.ReadLine(); }
-                if (temp != "") { bot_name = temp; } else { bot_name = "harbbot"; }
-
-                Console.WriteLine("Your channel (default harbbot):");
-                channels = "";
-                while (channels == "")
-                {
-                    temp = Console.ReadLine();
-                    if (Regex.Match(temp, @"^[\w_]+$").Success) { channels = "#" + temp; }
-                    if (Regex.Match(temp, @"^#[\w_]+$").Success) { channels = temp; }
-                    if (temp == "") { channels = "#harbbot"; }
-                }
-
-                Console.WriteLine("The cooldown on commands (default 20):");
-                temp = Console.ReadLine();
-                if (temp == "") { globalCooldown = 20; }
-                else
-                {
-                    while (!Regex.Match(temp, @"^\d+$").Success) { temp = Console.ReadLine(); }
-                    globalCooldown = int.Parse(temp);
-                }
-
-                Console.WriteLine("Whether or not the antispam module is enabled (default yes):");
-                temp = Console.ReadLine();
-                while (!Regex.Match(temp, @"^()|(yes)|(no)|(1)|(0)$", RegexOptions.IgnoreCase).Success) { temp = Console.ReadLine(); }
-                switch (temp)
-                {
-                    case "no": antispam = false; break;
-                    case "0": antispam = false; break;
-                    default: antispam = true; break;
-                }
-
-                Console.WriteLine("And now lastly, I need you to open up oauth.txt and paste the bot's oauth there. Type \"done\" once you've done so.");
-                oauth = ""; writeFile("oauth.txt", ""); string[] temp3;
-                while (oauth == "")
-                {
-                    temp = Console.ReadLine();
-                    if (temp == "done")
-                    {
-                        temp3 = FileLines("oauth.txt");
-                        if (temp3.Count() > 0)
-                        {
-                            if (Regex.Match(temp3[0], @"^oauth:\w+$", RegexOptions.IgnoreCase).Success) { oauth = temp3[0].ToLower(); }
-                            if (Regex.Match(temp3[0], @"^\w+$", RegexOptions.IgnoreCase).Success) { oauth = "oauth:" + temp3[0].ToLower(); }
-                        }
-                    }
-                    if (oauth == "")
-                    {
-                        Console.WriteLine("Oauth invalid, please try again.");
-                    }
-                }
-                File.Delete("oauth.txt");
-                Console.WriteLine("That was it, you are done configuring the bot from the command line, if you want to change any of these settings at a later point in time, open the included Settings.exe");
+                logger.WriteLine("First time setup detected, making database");
+                bot_name = "harbbot";
+                channels = "#rngplayspokemon";
+                globalCooldown = 20; 
+                antispam = true;
+                oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -152,17 +105,17 @@ namespace TWIRC
                             }
                         }
                     }
-                    Console.WriteLine("Loaded up " + comlist.Count() + " commands.");
+                    logger.WriteLine("Loaded up " + comlist.Count() + " commands.");
                     File.Copy("Commands.twirc", "backupCommands.twirc", true);
                 }
                 catch
                 {
-                    Console.WriteLine("'Commands.twirc' contains an error and I was unable to parse it. Please check the file.");
+                    logger.WriteLine("'Commands.twirc' contains an error and I was unable to parse it. Please check the file.");
                 }
             }
             else
             {
-                Console.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
+                logger.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
                 writeFile("Commands.twirc", "");
             }
 
@@ -176,17 +129,17 @@ namespace TWIRC
                     {
                         aliList.Add(new ali(tempString1));
                     }
-                    Console.WriteLine("Loaded up " + aliList.Count() + " aliases.");
+                    logger.WriteLine("Loaded up " + aliList.Count() + " aliases.");
                     File.Copy("Aliases.twirc", "backupAliases.twirc", true);
                 }
                 catch
                 {
-                    Console.WriteLine("'Aliases.twirc' contains an error and I was unable to parse it. Please check the file.");
+                    logger.WriteLine("'Aliases.twirc' contains an error and I was unable to parse it. Please check the file.");
                 }
             }
             else
             {
-                Console.WriteLine("Aliases File non-existant, making a new one. (none loaded)");
+                logger.WriteLine("Aliases File non-existant, making a new one. (none loaded)");
                 writeFile("Aliases.twirc", "");
             }
 
@@ -221,7 +174,7 @@ namespace TWIRC
             }
             catch (ConnectionException e)
             {
-                Console.Write("Connection error: " + e.Message + ". Retrying in 5 seconds.");
+                logger.Write("Connection error: " + e.Message + ". Retrying in 5 seconds.");
                 Thread.Sleep(5000);
                 reconnect();
             };
@@ -457,7 +410,7 @@ namespace TWIRC
 
         public void sendMess(string channel, string message)
         {
-            Console.WriteLine("->" + channel + ": " + message);
+            logger.WriteLine("->" + channel + ": " + message);
             hasSend = true;
             time = getNow();
             //irc.SendMessage(SendType.Message, channel, message);
@@ -513,7 +466,7 @@ namespace TWIRC
             IrcClient a = (IrcClient)sender;
             a.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             a.RfcJoin(channels);
-            Console.WriteLine("Joined Twitch chat");
+            logger.WriteLine("Joined Twitch chat");
             a.Listen();
         }
 
@@ -540,7 +493,7 @@ namespace TWIRC
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
-            Console.WriteLine("<-" + channel + ": <" + nick + "> " + message);
+            logger.WriteLine("<-" + channel + ": <" + nick + "> " + message);
             if (antispam) { checkSpam(channel, nick, message); };
             message = filter(message);
             this.checkCommand(channel, nick, message);
@@ -552,7 +505,7 @@ namespace TWIRC
             string message = e.Data.Message;
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            Console.WriteLine("<-" + channel + ": " + nick + " " + message);
+            logger.WriteLine("<-" + channel + ": " + nick + " " + message);
         }
         public void ircQuery(object sender, EventArgs e)
         {
