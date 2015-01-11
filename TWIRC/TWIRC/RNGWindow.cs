@@ -65,7 +65,7 @@ namespace RNGBot
             RNGLuaServer.serverSocket.Stop();
 
             irc.Abort();
-         
+            
         }
 
         private void text_log_TextChanged(object sender, EventArgs e)

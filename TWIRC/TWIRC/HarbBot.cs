@@ -154,7 +154,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
 
-
+            
             two = new Thread(run_2);//manages saving of commandlists, etc.
             two.Start();
             try { irc.Connect("irc.twitch.tv", 6667); }
@@ -183,10 +183,16 @@ namespace RNGBot
 
         public void run_2()
         {
-            while (true)
+            int count = 0;
+            while (running)
             {
-                Thread.Sleep(60000);
-                safe();
+                count++;
+                Thread.Sleep(1000);
+                if (count > 3600)
+                {
+                    safe();
+                    count = 0;
+                }
             }
         }
 
