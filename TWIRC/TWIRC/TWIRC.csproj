@@ -62,7 +62,21 @@
     <Compile Include="RNGWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RNGWindow.Designer.cs" />
+    <Compile Include="RNGWindow.Designer.cs">
+      <DependentUpon>RNGWindow.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="RNGWindow.resx">
+      <DependentUpon>RNGWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SmartIrc4net\AssemblyInfo.cs" />
     <Compile Include="SmartIrc4net\Consts.cs" />
     <Compile Include="SmartIrc4net\EventArgs.cs" />
