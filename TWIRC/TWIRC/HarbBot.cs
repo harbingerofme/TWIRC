@@ -419,7 +419,7 @@ namespace RNGBot
             logger.WriteLine("->" + channel + ": " + message);
             hasSend = true;
             time = getNow();
-            //irc.SendMessage(SendType.Message, channel, message);
+            irc.SendMessage(SendType.Message, channel, message);
         }
 
         public int getNow()
