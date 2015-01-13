@@ -37,10 +37,10 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             parameters = pars;
         }
 
-        public bool hardMatch(string input)
+        public bool hardMatch(string input,int auth)
         {
             string[] pars;
-            if (doesMatch(input))
+            if (doesMatch(input) && auth>= authLevel)
             {
                 pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
                 if (pars.Count() >= parameters+1)
