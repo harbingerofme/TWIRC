@@ -110,8 +110,6 @@ namespace RNGBot
             LogCount++;
             if (shuttingdown) return;
 
-            logtable.Add(LogCount, new LogEntry("", 0, text));
-
             if (LogTextBox != null)
             {
                 logAppendText(text);
@@ -120,6 +118,8 @@ namespace RNGBot
             {
                 LogClog++;
             }
+
+            logtable.Add(LogCount, new LogEntry("", 0, text));
         }
 
         public void logAppendLine(string text)
