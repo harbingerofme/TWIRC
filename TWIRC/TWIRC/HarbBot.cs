@@ -156,9 +156,15 @@ namespace RNGBot
 
             
             two = new Thread(run_2);//manages saving of commandlists, etc.
+            two.Name = "bot_two";
             two.Start();
+
+#if !OFFLINE
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
+#endif
+
+
         }
 
         public void reconnect()
