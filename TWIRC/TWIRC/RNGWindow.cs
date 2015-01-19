@@ -26,6 +26,7 @@ namespace RNGBot
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
             irc = new Thread(createIrc);
+            irc.Name = "irc";
             irc.Start();
 
             InitializeComponent();
@@ -38,10 +39,9 @@ namespace RNGBot
 
         private void RNGWindow_Load(object sender, EventArgs e)
         {
-           RNGLogger.setLogControl(text_log);
-           RNGLogger.setStatusControl(ts_counter0);
-
            RNGLogger.addLog("RNGWindow_Load", 0, "Success, i guess");
+           RNGLogger.setLogControl(text_log); // as this calls the log dumper, best not to add immediately afterwards, lest an unfortunate game of digital chicken occur.
+           RNGLogger.setStatusControl(ts_counter0);
         }
 
         private void RNGWindow_clososos(object sender, System.ComponentModel.CancelEventArgs e)
@@ -109,6 +109,7 @@ namespace RNGBot
         {
             irc.Abort();
             irc = new Thread(createIrc);
+            irc.Name = "irc";
             irc.Start();
         }
 
