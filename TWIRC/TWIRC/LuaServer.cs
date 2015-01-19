@@ -35,6 +35,7 @@ namespace RNGBot
             RNGLogger.addLog("LuaServer", 0, "Creating LuaServer thread");
             RNGEmulators = newemulatortable;
             lsThread = new Thread(LuaServerListener);
+            lsThread.Name = "lsThread";
             lsThread.IsBackground = true;
         }
         public void Run()
@@ -125,15 +126,16 @@ namespace RNGBot
 
             }
 
-            public void startClient(TcpClient inClientSocket, string clineNo, Dictionary<string,EmuClientHandler> clientTable, Logger thisLogger)
+            public void startClient(TcpClient inClientSocket, string clientNumber, Dictionary<string,EmuClientHandler> clientTable, Logger thisLogger)
             {
                 RNGLogger = thisLogger;
                 this.clientSocket = inClientSocket;
-                this.clNo = clineNo;
-                clientTable.Add(clineNo, this);
+                this.clNo = clientNumber;
+                clientTable.Add(clientNumber, this);
 
                 RNGLogger.WriteLine("added a client");
                 Thread ctThread = new Thread(clientLoop);
+                ctThread.Name = "ctThread" + clientNumber;
                 ctThread.Start();
             }
 
