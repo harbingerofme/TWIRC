@@ -3,11 +3,17 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace RNGBot
 {
     public class Logger
     {
+        Mutex mutex_logging = new Mutex();
         delegate void SetTextCallback(string text);
         const int LogMax = 1000;
 
@@ -61,6 +67,7 @@ namespace RNGBot
 
         public void dumpLogger()
         {
+            mutex_logging.WaitOne(-1);
             for (int i = 0; i < logtable.Count; i++)
             {
                 //logAppendText(logtable[i].name + "::" + logtable[i].level.ToString() + "::" + logtable[i].text);
@@ -68,7 +75,7 @@ namespace RNGBot
                 logAppendText(logtableentry.name + "::" + logtableentry.level.ToString() + "::" + logtableentry.text);
                 
             }
-
+            mutex_logging.ReleaseMutex();
         }
 
 
@@ -80,6 +87,7 @@ namespace RNGBot
         }
         public void addLog(string name, int level, string text)
         {
+            mutex_logging.WaitOne(-1);
             LogCount++;
             if (shuttingdown) return;
 
@@ -101,12 +109,17 @@ namespace RNGBot
             }
             text += "\r\n"; 
             logtable.Add(LogCount, new LogEntry(name, level, text));
+            mutex_logging.ReleaseMutex();
         }
 
 
 
         public void addText(string text)
         {
+            mutex_logging.WaitOne(-1);
+#if DEBUG
+            Debug.WriteLine("addText(" + text + "), LogCount before = " + LogCount);
+#endif
             LogCount++;
             if (shuttingdown) return;
 
@@ -118,8 +131,9 @@ namespace RNGBot
             {
                 LogClog++;
             }
-
+            
             logtable.Add(LogCount, new LogEntry("", 0, text));
+            mutex_logging.ReleaseMutex();
         }
 
         public void logAppendLine(string text)
