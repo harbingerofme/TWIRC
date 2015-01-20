@@ -70,6 +70,13 @@ namespace RNGBot
 
         private void text_log_TextChanged(object sender, EventArgs e)
         {
+            int maxlines = 1000;
+            if (this.text_log.Lines.Count() > maxlines)
+            {
+                var lines = this.text_log.Lines;
+                var newLines = lines.Skip(maxlines);
+                this.text_log.Lines = newLines.ToArray();
+            }
 
         }
 
