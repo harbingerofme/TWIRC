@@ -29,9 +29,8 @@ namespace RNGBot
         public LuaServer(Logger thislogger, Dictionary<string,EmuClientHandler> newemulatortable)
         {
             luaPort = 22222;
-            luaAddr = IPAddress.Any;//.Parse("127.0.0.1");
+            luaAddr = IPAddress.Any;
             RNGLogger = thislogger;
-            //mainWindow = thiswindow;
             RNGLogger.addLog("LuaServer", 0, "Creating LuaServer thread");
             RNGEmulators = newemulatortable;
             lsThread = new Thread(LuaServerListener);
@@ -179,16 +178,8 @@ namespace RNGBot
 
                         networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
                         dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
-                        //dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
-                        //RNGLogger.addLine(" >> " + "From client-" + dataFromClient);
-                        //RNGLogger.setStatusText(dataFromClient);
-                        rCount = Convert.ToString(requestCount);
-                        //serverResponse = "STROBE:" + rCount + "\n";
-                        //sendBytes = Encoding.ASCII.GetBytes(serverResponse);
-                        //networkStream.Write(sendBytes, 0, sendBytes.Length);
+
                         networkStream.Flush();
-                        //Thread.Sleep(100);
-                        //RNGLogger.addLine(" >> " + serverResponse); // overly verbose.
                     }
                     catch (Exception ex)
                     {
