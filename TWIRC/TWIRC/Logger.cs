@@ -87,7 +87,14 @@ namespace RNGBot
         }
         public void addLog(string name, int level, string text)
         {
-            mutex_logging.WaitOne(-1);
+            if (!mutex_logging.WaitOne(200)) //crap code to abort on some lockup of yet unknown cause.
+            {
+                System.Console.WriteLine("WHAT HAPPEN!");
+                System.Console.WriteLine(Environment.StackTrace);
+                mutex_logging.ReleaseMutex();
+                return;
+            }
+
             LogCount++;
             if (shuttingdown) return;
 
@@ -140,19 +147,6 @@ namespace RNGBot
         {
             text += "\r\n";
             logAppendText(text);
-            /*                // InvokeRequired required compares the thread ID of the 
-                            // calling thread to the thread ID of the creating thread. 
-                            // If these threads are different, it returns true. 
-                            if (LogTextBox.InvokeRequired)
-                            {
-                                SetTextCallback d = new SetTextCallback(logAppendText);
-                                LogTextBox.Parent.Invoke(d, new object[] { text });
-                            }
-                            else
-                            {
-                                LogTextBox.AppendText(text);
-                            }
-                        }*/
         }
 
         public void logAppendText(string text)
