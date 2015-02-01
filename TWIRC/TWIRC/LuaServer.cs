@@ -149,7 +149,7 @@ namespace RNGBot
 
             public void deadClient(Dictionary<string,EmuClientHandler> clientTable)
             {
-                this.sendCommand(999);
+                this.sendCommand("EXPLODE");
                 this.clientSocket.Close();
 
                 clientTable.Remove(this.clNo);
@@ -195,16 +195,16 @@ namespace RNGBot
 
   
 
-            public void sendCommand(int command)
+            public void sendCommand(String command)
             {
                 Byte[] sendBytes = null;
                 string serverResponse = null;
+                command += "\n";
 
                 if (clientSocket.Connected == true)
                 {
                     NetworkStream networkStream = clientSocket.GetStream();
-                    serverResponse = "COMMAND:" + Convert.ToString(command) + "\n";
-                    sendBytes = Encoding.ASCII.GetBytes(serverResponse);
+                    sendBytes = Encoding.ASCII.GetBytes(command);
                     networkStream.Write(sendBytes, 0, sendBytes.Length);
                     networkStream.Flush();
                 }
