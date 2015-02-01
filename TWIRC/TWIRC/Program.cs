@@ -38,18 +38,21 @@ namespace RNGBot
             RNGLuaServer = new LuaServer(RNGLogger, RNGEmulators);
             RNGLuaServer.Run();
 
-            RNGesus = new ButtonMasher(RNGLogger);//, RNGEmulators);
+            RNGesus = new ButtonMasher(RNGLogger, 7); // 6 buttons
+                              // LT   DN     UP     RT
+            double[] bias1 = { 2.25, 1.00, 2.25, 1.00, 0.96, 0.92, 0.82 };
+            double[] bias2 = { 1.00, 3.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            double[] bias3 = { 2.25, 1.00, 2.25, 2.25, 0.96, 0.92, 0.82 };
+            double[] bias4 = { 3.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            double[] bias5 = { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            double[] bias6 = { 1.00, 1.00, 1.00, 3.00, 0.96, 0.92, 0.82 };
+            double[] bias7 = { 1.00, 2.25, 1.00, 2.25, 0.96, 0.92, 0.82 };
+            double[] bias8 = { 1.00, 1.00, 3.00, 1.00, 0.96, 0.92, 0.82 };
+            double[] bias9 = { 1.00, 2.25, 1.00, 2.25, 0.96, 0.92, 0.82 };
 
 
-            double[] bias1 = { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82};
-            double[] bias2 = { 2.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82};
-            double[] bias3 = { 1.02, 1.00, 1.02, 1.00, 0.96, 0.92, 0.82};
-            double[] bias4 = { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.88};
-            double[] bias5 = { 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00};
-
-
-            RNGesus.setDefaultBias(bias1); //values to average against
-            RNGesus.setBias(bias1);
+            RNGesus.setDefaultBias(bias5); //values to average against
+            RNGesus.setBias(bias5);
 
             //RNGDB = new DBHandler("rngppbot.sqlite", RNGLogger);
 
