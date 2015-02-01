@@ -16,11 +16,17 @@ namespace RNGBot
         //Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators;
         double[] thisBias;
         double[] defaultBias;
+        int numvals; 
 
-        public ButtonMasher(Logger thelogger)//, Dictionary<string, LuaServer.EmuClientHandler> clienttable)
+
+
+
+        public ButtonMasher(Logger thelogger, int this_numvals)//, Dictionary<string, LuaServer.EmuClientHandler> clienttable)
         {
-            defaultBias = new double[] { 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00 };
-            thisBias = new double[] { 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00 };
+            numvals = this_numvals;
+            defaultBias = new double[] { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            thisBias = new double[] { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            Array.Copy(defaultBias,thisBias,7);
             //RNGEmulators = clienttable;
             RNGLogger = thelogger;
 
@@ -28,13 +34,14 @@ namespace RNGBot
 
         Random RNGesus = new Random();
 
-        public string rngTest(int numrolls, int numvals)
+        public string rngTest(int numrolls)
         {
+
             int[] results = new int[11];
             Single[] percents = new Single[11];
             for (int i = 0; i < numrolls; i++)
             {
-                results[doRNG(numvals)]++;
+                results[doRNG()]++;
             }
 
             for (int i = 0; i < 11; i++)
@@ -64,53 +71,33 @@ namespace RNGBot
 
         }
 
-        /*public void setBias(string biasname)
-        {
-            switch (biasname.ToLower())
-            {
-                case "up":
-                case "down":
-                case "left":
-                case "right":
-                case 
-
-            }
-        
-        
-        }*/
-
-        /*public void setBias(int biasval)
-        { 
-        
-        }*/
-
         public void setBias(double[] newbias)
         {
-            thisBias = newbias;
+            Array.Copy(newbias, thisBias,7);
+            
         }
         
         public void setDefaultBias(double[] newbias)
         {
-            defaultBias = newbias;
+            Array.Copy(newbias, defaultBias, 7 );
         }
 
-        public void doDecay(int numvals)
+        public void doDecay()
         {
             for (int i = 0; i < numvals; i++)
             {
-              //  RNGLogger.addLog("RNGesus", 0, "decaying" + i);
-                thisBias[i] = (thisBias[i] + defaultBias[i]) / 2;
+               thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
         }
 
 
-        public int doRNG(int howmany)
+        public int doRNG()
         {
             int winner = 0;
             double[] losers = new double[11]; //table of results of rolls
             double nextval; // temporary value store for the roll
 
-            for (int i = 0; i < howmany; i++) // 0 through howmany - 1
+            for (int i = 0; i < numvals; i++) // 0 through howmany - 1
             {
                 nextval = RNGesus.NextDouble() * thisBias[i];  //get next random value
                 losers[i] = nextval;  //add it to the array
