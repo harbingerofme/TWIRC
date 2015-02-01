@@ -67,7 +67,13 @@ namespace RNGBot
 
         public void dumpLogger()
         {
-            mutex_logging.WaitOne(-1);
+            if (!mutex_logging.WaitOne(2000)) //crap code to abort on some lockup of yet unknown cause.
+            {
+                System.Console.WriteLine("WHAT HAPPEN! dumpLogger Failed!");
+                System.Console.WriteLine(Environment.StackTrace);
+                //mutex_logging.ReleaseMutex();
+                return;
+            }
             for (int i = 0; i < logtable.Count; i++)
             {
                 //logAppendText(logtable[i].name + "::" + logtable[i].level.ToString() + "::" + logtable[i].text);
@@ -89,9 +95,9 @@ namespace RNGBot
         {
             if (!mutex_logging.WaitOne(200)) //crap code to abort on some lockup of yet unknown cause.
             {
-                System.Console.WriteLine("WHAT HAPPEN!");
+                System.Console.WriteLine("WHAT HAPPEN! AddLog Failed!");
                 System.Console.WriteLine(Environment.StackTrace);
-                mutex_logging.ReleaseMutex();
+                //mutex_logging.ReleaseMutex();
                 return;
             }
 
@@ -123,7 +129,13 @@ namespace RNGBot
 
         public void addText(string text)
         {
-            mutex_logging.WaitOne(-1);
+            if (!mutex_logging.WaitOne(200)) //crap code to abort on some lockup of yet unknown cause.
+            {
+                System.Console.WriteLine("WHAT HAPPEN! addText Failed!");
+                System.Console.WriteLine(Environment.StackTrace);
+                //mutex_logging.ReleaseMutex();
+                return;
+            }
 #if DEBUG
             Debug.WriteLine("addText(" + text + "), LogCount before = " + LogCount);
 #endif
@@ -180,10 +192,6 @@ namespace RNGBot
         {
             addText(text + "\r\n");
         }
-
-
-
-
 
 
         public void setStatusText(string text)
