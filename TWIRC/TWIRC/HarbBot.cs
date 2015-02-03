@@ -27,6 +27,7 @@ namespace RNGBot
         public int time;
         public int globalCooldown;
         public bool antispam;
+        public bool silence;
         SQLiteConnection dbConn;
         public Logger logger;
 
@@ -70,9 +71,10 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7));", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,oauth,cooldown) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "','" + oauth + "','" + globalCooldown + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -83,13 +85,13 @@ namespace RNGBot
                 bot_name = sqldr.GetString(0);
                 channels = sqldr.GetString(1);
                 antispam = false; if (sqldr.GetInt32(2) == 1) { antispam = true; }
-                oauth = sqldr.GetString(3);
-                globalCooldown = sqldr.GetInt32(4);
+                silence = false; if (sqldr.GetInt32(3) == 1) { silence = true; }
+                oauth = sqldr.GetString(4);
+                globalCooldown = sqldr.GetInt32(5);
             }
 
-
-
-            if (File.Exists("Commands.twirc"))
+            SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
+            while (rdr.Read())
             {
                 try
                 {
@@ -112,13 +114,24 @@ namespace RNGBot
                 {
                     logger.WriteLine("'Commands.twirc' contains an error and I was unable to parse it. Please check the file.");
                 }
+                string[] a = rdr.GetString(3).Split(new string[] {@"\n"},StringSplitOptions.RemoveEmptyEntries);
+                command k = new command(rdr.GetString(0), a, rdr.GetInt32(1));
+                k.setCount(rdr.GetInt32(2));
+                k.setCooldown(globalCooldown);
+                comlist.Add(k);
             }
-            else
+            logger.WriteLine("Loaded " + comlist.Count() + " commands!");
+
+            rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
+            while (rdr.Read())
             {
                 logger.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
                 writeFile("Commands.twirc", "");
+                string[] a = rdr.GetString(0).Split(' ');
+                ali k = new ali(a, rdr.GetString(1));
+                aliList.Add(k);
             }
-
+            logger.WriteLine("Loaded " + aliList.Count() + " aliases!");
 
             if (File.Exists("Aliases.twirc"))
             {
@@ -153,6 +166,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!editcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
+            hardList.Add(new hardCom("!silence",3,1));
 
             
             two = new Thread(run_2);//manages saving of commandlists, etc.
@@ -225,15 +239,13 @@ namespace RNGBot
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             foreach (hardCom h in hardList)//hardcoded command
             {
-                if (h.hardMatch(message))
+                if (h.hardMatch(message,pullAuth(user)))
                 {
                     done = true;
                     str = h.returnPars(message);
                     switch (h.returnKeyword())
                     {
                         case "!adco":
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = false;
 
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -247,14 +259,11 @@ namespace RNGBot
                                     else { tempVar2 = str[2] + " " + str[3]; }
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                    new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('" + str[1] + "','" + tempVar1 + "','" + 0 + "','" + MySqlEscape(tempVar2) + "');");
+                                    new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('" + str[1] + "','" + tempVar1 + "','" + 0 + "','" + MySqlEscape(tempVar2) + "');",dbConn).ExecuteNonQuery();
                                     sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
-                            }
                             break;
                         case "!ec":
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -266,6 +275,7 @@ namespace RNGBot
                                         tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                         comlist[a].setResponse(tempVar3);
                                         comlist[a].setAuth(tempVar1);
+                                        new SQLiteCommand("UPDATE commands SET response = '" + MySqlEscape(tempVar2) + "' WHERE keyword='" + str[1] + "';",dbConn).ExecuteNonQuery();
                                         sendMess(channel, user + "-> command \"" + str[1] + "\" has been edited.");
                                         safe();
                                         fail = false;
@@ -275,26 +285,26 @@ namespace RNGBot
                                 {
                                     sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
-                            }
                             break;
                         case "!dc"://delete command
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
-                                    if (comlist[a].doesMatch(str[1])) { comlist.RemoveAt(a); fail = false; sendMess(channel, user + "-> command \"" + str[1] + "\" has been deleted."); safe(); break; }
+                                    if (comlist[a].doesMatch(str[1])) { 
+                                        comlist.RemoveAt(a);
+                                        fail = false;
+                                        new SQLiteCommand("DELETE FROM commands WHERE keyword='"+str[1]+"';",dbConn).ExecuteNonQuery();
+                                        sendMess(channel, user + "-> command \"" + str[1] + "\" has been deleted.");
+                                        safe();
+                                        break; }
 
                                 }
                                 if (fail)
                                 {
                                     sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
-                            }
                             break;
                         case "!aa": //add alias
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = false;
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
                                 foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
@@ -308,19 +318,18 @@ namespace RNGBot
                                         if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
                                     }
                                     if (fail) { aliList.Add(new ali(str[1], str[2])); }
+                                    new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES ('"+str[1]+"','"+str[2]+"');", dbConn).ExecuteNonQuery();
                                     sendMess(channel, user + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
-                            }
                             break;
                         case "!da":
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = true;
                                 foreach (ali c in aliList)
                                 {
                                     if (c.delFrom(str[1]))
                                     {
+                                        new SQLiteCommand("DELETE FROM aliases WHERE keyword='" + str[1] + "';", dbConn).ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
                                         if (c.getFroms().Count() == 0) { aliList.Remove(c); }
                                         fail = false;
@@ -329,10 +338,9 @@ namespace RNGBot
                                     }
                                 }
                                 if (fail) { sendMess(channel, "I'm sorry, " + user + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
-                            }
                             break;
                         case "!set"://!set <name> <level>
-                            if (Regex.Match(str[2], "^([0-" + pullAuth(user, channel) + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                            if (Regex.Match(str[2], "^([0-" + pullAuth(user) + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".tha");
@@ -344,8 +352,6 @@ namespace RNGBot
                             }
                             break;
                         case "!editcount":
-                            if (pullAuth(user, channel) > 2)
-                            {
                                 fail = true;
                                 if (!Regex.Match(str[2], @"^\d+$").Success)
                                 {
@@ -357,31 +363,33 @@ namespace RNGBot
                                     {
                                         fail = false;
                                         c.setCount(int.Parse(str[2]));
+                                        new SQLiteCommand("UPDATE commands SET count='"+str[2]+"' WHERE keyword = '"+str[1]+"';",dbConn).ExecuteNonQuery();
                                         sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
                                         safe();
                                     }
                                 }
-                            }
                             break;
                         case "!banuser":
-                            if (pullAuth(user, channel) > 1)
-                            {
-                                if (pullAuth(user, channel) > pullAuth(str[1], channel))
+                                if (pullAuth(user) > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
                                 {
                                     setAuth(str[1], -1);
                                     sendMess(channel, user + "-> \"" + str[1] + "\" has been banned from using bot commands.");
                                 }
-                            }
+
                             break;
                         case "!unbanuser":
-                            if (pullAuth(user, channel) > 1)
-                            {
-                                if (pullAuth(str[1], channel) == -1)
+                                if (pullAuth(str[1]) == -1)
                                 {
                                     setAuth(str[1], 0);
                                     sendMess(channel, user + "-> \"" + str[1] + "\" has been unbanned.");
                                 }
-                            }
+
+                            break;
+                        case "!silence":
+                            if (Regex.Match(str[1], "(on)|(off)|1|0|(true)|(false)|(yes)|(no)", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
+                            if (Regex.Match(str[1], "(on)|1|(true)|(yes)", RegexOptions.IgnoreCase).Success) { silence = true; new SQLiteCommand("UPDATE settings SET silence=1;", dbConn).ExecuteNonQuery(); }
+                            if (Regex.Match(str[1], "(off)|0|(false)|(no)",RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
+                            
                             break;
                     }
                     break;
@@ -390,32 +398,19 @@ namespace RNGBot
 
             if (!done)
             {
-                tempVar1 = 0;
                 foreach (command c in comlist)//flexible commands
                 {
-                    if (c.doesMatch(message))
+                    if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= pullAuth(user))
                     {
-                        System.Diagnostics.Debug.Write("A command has been matched!");
-                        if (c.canTrigger())
+                        str = c.getResponse(message, user);
+                        c.addCount(1);
+                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';");
+                        if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
+                        foreach (string b in str)
                         {
-                            System.Diagnostics.Debug.Write(": it can trigger");
-                            if (c.getAuth() <= pullAuth(user, channel))
-                            {
-                                System.Diagnostics.Debug.Write(": auth level correct");
-
-
-                                str = c.getResponse(message, user);
-                                c.addCount(1);
-                                if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
-                                foreach (string b in str)
-                                {
-                                    sendMess(channel, b);
-                                }
-                            }
+                            sendMess(channel, b);
                         }
                     }
-                    System.Diagnostics.Debug.Write(".\n");
-                    tempVar1++;
                 }
             }
         }
@@ -426,6 +421,10 @@ namespace RNGBot
             hasSend = true;
             time = getNow();
             irc.SendMessage(SendType.Message, channel, message);
+            if (!silence)
+            {
+                irc.SendMessage(SendType.Message, channel, message);
+            }
         }
 
         public int getNow()
@@ -444,7 +443,7 @@ namespace RNGBot
             return str;
         }
 
-        public int pullAuth(string name, string channel)
+        public int pullAuth(string name)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
@@ -506,6 +505,7 @@ namespace RNGBot
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             logger.WriteLine("<-" + channel + ": <" + nick + "> " + message);
+            message = message.TrimEnd();
             if (antispam) { checkSpam(channel, nick, message); };
             message = filter(message);
             this.checkCommand(channel, nick, message);

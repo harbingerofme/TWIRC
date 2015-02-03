@@ -37,10 +37,10 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
             parameters = pars;
         }
 
-        public bool hardMatch(string input)
+        public bool hardMatch(string input,int auth)
         {
             string[] pars;
-            if (doesMatch(input))
+            if (doesMatch(input) && auth>= authLevel)
             {
                 pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
                 if (pars.Count() >= parameters+1)
@@ -222,7 +222,6 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                     pars[9] += " " + newPut.Split(' ')[i];//merge all results bigger than 10 in the last parameter
                 }
             }
-            Console.Write("\n");
             string[] output = responses.ToArray();
             int a = 0;
             string str2, str3, returnString;
