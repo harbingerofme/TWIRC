@@ -168,7 +168,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
-            hardlist.Add(new hardCom("!rank", 0, 0));
+            hardList.Add(new hardCom("!rank", 0, 0));
 
             //RNGPP catered commands, commented out means no way of implementing that yet.
             hardList.Add(new hardCom("!setbias",2,1));
