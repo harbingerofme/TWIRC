@@ -44,7 +44,7 @@ namespace RNGBot
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
             irc = new Thread(createIrc);
-            irc.Name = "irc";
+            irc.Name = "RNGPPBOT irc main thread";
             irc.Start();
 
             InitializeComponent();

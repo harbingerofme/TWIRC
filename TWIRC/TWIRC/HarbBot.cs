@@ -68,10 +68,11 @@ namespace RNGBot
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
-                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7));", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
+                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), money INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
@@ -167,10 +168,31 @@ namespace RNGBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
+            hardlist.Add(new hardCom("!rank", 0, 0));
+
+            //RNGPP catered commands, commented out means no way of implementing that yet.
+            hardList.Add(new hardCom("!setbias",2,1));
+            hardList.Add(new hardCom("!bias",0,1));
+            hardList.Add(new hardCom("!balance", 0, 0));
+            hardList.Add(new hardCom("!addlog", 0, 1));
+            hardList.Add(new hardCom("!setpoints",4,2));
+            //hardList.Add(new hardCom("!maintenance", 3, 1));
+            //hardList.Add(new hardCom("!background",0,1));
+            //hardList.Add(new hardCom("!song",0,1));
+            hardList.Add(new hardCom("!save", 3, 0));
+            
+            //sayingsbot overrides, we might add these eventually            
+            hardList.Add(new hardCom("!whois",0,1));
+            hardList.Add(new hardCom("!editme",1,1));
+            hardList.Add(new hardCom("!edituser",3,2));
+            hardList.Add(new hardCom("!classic",0,1));
+            hardList.Add(new hardCom("!addclassic",2,2));
+            hardList.Add(new hardCom("!delclassic",2,2));
 
             
             two = new Thread(run_2);//manages saving of commandlists, etc.
-            two.Name = "bot_two";
+            two.Name = "RNGPPBOT background irc thread.";
+            two.IsBackground = true;
             two.Start();
 
 #if !OFFLINE
@@ -391,6 +413,70 @@ namespace RNGBot
                             if (Regex.Match(str[1], "(off)|0|(false)|(no)",RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
                             
                             break;
+
+                        case "!rank":
+                            //needs a special antispam thing, before I implement this
+                            break;
+///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
+                        case "!setbias":
+                            tempVar2 = str[1];
+                            tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
+                            tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
+                            tempVar2 = tempVar2.ToLower().Replace("up", "8");
+                            tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
+                            tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
+                            tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
+                            tempVar2 = tempVar2.ToLower().Replace("left", "4");
+                            tempVar2 = tempVar2.ToLower().Replace("right", "6");
+                            tempVar2 =  tempVar2.ToLower().Replace("start","0");//f00?
+                            if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
+                            {
+                                //code for tempVar2 setting here
+                            }     
+                        
+                            break;
+                        case "!bias":
+                            tempVar2 = str[1];
+                            tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
+                            tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
+                            tempVar2 = tempVar2.ToLower().Replace("up", "8");
+                            tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
+                            tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
+                            tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
+                            tempVar2 = tempVar2.ToLower().Replace("left", "4");
+                            tempVar2 = tempVar2.ToLower().Replace("right", "6");
+                            tempVar2 =  tempVar2.ToLower().Replace("start","0");//f00?
+                            if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
+                            {
+                                tempVar1 = 1;
+                                if (Regex.Match(str[2], @"^[0-9]+\b").Success)
+                                {
+                                    try//don't trust this one bit.
+                                    {
+                                        tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                    }
+                                    catch
+                                    {
+                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                    }
+                                }
+                                if (tempVar1-1 <= getPoints(user)&&tempVar1!=0)
+                                {
+                                    addPoints(user, tempVar1 - 2,"vote");
+                                    //code for bias voting here
+                                    //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
+                                }
+                                if (tempVar1 == 0)
+                                { 
+                                    //refund points (remove them if necessary)(, maybe a fancy look into the database? (or a biascontrol.getvote(user))
+                                    //remove vote (biascontrol.removevote(user)
+                                }
+                            }     
+                        
+                            break;
+                        case "":
+                            break;
+
                     }
                     break;
                 }
@@ -440,6 +526,7 @@ namespace RNGBot
             if (DateTime.Now.DayOfYear < 100) { str += "0"; }
             if (DateTime.Now.DayOfYear < 10) { str += "0"; }
             str += DateTime.Now.DayOfYear.ToString();
+            //(int)DateTime.Now.TimeOfDay.TotalSeconds;
             return str;
         }
 
@@ -468,6 +555,52 @@ namespace RNGBot
             else
             {
                 new SQLiteCommand("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');", dbConn).ExecuteNonQuery();
+            }
+        }
+        public int getPoints(string name)
+        {
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                return sqldr.GetInt32(0);
+            }
+            else
+            {
+
+                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                return 0;
+            }
+        }
+        public void setPoints(string user, int amount)
+        {
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                new SQLiteCommand("UPDATE users SET money='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetString(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+            }
+            else
+            {
+                new SQLiteCommand("INSERT INTO users (name,lastseen,money) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+            }
+        }
+        public int addPoints(string name, int amount,string why)
+        {
+            int things;
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                things = sqldr.GetInt32(0)+amount;
+                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' money='"+ things+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + sqldr.GetString(0) + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                return things;
+            }
+            else
+            {
+
+                new SQLiteCommand("INSERT INTO users (name,lastseen,money) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
+                return 0;
             }
         }
 
