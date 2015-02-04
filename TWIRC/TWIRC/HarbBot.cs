@@ -29,6 +29,7 @@ namespace RNGBot
         public int logLevel;
         public bool antispam;
         public bool silence;
+        public List<intStr> votingList = new List<intStr>();
         public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
@@ -55,11 +56,17 @@ namespace RNGBot
             irc.OnChannelMessage += ircChanMess;
 
             //LoadCommands
-            logger.WriteLine("Booting up, shouldn't take long!");
+            if (logLevel != 0)
+            {
+                logger.WriteLine("IRC: Booting up, shouldn't take long!");
+            }
             string temp;
             if (!File.Exists("db.sqlite"))
             {
-                logger.WriteLine("First time setup detected, making database");
+                if (logLevel != 0)
+                {
+                    logger.WriteLine("First time setup detected, making database");
+                }
                 bot_name = "harbbot";
                 channels = "#rngplayspokemon";
                 globalCooldown = 20; 
@@ -100,68 +107,29 @@ namespace RNGBot
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
             while (rdr.Read())
             {
-                try
-                {
-                    string[] tempString = FileLines("Commands.twirc");
-                    foreach (string tempString1 in tempString)
-                    {
-                        if (tempString1.Length > 0)
-                        {
-                            if (tempString1[0] == '1')
-                            {
-                                comlist.Add(new command(tempString1));
-                                comlist[comlist.Count - 1].setCooldown(globalCooldown);
-                            }
-                        }
-                    }
-                    logger.WriteLine("Loaded up " + comlist.Count() + " commands.");
-                    File.Copy("Commands.twirc", "backupCommands.twirc", true);
-                }
-                catch
-                {
-                    logger.WriteLine("'Commands.twirc' contains an error and I was unable to parse it. Please check the file.");
-                }
                 string[] a = rdr.GetString(3).Split(new string[] {@"\n"},StringSplitOptions.RemoveEmptyEntries);
                 command k = new command(rdr.GetString(0), a, rdr.GetInt32(1));
                 k.setCount(rdr.GetInt32(2));
                 k.setCooldown(globalCooldown);
                 comlist.Add(k);
             }
-            logger.WriteLine("Loaded " + comlist.Count() + " commands!");
+            if (logLevel != 0)
+            {
+                logger.WriteLine("Loaded " + comlist.Count() + " commands!");
+            }
 
             rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
             while (rdr.Read())
             {
-                logger.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
-                writeFile("Commands.twirc", "");
                 string[] a = rdr.GetString(0).Split(' ');
                 ali k = new ali(a, rdr.GetString(1));
                 aliList.Add(k);
             }
-            logger.WriteLine("Loaded " + aliList.Count() + " aliases!");
+            if (logLevel != 0)
+            {
+                logger.WriteLine("Loaded " + aliList.Count() + " aliases!");
+            }
 
-            if (File.Exists("Aliases.twirc"))
-            {
-                try
-                {
-                    string[] tempString = FileLines("Aliases.twirc");
-                    foreach (string tempString1 in tempString)
-                    {
-                        aliList.Add(new ali(tempString1));
-                    }
-                    logger.WriteLine("Loaded up " + aliList.Count() + " aliases.");
-                    File.Copy("Aliases.twirc", "backupAliases.twirc", true);
-                }
-                catch
-                {
-                    logger.WriteLine("'Aliases.twirc' contains an error and I was unable to parse it. Please check the file.");
-                }
-            }
-            else
-            {
-                logger.WriteLine("Aliases File non-existant, making a new one. (none loaded)");
-                writeFile("Aliases.twirc", "");
-            }
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persitency)
             hardList.Add(new hardCom("!adco", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
@@ -224,7 +192,10 @@ namespace RNGBot
             }
             catch (ConnectionException e)
             {
-                logger.Write("Connection error: " + e.Message + ". Retrying in 5 seconds.");
+                if (logLevel != 0)
+                {
+                    logger.Write("IRC: Connection error: " + e.Message + ". Retrying in 5 seconds.");
+                }
                 Thread.Sleep(5000);
                 reconnect();
             };
@@ -273,6 +244,7 @@ namespace RNGBot
                 {
                     done = true;
                     str = h.returnPars(message);
+                    if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
                     switch (h.returnKeyword())
                     {
                         case "!adco":
@@ -480,14 +452,33 @@ namespace RNGBot
                                 }
                                 if (tempVar1-1 <= getPoints(user)&&tempVar1!=0)
                                 {
-                                    addPoints(user, tempVar1 - 2,"vote");
-                                    //code for bias voting here
-                                    //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
+                                    fail = false;
+                                    foreach (intStr IS in votingList)
+                                    {
+                                        if (IS.s() == user) { fail = true; break; }
+                                    }
+                                    if (!fail)
+                                    {
+                                        votingList.Add(new intStr(user,tempVar1));
+                                        addPoints(user, tempVar1 - 2, "vote");
+                                        //code for bias voting here
+                                        //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
+                                    }
                                 }
                                 if (tempVar1 == 0)
-                                { 
-                                    //refund points (remove them if necessary)(, maybe a fancy look into the database? (or a biascontrol.getvote(user))
-                                    //remove vote (biascontrol.removevote(user)
+                                {
+                                    fail = true; int a = 0;
+                                    foreach(intStr IS in votingList)
+                                    {
+                                        if (IS.s() == user) { fail = false; break; }
+                                        a++;
+                                    }
+                                    if (!fail)
+                                    {
+                                        addPoints(user, votingList[a].i() + 2, "refundvote");
+                                        votingList.RemoveAt(a);
+                                        //remove vote (biascontrol.removevote(user)
+                                    }
                                 }
                             }     
                         
@@ -509,8 +500,19 @@ namespace RNGBot
                             sendMess(channel, user+", your balance is "+tempVar2+".");
                             break;
 
+                        case "!addlog":
+                            appendFile(progressLogPATH, getNowExtended()+" "+user+ " "+str[1] + str[2]);
+                            sendMess(channel,"Affirmative, " + user+"!");
+                            break;
+
+                        case "!save":
+                            //code to save here, if done, uncomment next line
+                            //sendMess(channel, user + "-> Saved game to oldest slot.");
+                            break;
                     }
                     break;
+
+
                 }
             }
 
@@ -520,6 +522,7 @@ namespace RNGBot
                 {
                     if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                     {
+                        if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
                         str = c.getResponse(message, user);
                         c.addCount(1);
                         new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';");
@@ -535,7 +538,10 @@ namespace RNGBot
 
         public void sendMess(string channel, string message)
         {
-            logger.WriteLine("IRC: ->" + channel + ": " + message);
+            if (logLevel > 0)
+            {
+                logger.WriteLine("IRC: ->" + channel + ": " + message);
+            }
             hasSend = true;
             time = getNow();
             irc.SendMessage(SendType.Message, channel, message);
@@ -559,6 +565,19 @@ namespace RNGBot
             if (DateTime.Now.DayOfYear < 10) { str += "0"; }
             str += DateTime.Now.DayOfYear.ToString();
             //(int)DateTime.Now.TimeOfDay.TotalSeconds;
+            return str;
+        }
+        public string getNowExtended(){
+            string str = DateTime.Now.Year.ToString();
+            if (DateTime.Now.DayOfYear < 100) { str += "0"; }
+            if (DateTime.Now.DayOfYear < 10) { str += "0"; }
+            str += DateTime.Now.DayOfYear.ToString();
+            if (DateTime.Now.Hour < 10) { str += "0"; }
+            str += DateTime.Now.Hour;
+            if (DateTime.Now.Minute < 10) { str += "0"; }
+            str += DateTime.Now.Minute;
+            if (DateTime.Now.Second < 10) { str += "0"; }
+            str += DateTime.Now.Second;
             return str;
         }
 
@@ -660,9 +679,12 @@ namespace RNGBot
         {
             reconnect();
         }
-        public static void ircRaw(object sender, IrcEventArgs e)
+        public void ircRaw(object sender, IrcEventArgs e)
         {
-
+            if (logLevel == 3)
+            {
+                logger.Write("IRC RAW:<- " + e.Data.RawMessage);
+            }
         }
         public void ircChanMess(object sender, IrcEventArgs e)
         {
