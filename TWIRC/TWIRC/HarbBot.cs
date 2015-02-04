@@ -26,8 +26,10 @@ namespace RNGBot
         public bool hasSend;
         public int time;
         public int globalCooldown;
+        public int logLevel;
         public bool antispam;
         public bool silence;
+        public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
 
@@ -63,6 +65,8 @@ namespace RNGBot
                 globalCooldown = 20; 
                 antispam = true;
                 oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
+                logLevel = 1;
+                progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -71,9 +75,9 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), money INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logURL,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
@@ -89,6 +93,8 @@ namespace RNGBot
                 silence = false; if (sqldr.GetInt32(3) == 1) { silence = true; }
                 oauth = sqldr.GetString(4);
                 globalCooldown = sqldr.GetInt32(5);
+                logLevel = sqldr.GetInt32(6);
+                progressLogPATH = sqldr.GetString(7);
             }
 
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
@@ -168,24 +174,26 @@ namespace RNGBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
-            hardList.Add(new hardCom("!rank", 0, 0));
+            hardList.Add(new hardCom("!rank", 0, 0,600));
 
-            //RNGPP catered commands, commented out means no way of implementing that yet.
+            //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",2,1));
             hardList.Add(new hardCom("!bias",0,1));
-            hardList.Add(new hardCom("!balance", 0, 0));
+            hardList.Add(new hardCom("!balance", 0, 0,600));
             hardList.Add(new hardCom("!addlog", 0, 1));
             hardList.Add(new hardCom("!setpoints",4,2));
             //hardList.Add(new hardCom("!maintenance", 3, 1));
             //hardList.Add(new hardCom("!background",0,1));
             //hardList.Add(new hardCom("!song",0,1));
+            //hardList.Add(new hardCom("!seriousmode",3,1);
             hardList.Add(new hardCom("!save", 3, 0));
+            hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
             
             //sayingsbot overrides, we might add these eventually            
-            hardList.Add(new hardCom("!whois",0,1));
+            hardList.Add(new hardCom("!whois",0,1,20));
             hardList.Add(new hardCom("!editme",1,1));
             hardList.Add(new hardCom("!edituser",3,2));
-            hardList.Add(new hardCom("!classic",0,1));
+            hardList.Add(new hardCom("!classic",0,1,20));
             hardList.Add(new hardCom("!addclassic",2,2));
             hardList.Add(new hardCom("!delclassic",2,2));
 
@@ -257,11 +265,11 @@ namespace RNGBot
         public void checkCommand(string channel, string user, string message)
         {
             string[] str, tempVar3;
-            bool done = false;
+            bool done = false; int auth = pullAuth(user);
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             foreach (hardCom h in hardList)//hardcoded command
             {
-                if (h.hardMatch(message,pullAuth(user)))
+                if (h.hardMatch(user,message,auth))
                 {
                     done = true;
                     str = h.returnPars(message);
@@ -362,7 +370,7 @@ namespace RNGBot
                                 if (fail) { sendMess(channel, "I'm sorry, " + user + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
                         case "!set"://!set <name> <level>
-                            if (Regex.Match(str[2], "^([0-" + pullAuth(user) + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                            if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".tha");
@@ -392,7 +400,7 @@ namespace RNGBot
                                 }
                             break;
                         case "!banuser":
-                                if (pullAuth(user) > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
+                                if (auth > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
                                 {
                                     setAuth(str[1], -1);
                                     sendMess(channel, user + "-> \"" + str[1] + "\" has been banned from using bot commands.");
@@ -415,7 +423,17 @@ namespace RNGBot
                             break;
 
                         case "!rank":
-                            //needs a special antispam thing, before I implement this
+                            string text ="";
+                            switch (auth)
+                            {
+                                case 0: text = "an user"; break;
+                                case 1: text = "a regular"; break;
+                                case 2: text = "trusted"; break;
+                                case 3: text = "a moderator"; break;
+                                case 4: text = "the broadcaster"; break;
+                                case 5: text = "an administrator of " + bot_name; break;
+                            }
+                            sendMess(channel, user + ", you are "+text+".");
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
@@ -474,7 +492,21 @@ namespace RNGBot
                             }     
                         
                             break;
-                        case "":
+                        case "!balance":
+                            tempVar1 = getPoints(user);tempVar2 = "";
+                            if (tempVar1 == 0)
+                            {
+                                tempVar2 = "zero";
+                            }
+                            else if (tempVar1 == 1||tempVar1 == -1)
+                            {
+                                tempVar2 = tempVar1+" pokéDollar";
+                            }
+                            else
+                            {
+                                tempVar2 = tempVar1+ "PokéDollars";
+                            }
+                            sendMess(channel, user+", your balance is "+tempVar2+".");
                             break;
 
                     }
@@ -486,7 +518,7 @@ namespace RNGBot
             {
                 foreach (command c in comlist)//flexible commands
                 {
-                    if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= pullAuth(user))
+                    if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                     {
                         str = c.getResponse(message, user);
                         c.addCount(1);
@@ -503,7 +535,7 @@ namespace RNGBot
 
         public void sendMess(string channel, string message)
         {
-            logger.WriteLine("->" + channel + ": " + message);
+            logger.WriteLine("IRC: ->" + channel + ": " + message);
             hasSend = true;
             time = getNow();
             irc.SendMessage(SendType.Message, channel, message);
@@ -610,7 +642,7 @@ namespace RNGBot
             IrcClient a = (IrcClient)sender;
             a.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             a.RfcJoin(channels);
-            logger.WriteLine("Joined Twitch chat");
+            logger.WriteLine("IRC: Joined Twitch chat");
             a.Listen();
         }
 
@@ -637,7 +669,7 @@ namespace RNGBot
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
-            logger.WriteLine("<-" + channel + ": <" + nick + "> " + message);
+            if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
             message = message.TrimEnd();
             if (antispam) { checkSpam(channel, nick, message); };
             message = filter(message);
@@ -650,7 +682,7 @@ namespace RNGBot
             string message = e.Data.Message;
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            logger.WriteLine("<-" + channel + ": " + nick + " " + message);
+            if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
         }
         public void ircQuery(object sender, EventArgs e)
         {

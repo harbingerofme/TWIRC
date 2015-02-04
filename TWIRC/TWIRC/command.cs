@@ -24,28 +24,62 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         {
             return authLevel;
         }
+        public int getNow()
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
+            return (int)Math.Floor(diff.TotalSeconds);
+        }
         
     }
 
     public class hardCom : com
     {
         protected int parameters { get; set; }
+        public int persCooldown = 0;
+        public List<intStr> cdlist = new List<intStr>();
         public hardCom(string kw, int al, int pars)
         {
             keyword = kw;
             al = authLevel;
             parameters = pars;
         }
-
-        public bool hardMatch(string input,int auth)
+        public hardCom(string kw, int al, int pars,int personalCooldown)
         {
-            string[] pars;
+            keyword = kw;
+            al = authLevel;
+            parameters = pars;
+            persCooldown = personalCooldown;
+        }
+
+
+        public bool hardMatch(string user,string input,int auth)
+        {
+            string[] pars; int now = getNow();bool failure = false;
             if (doesMatch(input) && auth>= authLevel)
             {
                 pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
                 if (pars.Count() >= parameters+1)
                 {
-                    return true;
+                    if(cdlist.Count>0){
+                        while (cdlist[0].i() > now - persCooldown)
+                        {
+                            cdlist.RemoveAt(0);
+                            if (cdlist.Count == 0)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    foreach (intStr IS in cdlist)
+                    {
+                        if (IS.s() == user) { failure = true; break; }
+                    }
+                    if (!failure)
+                    {
+                        cdlist.Add(new intStr(user, now));
+                        return true;
+                    }
                 }
             }
             return false;
@@ -167,12 +201,6 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         public void updateTime()
         {
             lastTime = getNow();
-        }
-        public int getNow()
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
-            return (int)Math.Floor(diff.TotalSeconds);
         }
         public int setCount(int amount)
         {
@@ -372,4 +400,55 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
             return result;
         }
     }
+
+    class intStr
+    {
+        public int Int;
+        public string Str;
+        public intStr()
+        {
+            Int = 0;
+            Str = null;
+        }
+        public intStr(int integer)
+        {
+            Int = integer;
+            Str = null;
+        }
+        public intStr(string String)
+        {
+            Int = 0;
+            Str = String;
+        }
+        public intStr(int integer, string String)
+        {
+            Int = integer;
+            Str = String;
+        }
+        public intStr(string String, int integer)
+        {
+            Int = integer;
+            Str = String;
+        }
+
+        public int i()
+        {
+            return Int;
+        }
+        public string s()
+        {
+            return Str;
+        }
+        public int i(int New)
+        {
+            Int = New;
+            return Int;
+        }
+        public string s(string New)
+        {
+            Str = New;
+            return Str;
+        }
+    }
+
 }
