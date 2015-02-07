@@ -401,6 +401,35 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         }
     }
 
+    class asUser
+    {
+        public string name;
+        public int points,lastUpdate,maxpoints;
+
+        public asUser(string user,int level)
+        {
+            name = user;
+            points = 5 * level+3;
+            maxpoints = points;
+            lastUpdate = getNow();
+        }
+
+
+        public int update(int amount)
+        {
+            points += amount;
+            lastUpdate = getNow();
+            return points;
+        }
+
+        private int getNow()
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
+            return (int)Math.Floor(diff.TotalSeconds);
+        }
+    }
+
     class intStr
     {
         public int Int;
