@@ -13,3 +13,7 @@ D:\TWIRC.pdb
 D:\TWIRC.exe.config
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.RNGWindow.resources
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csproj.GenerateResource.Cache
+C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\RNGBot.RNGWindow.resources
+C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.Properties.Resources.resources
+C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.RNGWindow.resources
+C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csproj.GenerateResource.Cache

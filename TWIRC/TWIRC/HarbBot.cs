@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Timers;
 using Meebey.SmartIrc4net;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -26,12 +27,13 @@ namespace RNGBot
         public List<asUser> asUsers = new List<asUser>();
         public int globalCooldown;
         public int logLevel;
-        public bool antispam; public List<intStr> permits; public int asCooldown = 60;
+        public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
         public bool silence;
         public List<intStr> votingList = new List<intStr>();
         public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
+        public int timeBetweenVotes = 1800, lastVoteTime = 0, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
 
 
         public Thread two;
@@ -83,7 +85,7 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logURL,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
@@ -142,6 +144,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
             hardList.Add(new hardCom("!rank", 0, 0,600));
+            hardList.Add(new hardCom("!permit", 2, 1));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",2,1));
@@ -170,10 +173,39 @@ namespace RNGBot
             two.IsBackground = true;
             two.Start();
 
+            voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
+            voteTimer.Elapsed += voteTimer_Elapsed;
+            voteTimer.Start();
+
+            voteTimer2 = new System.Timers.Timer(timeToVote*1000);
+            voteTimer2.Elapsed += voteTimer_Elapsed;
+
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
 
 
+        }
+
+        void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (sender == voteTimer)
+            {
+                voteStatus = 1;
+                voteTimer2.Start();
+                sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your points)");
+            }
+            else
+            {
+                int a = 0;
+                foreach(intStr b in votingList){
+                    a += b.Int;
+                }
+                sendMess(channels, "Voting is over. Processed " + a + " votes from " + votingList.Count + " users. Next vote starts in "+(Math.Floor((((double)timeBetweenVotes))/6)/10) + " minutes.");
+                votingList = new List<intStr>();
+                lastVoteTime = getNow();
+                voteStatus = 0;
+                voteTimer.Start();
+            }
         }
 
         public void reconnect()
@@ -216,7 +248,7 @@ namespace RNGBot
 
         public void checkSpam(string channel, string user, string message)
         {
-            List<asUser> temp = new List<asUser>();
+            List<asUser> temp = new List<asUser>();List<intStr> temp2 = new List<intStr>();
             foreach(asUser person in asUsers)
             {
                 if (person.lastUpdate < getNow() - asCooldown) { temp.Add(person); }
@@ -226,6 +258,18 @@ namespace RNGBot
             {
                 asUsers.Remove(person);
             }
+            foreach (intStr person in permits)
+            {
+                if (person.Int < getNow() - permitTime)
+                {
+                    temp2.Add(person);
+                }
+            }
+            foreach (intStr person in temp2)
+            {
+                permits.Remove(person);
+            }
+
             if (pullAuth(user) < 2)
             {
                 int a = asUsers.FindIndex(x => x.name == user);
@@ -238,7 +282,7 @@ namespace RNGBot
                 costs.Add(new intStr("ASCII", 5));//3
                 costs.Add(new intStr("tpp",2));//4
 
-                List<List<string>> responses = new List<List<string>>(); responses.Add(new List<string>());responses.Add(new List<string>());responses.Add(new List<string>());responses.Add(new List<string>());
+                List<List<string>> responses = new List<List<string>>(); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>());
                 responses[0].Add("Google those nudes!");responses[0].Add("We are not buying your shoes!");responses[0].Add("The stuff people would have to put up with...");
                 responses[1].Add("Images say more than a thousand words, so stop writing essays!");responses[1].Add("How is a timeout for a twitch chat feature?");responses[1].Add("I dislike emotes, they are all text to me.");
                 responses[2].Add("There's no need to type that way.");responses[2].Add("I do not take kindly upon that.");responses[2].Add("Stop behaving like a spoiled little RNG!");
@@ -256,17 +300,22 @@ namespace RNGBot
                     if (Regex.Match(message, @"^.$").Success || Regex.Match(message,@"([a-zA-Z])\1\1").Success || Regex.Match(message,@"([0-9])\1\1\1").Success || Regex.Match(message,@"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(costs[2].Int); type=2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
                     if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(costs[3].Int); type=3; }
 
-                    int b = Regex.Matches(message, @"[^ ]+\.(ABOGADO)|(AC)|(ACADEMY)|(ACCOUNTANTS)|(ACTIVE)|(ACTOR)|(AD)|(ADULT)|(AE)|(AERO)|(AF)|(AG)|(AGENCY)|(AI)|(AIRFORCE)|(AL)|(ALLFINANZ)|(ALSACE)|(AM)|(AMSTERDAM)|(AN)|(ANDROID)|(AO)|(AQ)|(AQUARELLE)|(AR)|(ARCHI)|(ARMY)|(ARPA)|(AS)|(ASIA)|(ASSOCIATES)|(AT)|(ATTORNEY)|(AU)|(AUCTION)|(AUDIO)|(AUTOS)|(AW)|(AX)|(AXA)|(AZ)|(BA)|(BAND)|(BANK)|(BAR)|(BARCLAYCARD)|(BARCLAYS)|(BARGAINS)|(BAYERN)|(BB)|(BD)|(BE)|(BEER)|(BERLIN)|(BEST)|(BF)|(BG)|(BH)|(BI)|(BID)|(BIKE)|(BINGO)|(BIO)|(BIZ)|(BJ)|(BLACK)|(BLACKFRIDAY)|(BLOOMBERG)|(BLUE)|(BM)|(BMW)|(BN)|(BNPPARIBAS)|(BO)|(BOO)|(BOUTIQUE)|(BR)|(BRUSSELS)|(BS)|(BT)|(BUDAPEST)|(BUILD)|(BUILDERS)|(BUSINESS)|(BUZZ)|(BV)|(BW)|(BY)|(BZ)|(BZH)|(CA)|(CAB)|(CAL)|(CAMERA)|(CAMP)|(CANCERRESEARCH)|(CANON)|(CAPETOWN)|(CAPITAL)|(CARAVAN)|(CARDS)|(CARE)|(CAREER)|(CAREERS)|(CARTIER)|(CASA)|(CASH)|(CAT)|(CATERING)|(CC)|(CD)|(CENTER)|(CEO)|(CERN)|(CF)|(CG)|(CH)|(CHANNEL)|(CHAT)|(CHEAP)|(CHRISTMAS)|(CHROME)|(CHURCH)|(CI)|(CITIC)|(CITY)|(CK)|(CL)|(CLAIMS)|(CLEANING)|(CLICK)|(CLINIC)|(CLOTHING)|(CLUB)|(CM)|(CN)|(CO)|(COACH)|(CODES)|(COFFEE)|(COLLEGE)|(COLOGNE)|(COM)|(COMMUNITY)|(COMPANY)|(COMPUTER)|(CONDOS)|(CONSTRUCTION)|(CONSULTING)|(CONTRACTORS)|(COOKING)|(COOL)|(COOP)|(COUNTRY)|(CR)|(CREDIT)|(CREDITCARD)|(CRICKET)|(CRS)|(CRUISES)|(CU)|(CUISINELLA)|(CV)|(CW)|(CX)|(CY)|(CYMRU)|(CZ)|(DABUR)|(DAD)|(DANCE)|(DATING)|(DAY)|(DCLK)|(DE)|(DEALS)|(DEGREE)|(DELIVERY)|(DEMOCRAT)|(DENTAL)|(DENTIST)|(DESI)|(DESIGN)|(DEV)|(DIAMONDS)|(DIET)|(DIGITAL)|(DIRECT)|(DIRECTORY)|(DISCOUNT)|(DJ)|(DK)|(DM)|(DNP)|(DO)|(DOCS)|(DOMAINS)|(DOOSAN)|(DURBAN)|(DVAG)|(DZ)|(EAT)|(EC)|(EDU)|(EDUCATION)|(EE)|(EG)|(EMAIL)|(EMERCK)|(ENERGY)|(ENGINEER)|(ENGINEERING)|(ENTERPRISES)|(EQUIPMENT)|(ER)|(ES)|(ESQ)|(ESTATE)|(ET)|(EU)|(EUROVISION)|(EUS)|(EVENTS)|(EVERBANK)|(EXCHANGE)|(EXPERT)|(EXPOSED)|(FAIL)|(FARM)|(FASHION)|(FEEDBACK)|(FI)|(FINANCE)|(FINANCIAL)|(FIRMDALE)|(FISH)|(FISHING)|(FIT)|(FITNESS)|(FJ)|(FK)|(FLIGHTS)|(FLORIST)|(FLOWERS)|(FLSMIDTH)|(FLY)|(FM)|(FO)|(FOO)|(FORSALE)|(FOUNDATION)|(FR)|(FRL)|(FROGANS)|(FUND)|(FURNITURE)|(FUTBOL)|(GA)|(GAL)|(GALLERY)|(GARDEN)|(GB)|(GBIZ)|(GD)|(GE)|(GENT)|(GF)|(GG)|(GGEE)|(GH)|(GI)|(GIFT)|(GIFTS)|(GIVES)|(GL)|(GLASS)|(GLE)|(GLOBAL)|(GLOBO)|(GM)|(GMAIL)|(GMO)|(GMX)|(GN)|(GOOG)|(GOOGLE)|(GOP)|(GOV)|(GP)|(GQ)|(GR)|(GRAPHICS)|(GRATIS)|(GREEN)|(GRIPE)|(GS)|(GT)|(GU)|(GUIDE)|(GUITARS)|(GURU)|(GW)|(GY)|(HAMBURG)|(HANGOUT)|(HAUS)|(HEALTHCARE)|(HELP)|(HERE)|(HERMES)|(HIPHOP)|(HIV)|(HK)|(HM)|(HN)|(HOLDINGS)|(HOLIDAY)|(HOMES)|(HORSE)|(HOST)|(HOSTING)|(HOUSE)|(HOW)|(HR)|(HT)|(HU)|(IBM)|(ID)|(IE)|(IFM)|(IL)|(IM)|(IMMO)|(IMMOBILIEN)|(IN)|(INDUSTRIES)|(INFO)|(ING)|(INK)|(INSTITUTE)|(INSURE)|(INT)|(INTERNATIONAL)|(INVESTMENTS)|(IO)|(IQ)|(IR)|(IRISH)|(IS)|(IT)|(IWC)|(JCB)|(JE)|(JETZT)|(JM)|(JO)|(JOBS)|(JOBURG)|(JP)|(JUEGOS)|(KAUFEN)|(KDDI)|(KE)|(KG)|(KH)|(KI)|(KIM)|(KITCHEN)|(KIWI)|(KM)|(KN)|(KOELN)|(KP)|(KR)|(KRD)|(KRED)|(KW)|(KY)|(KYOTO)|(KZ)|(LA)|(LACAIXA)|(LAND)|(LAT)|(LATROBE)|(LAWYER)|(LB)|(LC)|(LDS)|(LEASE)|(LEGAL)|(LGBT)|(LI)|(LIDL)|(LIFE)|(LIGHTING)|(LIMITED)|(LIMO)|(LINK)|(LK)|(LOANS)|(LONDON)|(LOTTE)|(LOTTO)|(LR)|(LS)|(LT)|(LTDA)|(LU)|(LUXE)|(LUXURY)|(LV)|(LY)|(MA)|(MADRID)|(MAISON)|(MANAGEMENT)|(MANGO)|(MARKET)|(MARKETING)|(MARRIOTT)|(MC)|(MD)|(ME)|(MEDIA)|(MEET)|(MELBOURNE)|(MEME)|(MEMORIAL)|(MENU)|(MG)|(MH)|(MIAMI)|(MIL)|(MINI)|(MK)|(ML)|(MM)|(MN)|(MO)|(MOBI)|(MODA)|(MOE)|(MONASH)|(MONEY)|(MORMON)|(MORTGAGE)|(MOSCOW)|(MOTORCYCLES)|(MOV)|(MP)|(MQ)|(MR)|(MS)|(MT)|(MU)|(MUSEUM)|(MV)|(MW)|(MX)|(MY)|(MZ)|(NA)|(NAGOYA)|(NAME)|(NAVY)|(NC)|(NE)|(NET)|(NETWORK)|(NEUSTAR)|(NEW)|(NEXUS)|(NF)|(NG)|(NGO)|(NHK)|(NI)|(NINJA)|(NL)|(NO)|(NP)|(NR)|(NRA)|(NRW)|(NTT)|(NU)|(NYC)|(NZ)|(OKINAWA)|(OM)|(ONE)|(ONG)|(ONL)|(OOO)|(ORG)|(ORGANIC)|(OSAKA)|(OTSUKA)|(OVH)|(PA)|(PARIS)|(PARTNERS)|(PARTS)|(PARTY)|(PE)|(PF)|(PG)|(PH)|(PHARMACY)|(PHOTO)|(PHOTOGRAPHY)|(PHOTOS)|(PHYSIO)|(PICS)|(PICTURES)|(PINK)|(PIZZA)|(PK)|(PL)|(PLACE)|(PLUMBING)|(PM)|(PN)|(POHL)|(POKER)|(PORN)|(POST)|(PR)|(PRAXI)|(PRESS)|(PRO)|(PROD)|(PRODUCTIONS)|(PROF)|(PROPERTIES)|(PROPERTY)|(PS)|(PT)|(PUB)|(PW)|(PY)|(QA)|(QPON)|(QUEBEC)|(RE)|(REALTOR)|(RECIPES)|(RED)|(REHAB)|(REISE)|(REISEN)|(REIT)|(REN)|(RENTALS)|(REPAIR)|(REPORT)|(REPUBLICAN)|(REST)|(RESTAURANT)|(REVIEWS)|(RICH)|(RIO)|(RIP)|(RO)|(ROCKS)|(RODEO)|(RS)|(RSVP)|(RU)|(RUHR)|(RW)|(RYUKYU)|(SA)|(SAARLAND)|(SALE)|(SAMSUNG)|(SARL)|(SB)|(SC)|(SCA)|(SCB)|(SCHMIDT)|(SCHULE)|(SCHWARZ)|(SCIENCE)|(SCOT)|(SD)|(SE)|(SERVICES)|(SEW)|(SEXY)|(SG)|(SH)|(SHIKSHA)|(SHOES)|(SHRIRAM)|(SI)|(SINGLES)|(SJ)|(SK)|(SKY)|(SL)|(SM)|(SN)|(SO)|(SOCIAL)|(SOFTWARE)|(SOHU)|(SOLAR)|(SOLUTIONS)|(SOY)|(SPACE)|(SPIEGEL)|(SR)|(ST)|(STYLE)|(SU)|(SUPPLIES)|(SUPPLY)|(SUPPORT)|(SURF)|(SURGERY)|(SUZUKI)|(SV)|(SX)|(SY)|(SYDNEY)|(SYSTEMS)|(SZ)|(TAIPEI)|(TATAR)|(TATTOO)|(TAX)|(TC)|(TD)|(TECHNOLOGY)|(TEL)|(TEMASEK)|(TENNIS)|(TF)|(TG)|(TH)|(TIENDA)|(TIPS)|(TIRES)|(TIROL)|(TJ)|(TK)|(TL)|(TM)|(TN)|(TO)|(TODAY)|(TOKYO)|(TOOLS)|(TOP)|(TOSHIBA)|(TOWN)|(TOYS)|(TP)|(TR)|(TRADE)|(TRAINING)|(TRAVEL)|(TRUST)|(TT)|(TUI)|(TV)|(TW)|(TZ)|(UA)|(UG)|(UK)|(UNIVERSITY)|(UNO)|(UOL)|(US)|(UY)|(UZ)|(VA)|(VACATIONS)|(VC)|(VE)|(VEGAS)|(VENTURES)|(VERSICHERUNG)|(VET)|(VG)|(VI)|(VIAJES)|(VIDEO)|(VILLAS)|(VISION)|(VLAANDEREN)|(VN)|(VODKA)|(VOTE)|(VOTING)|(VOTO)|(VOYAGE)|(VU)|(WALES)|(WANG)|(WATCH)|(WEBCAM)|(WEBSITE)|(WED)|(WEDDING)|(WF)|(WHOSWHO)|(WIEN)|(WIKI)|(WILLIAMHILL)|(WME)|(WORK)|(WORKS)|(WORLD)|(WS)|(WTC)|(WTF)|(XN--1QQW23A)|(XN--3BST00M)|(XN--3DS443G)|(XN--3E0B707E)|(XN--45BRJ9C)|(XN--45Q11C)|(XN--4GBRIM)|(XN--55QW42G)|(XN--55QX5D)|(XN--6FRZ82G)|(XN--6QQ986B3XL)|(XN--80ADXHKS)|(XN--80AO21A)|(XN--80ASEHDB)|(XN--80ASWG)|(XN--90A3AC)|(XN--B4W605FERD)|(XN--C1AVG)|(XN--CG4BKI)|(XN--CLCHC0EA0B2G2A9GCD)|(XN--CZR694B)|(XN--CZRS0T)|(XN--CZRU2D)|(XN--D1ACJ3B)|(XN--D1ALF)|(XN--FIQ228C5HS)|(XN--FIQ64B)|(XN--FIQS8S)|(XN--FIQZ9S)|(XN--FLW351E)|(XN--FPCRJ9C3D)|(XN--FZC2C9E2C)|(XN--GECRJ9C)|(XN--H2BRJ9C)|(XN--HXT814E)|(XN--I1B6B1A6A2E)|(XN--IO0A7I)|(XN--J1AMH)|(XN--J6W193G)|(XN--KPRW13D)|(XN--KPRY57D)|(XN--KPUT3I)|(XN--L1ACC)|(XN--LGBBAT1AD8J)|(XN--MGB9AWBF)|(XN--MGBA3A4F16A)|(XN--MGBAAM7A8H)|(XN--MGBAB2BD)|(XN--MGBAYH7GPA)|(XN--MGBBH1A71E)|(XN--MGBC0A9AZCG)|(XN--MGBERP4A5D4AR)|(XN--MGBX4CD0AB)|(XN--NGBC5AZD)|(XN--NODE)|(XN--NQV7F)|(XN--NQV7FS00EMA)|(XN--O3CW4H)|(XN--OGBPF8FL)|(XN--P1ACF)|(XN--P1AI)|(XN--PGBS0DH)|(XN--Q9JYB4C)|(XN--QCKA1PMC)|(XN--RHQV96G)|(XN--S9BRJ9C)|(XN--SES554G)|(XN--UNUP4Y)|(XN--VERMGENSBERATER-CTB)|(XN--VERMGENSBERATUNG-PWB)|(XN--VHQUV)|(XN--WGBH1C)|(XN--WGBL6A)|(XN--XHQ521B)|(XN--XKC2AL3HYE2A)|(XN--XKC2DL3A5EE0H)|(XN--YFRO4I67O)|(XN--YGBI2AMMX)|(XN--ZFR164B)|(XXX)|(XYZ)|(YACHTS)|(YANDEX)|(YE)|(YOGA)|(YOKOHAMA)|(YOUTUBE)|(YT)|(ZA)|(ZIP)|(ZM)|(ZONE)|(ZUERICH)|(ZW)[\b\/?#]".ToLower()).Count;
+                    MatchCollection mc = Regex.Matches(message, @"[^ ]+\.(AC)|(AD)|(ADULT)|(AE)|(AF)|(AG)|(AI)|(AL)|(AM)|(AN)|(AO)|(AQ)|(AR)|(AS)|(ASIA)|(AT)|(AU)|(AUCTION)|(AW)|(AX)|(AXA)|(AZ)|(BA)|(BARGAINS)|(BB)|(BD)|(BE)|(BF)|(BG)|(BH)|(BI)|(BIZ)|(BJ)|(BM)|(BMW)|(BN)|(BO)|(BOO)|(BOUTIQUE)|(BR)|(BRUSSELS)|(BS)|(BT)|(BUDAPEST)|(BUILD)|(BUILDERS)|(BUSINESS)|(BUZZ)|(BV)|(BW)|(BY)|(BZ)|(BZH)|(CA)|(CAB)|(CAL)|(CAMERA)|(CAMP)|(CANCERRESEARCH)|(CANON)|(CAPETOWN)|(CAPITAL)|(CARAVAN)|(CARDS)|(CARE)|(CAREER)|(CAREERS)|(CARTIER)|(CASA)|(CASH)|(CAT)|(CATERING)|(CC)|(CD)|(CENTER)|(CEO)|(CERN)|(CF)|(CG)|(CH)|(CHANNEL)|(CHAT)|(CHEAP)|(CHRISTMAS)|(CHROME)|(CHURCH)|(CI)|(CITIC)|(CITY)|(CK)|(CL)|(CLAIMS)|(CLEANING)|(CLICK)|(CLINIC)|(CLOTHING)|(CLUB)|(CM)|(CN)|(CO)|(COACH)|(CODES)|(COFFEE)|(COLLEGE)|(COLOGNE)|(COM)|(COMMUNITY)|(COMPANY)|(COMPUTER)|(CONDOS)|(CONSTRUCTION)|(CONSULTING)|(CONTRACTORS)|(COOKING)|(COOL)|(COOP)|(COUNTRY)|(CR)|(CREDIT)|(CREDITCARD)|(CRICKET)|(CRS)|(CRUISES)|(CU)|(CUISINELLA)|(CV)|(CW)|(CX)|(CY)|(CYMRU)|(CZ)|(DABUR)|(DAD)|(DANCE)|(DATING)|(DAY)|(DCLK)|(DE)|(DEALS)|(DEGREE)|(DELIVERY)|(DEMOCRAT)|(DENTAL)|(DENTIST)|(DESI)|(DESIGN)|(DEV)|(DIAMONDS)|(DIET)|(DIGITAL)|(DIRECT)|(DIRECTORY)|(DISCOUNT)|(DJ)|(DK)|(DM)|(DNP)|(DO)|(DOCS)|(DOMAINS)|(DOOSAN)|(DURBAN)|(DVAG)|(DZ)|(EAT)|(EC)|(EDU)|(EDUCATION)|(EE)|(EG)|(EMAIL)|(EMERCK)|(ENERGY)|(ENGINEER)|(ENGINEERING)|(ENTERPRISES)|(EQUIPMENT)|(ER)|(ES)|(ESQ)|(ESTATE)|(ET)|(EU)|(EUS)|(EVENTS)|(EVERBANK)|(EXCHANGE)|(EXPERT)|(EXPOSED)|(FAIL)|(FARM)|(FASHION)|(FEEDBACK)|(FI)|(FINANCE)|(FINANCIAL)|(FISH)|(FISHING)|(FIT)|(FITNESS)|(FJ)|(FK)|(FLIGHTS)|(FLORIST)|(FLOWERS)|(FLSMIDTH)|(FLY)|(FM)|(FO)|(FOO)|(FORSALE)|(FOUNDATION)|(FR)|(FRL)|(FROGANS)|(FUND)|(FURNITURE)|(FUTBOL)|(GA)|(GAL)|(GALLERY)|(GARDEN)|(GB)|(GBIZ)|(GD)|(GE)|(GENT)|(GF)|(GG)|(GGEE)|(GH)|(GI)|(GIFT)|(GIFTS)|(GIVES)|(GL)|(GLASS)|(GLE)|(GLOBAL)|(GLOBO)|(GM)|(GMAIL)|(GMO)|(GMX)|(GN)|(GOOG)|(GOOGLE)|(GOP)|(GOV)|(GP)|(GQ)|(GR)|(GRAPHICS)|(GRATIS)|(GREEN)|(GRIPE)|(GS)|(GT)|(GU)|(GUIDE)|(GUITARS)|(GURU)|(GW)|(GY)|(HAMBURG)|(HANGOUT)|(HAUS)|(HEALTHCARE)|(HELP)|(HERE)|(HERMES)|(HIPHOP)|(HIV)|(HK)|(HM)|(HN)|(HOLDINGS)|(HOLIDAY)|(HOMES)|(HORSE)|(HOST)|(HOSTING)|(HOUSE)|(HOW)|(HR)|(HT)|(HU)|(IBM)|(ID)|(IE)|(IFM)|(IL)|(IM)|(IMMO)|(IMMOBILIEN)|(IN)|(INDUSTRIES)|(INFO)|(ING)|(INK)|(INSTITUTE)|(INSURE)|(INT)|(INTERNATIONAL)|(INVESTMENTS)|(IO)|(IQ)|(IR)|(IRISH)|(IS)|(IT)|(IWC)|(JCB)|(JE)|(JETZT)|(JM)|(JO)|(JOBS)|(JOBURG)|(JP)|(JUEGOS)|(KAUFEN)|(KDDI)|(KE)|(KG)|(KH)|(KI)|(KIM)|(KITCHEN)|(KIWI)|(KM)|(KN)|(KOELN)|(KP)|(KR)|(KRD)|(KRED)|(KW)|(KY)|(KYOTO)|(KZ)|(LA)|(LACAIXA)|(LAND)|(LAT)|(LATROBE)|(LAWYER)|(LB)|(LC)|(LDS)|(LEASE)|(LEGAL)|(LGBT)|(LI)|(LIDL)|(LIFE)|(LIGHTING)|(LIMITED)|(LIMO)|(LINK)|(LK)|(LOANS)|(LONDON)|(LOTTE)|(LOTTO)|(LR)|(LS)|(LT)|(LTDA)|(LU)|(LUXE)|(LUXURY)|(LV)|(LY)|(MA)|(MADRID)|(MAISON)|(MANAGEMENT)|(MANGO)|(MARKET)|(MARKETING)|(MARRIOTT)|(MC)|(MD)|(ME)|(MEDIA)|(MEET)|(MELBOURNE)|(MEME)|(MEMORIAL)|(MENU)|(MG)|(MH)|(MIAMI)|(MIL)|(MINI)|(MK)|(ML)|(MM)|(MN)|(MO)|(MOBI)|(MODA)|(MOE)|(MONASH)|(MONEY)|(MORMON)|(MORTGAGE)|(MOSCOW)|(MOTORCYCLES)|(MOV)|(MP)|(MQ)|(MR)|(MS)|(MT)|(MU)|(MUSEUM)|(MV)|(MW)|(MX)|(MY)|(MZ)|(NA)|(NAGOYA)|(NAME)|(NAVY)|(NC)|(NE)|(NET)|(NETWORK)|(NEUSTAR)|(NEW)|(NEXUS)|(NF)|(NG)|(NGO)|(NHK)|(NI)|(NINJA)|(NL)|(NO)|(NP)|(NR)|(NRA)|(NRW)|(NTT)|(NU)|(NYC)|(NZ)|(OKINAWA)|(OM)|(ONE)|(ONG)|(ONL)|(OOO)|(ORG)|(ORGANIC)|(OSAKA)|(OTSUKA)|(OVH)|(PA)|(PARIS)|(PARTNERS)|(PARTS)|(PARTY)|(PE)|(PF)|(PG)|(PH)|(PHARMACY)|(PHOTO)|(PHOTOGRAPHY)|(PHOTOS)|(PHYSIO)|(PICS)|(PICTURES)|(PINK)|(PIZZA)|(PK)|(PL)|(PLACE)|(PLUMBING)|(PM)|(PN)|(POHL)|(POKER)|(PORN)|(POST)|(PR)|(PRAXI)|(PRESS)|(PRO)|(PROD)|(PRODUCTIONS)|(PROF)|(PROPERTIES)|(PROPERTY)|(PS)|(PT)|(PUB)|(PW)|(PY)|(QA)|(QPON)|(QUEBEC)|(RE)|(REALTOR)|(RECIPES)|(RED)|(REHAB)|(REISE)|(REISEN)|(REIT)|(REN)|(RENTALS)|(REPAIR)|(REPORT)|(REPUBLICAN)|(REST)|(RESTAURANT)|(REVIEWS)|(RICH)|(RIO)|(RIP)|(RO)|(ROCKS)|(RODEO)|(RS)|(RSVP)|(RU)|(RUHR)|(RW)|(RYUKYU)|(SA)|(SAARLAND)|(SALE)|(SAMSUNG)|(SARL)|(SB)|(SC)|(SCA)|(SCB)|(SCHMIDT)|(SCHULE)|(SCHWARZ)|(SCIENCE)|(SCOT)|(SD)|(SE)|(SERVICES)|(SEW)|(SEXY)|(SG)|(SH)|(SHIKSHA)|(SHOES)|(SHRIRAM)|(SI)|(SINGLES)|(SJ)|(SK)|(SKY)|(SL)|(SM)|(SN)|(SO)|(SOCIAL)|(SOFTWARE)|(SOHU)|(SOLAR)|(SOLUTIONS)|(SOY)|(SPACE)|(SPIEGEL)|(SR)|(ST)|(STYLE)|(SU)|(SUPPLIES)|(SUPPLY)|(SUPPORT)|(SURF)|(SURGERY)|(SUZUKI)|(SV)|(SX)|(SY)|(SYDNEY)|(SYSTEMS)|(SZ)|(TAIPEI)|(TATAR)|(TATTOO)|(TAX)|(TC)|(TD)|(TECHNOLOGY)|(TEL)|(TEMASEK)|(TENNIS)|(TF)|(TG)|(TH)|(TIENDA)|(TIPS)|(TIRES)|(TIROL)|(TJ)|(TK)|(TL)|(TM)|(TN)|(TO)|(TODAY)|(TOKYO)|(TOOLS)|(TOP)|(TOWN)|(TOYS)|(TP)|(TR)|(TRADE)|(TRAINING)|(TRAVEL)|(TRUST)|(TT)|(TUI)|(TV)|(TW)|(TZ)|(UA)|(UG)|(UK)|(UNIVERSITY)|(UNO)|(UOL)|(US)|(UY)|(UZ)|(VA)|(VC)|(VE)|(VET)|(VG)|(VI)|(VIDEOS)|(VN)|(VU)|(WANG)|(WATCH)|(WEBCAM)|(WEBSITE)|(WED)|(WEDDING)|(WF)|(WIKI)|(WORLD)|(WS)|(WTC)|(WTF)|(XXX)|(XYZ)|(YE)|(YT)|(ZA)|(ZIP)|(ZM)|(ZW)[\/\?\#]".ToLower());
+                    int b = mc.Count;
                     b -= Regex.Matches(message, @"imgur\.com").Count;
                     b -= Regex.Matches(message, @"xkcd\.com").Count;
                     b -= Regex.Matches(message, @"rngpp\.booru\.org").Count;
                     b -= Regex.Matches(message, @"bulbapedia\.bulbagarden\.net").Count;
+                    foreach (intStr f in permits)
+                    {
+                        if (f.Str == user) { b = 0; permits.Remove(f); break; }
+                    }
                     if (b > 0) { asUsers[a].update(costs[0].Int); type=0; }   
                 }
                 if(type!=-1 && asUsers[a].points<1){
                     irc.RfcPrivmsg(channel,".timeout "+user+" 1");//overrides the send delay (hopefully)
-                    a = new Random().Next(0,4);
-                    sendMess(channel,user+" -> "+responses[type][a]+" ("+costs[a].Str+")");
+                    int c = new Random().Next(0,4);
+                    sendMess(channel,user+" -> "+responses[type][c]+" ("+costs[a].Str+")");
                 }
             }
             if (user == "zackattack9909" && Regex.Match(message,"wix[1-4]").Success) {irc.RfcPrivmsg(channel,".clear");sendMess(channel,"Zack, please don't.");}
@@ -395,7 +444,7 @@ namespace RNGBot
                             if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
-                                sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".tha");
+                                sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
                                 safe();
                             }
                             else
@@ -454,8 +503,17 @@ namespace RNGBot
                                 case 3: text = "a moderator"; break;
                                 case 4: text = "the broadcaster"; break;
                                 case 5: text = "an administrator of " + bot_name; break;
+                                default: text = "special"; break;
                             }
                             sendMess(channel, user + ", you are "+text+".");
+                            break;
+
+                        case "!permit":
+                            if (antispam)
+                            {
+                                permits.Add(new intStr(str[1], getNow()));
+                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + user+". This permit expires in "+permitTime+" seconds.");
+                            }
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
@@ -476,62 +534,68 @@ namespace RNGBot
                         
                             break;
                         case "!bias":
-                            tempVar2 = str[1];
-                            tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
-                            tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
-                            tempVar2 = tempVar2.ToLower().Replace("up", "8");
-                            tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
-                            tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
-                            tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
-                            tempVar2 = tempVar2.ToLower().Replace("left", "4");
-                            tempVar2 = tempVar2.ToLower().Replace("right", "6");
-                            tempVar2 =  tempVar2.ToLower().Replace("start","0");//f00?
-                            if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
+                            if (voteStatus == 1)
                             {
-                                tempVar1 = 1;
-                                if (Regex.Match(str[2], @"^[0-9]+\b").Success)
+                                tempVar2 = str[1];
+                                tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
+                                tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
+                                tempVar2 = tempVar2.ToLower().Replace("up", "8");
+                                tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
+                                tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
+                                tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
+                                tempVar2 = tempVar2.ToLower().Replace("left", "4");
+                                tempVar2 = tempVar2.ToLower().Replace("right", "6");
+                                tempVar2 = tempVar2.ToLower().Replace("start", "0");//f00?
+                                if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
                                 {
-                                    try//don't trust this one bit.
+                                    tempVar1 = 1;
+                                    if (Regex.Match(str[2], @"^[0-9]+\b").Success)
                                     {
-                                        tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                        try//don't trust this one bit.
+                                        {
+                                            tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                        }
+                                        catch
+                                        {
+                                            logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                        }
                                     }
-                                    catch
+                                    if (tempVar1 - 1 <= getPoints(user) && tempVar1 != 0)
                                     {
-                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                        fail = false;
+                                        foreach (intStr IS in votingList)
+                                        {
+                                            if (IS.s() == user) { fail = true; break; }
+                                        }
+                                        if (!fail)
+                                        {
+                                            votingList.Add(new intStr(user, tempVar1));
+                                            addPoints(user, tempVar1 - 2, "vote");
+                                            //code for bias voting here
+                                            //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
+                                        }
+                                    }
+                                    if (tempVar1 == 0)
+                                    {
+                                        fail = true; int a = 0;
+                                        foreach (intStr IS in votingList)
+                                        {
+                                            if (IS.s() == user) { fail = false; break; }
+                                            a++;
+                                        }
+                                        if (!fail)
+                                        {
+                                            addPoints(user, votingList[a].i() + 2, "refundvote");
+                                            votingList.RemoveAt(a);
+                                            //remove vote (biascontrol.removevote(user)
+                                        }
                                     }
                                 }
-                                if (tempVar1-1 <= getPoints(user)&&tempVar1!=0)
-                                {
-                                    fail = false;
-                                    foreach (intStr IS in votingList)
-                                    {
-                                        if (IS.s() == user) { fail = true; break; }
-                                    }
-                                    if (!fail)
-                                    {
-                                        votingList.Add(new intStr(user,tempVar1));
-                                        addPoints(user, tempVar1 - 2, "vote");
-                                        //code for bias voting here
-                                        //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
-                                    }
-                                }
-                                if (tempVar1 == 0)
-                                {
-                                    fail = true; int a = 0;
-                                    foreach(intStr IS in votingList)
-                                    {
-                                        if (IS.s() == user) { fail = false; break; }
-                                        a++;
-                                    }
-                                    if (!fail)
-                                    {
-                                        addPoints(user, votingList[a].i() + 2, "refundvote");
-                                        votingList.RemoveAt(a);
-                                        //remove vote (biascontrol.removevote(user)
-                                    }
-                                }
-                            }     
-                        
+                            }
+                            else
+                            {
+                                sendMess(channel, "No vote currently in progress, try again in " + ((getNow()-(lastVoteTime + timeBetweenVotes))/60 )+" minutes.");
+                            }
                             break;
                         case "!balance":
                             tempVar1 = getPoints(user);tempVar2 = "";
@@ -714,7 +778,7 @@ namespace RNGBot
 
         public void ircJoined(object sender, EventArgs e)
         {
-
+            logger.WriteLine("IRC: Succesfully joined " + channels);
         }
 
         public void ircConError(object sender, EventArgs e)
@@ -730,7 +794,7 @@ namespace RNGBot
         {
             if (logLevel == 3)
             {
-                logger.Write("IRC RAW:<- " + e.Data.RawMessage);
+                logger.WriteLine("IRC RAW:<- " + e.Data.RawMessage);
             }
         }
         public void ircChanMess(object sender, IrcEventArgs e)

@@ -401,7 +401,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         }
     }
 
-    class asUser
+    public class asUser
     {
         public string name;
         public int points,lastUpdate,maxpoints;
@@ -417,7 +417,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
 
         public int update(int amount)
         {
-            points += amount;
+            points -= amount;
             lastUpdate = getNow();
             return points;
         }
@@ -430,7 +430,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         }
     }
 
-    class intStr
+    public class intStr
     {
         public int Int;
         public string Str;

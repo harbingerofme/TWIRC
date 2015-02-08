@@ -43,9 +43,11 @@ namespace RNGBot
             RNGLuaServer = newluaserver;
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
+#if !offline
             irc = new Thread(createIrc);
             irc.Name = "RNGPPBOT irc main thread";
             irc.Start();
+#endif
 
             InitializeComponent();
         }
