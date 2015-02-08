@@ -33,13 +33,14 @@ namespace RNGBot
         public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
-        public int timeBetweenVotes = 1800, lastVoteTime = 0, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
 
 
         public Thread two;
 
         public HarbBot(Logger logLogger)
         {
+            lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
@@ -287,7 +288,7 @@ namespace RNGBot
                 responses[1].Add("Images say more than a thousand words, so stop writing essays!");responses[1].Add("How is a timeout for a twitch chat feature?");responses[1].Add("I dislike emotes, they are all text to me.");
                 responses[2].Add("There's no need to type that way.");responses[2].Add("I do not take kindly upon that.");responses[2].Add("Stop behaving like a spoiled little RNG!");
                 responses[3].Add("Whatever that was, it's gone now.");responses[3].Add("This is not the place to use that!");responses[3].Add("Woah, you typed all of that? Who am I kidding, get out!");
-                responses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually.");responses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP");responses[4].Add("You think you know better than the RNGesus? Download the save and play it without annyoing us.");
+                responses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually.");responses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP");responses[4].Add("You think you know better than the RNGesus? Download the save and play it without annoying us.");
 
                 if (a == -1)
                 {
@@ -300,8 +301,9 @@ namespace RNGBot
                     if (Regex.Match(message, @"^.$").Success || Regex.Match(message,@"([a-zA-Z])\1\1").Success || Regex.Match(message,@"([0-9])\1\1\1").Success || Regex.Match(message,@"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(costs[2].Int); type=2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
                     if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(costs[3].Int); type=3; }
 
-                    MatchCollection mc = Regex.Matches(message, @"[^ ]+\.(AC)|(AD)|(ADULT)|(AE)|(AF)|(AG)|(AI)|(AL)|(AM)|(AN)|(AO)|(AQ)|(AR)|(AS)|(ASIA)|(AT)|(AU)|(AUCTION)|(AW)|(AX)|(AXA)|(AZ)|(BA)|(BARGAINS)|(BB)|(BD)|(BE)|(BF)|(BG)|(BH)|(BI)|(BIZ)|(BJ)|(BM)|(BMW)|(BN)|(BO)|(BOO)|(BOUTIQUE)|(BR)|(BRUSSELS)|(BS)|(BT)|(BUDAPEST)|(BUILD)|(BUILDERS)|(BUSINESS)|(BUZZ)|(BV)|(BW)|(BY)|(BZ)|(BZH)|(CA)|(CAB)|(CAL)|(CAMERA)|(CAMP)|(CANCERRESEARCH)|(CANON)|(CAPETOWN)|(CAPITAL)|(CARAVAN)|(CARDS)|(CARE)|(CAREER)|(CAREERS)|(CARTIER)|(CASA)|(CASH)|(CAT)|(CATERING)|(CC)|(CD)|(CENTER)|(CEO)|(CERN)|(CF)|(CG)|(CH)|(CHANNEL)|(CHAT)|(CHEAP)|(CHRISTMAS)|(CHROME)|(CHURCH)|(CI)|(CITIC)|(CITY)|(CK)|(CL)|(CLAIMS)|(CLEANING)|(CLICK)|(CLINIC)|(CLOTHING)|(CLUB)|(CM)|(CN)|(CO)|(COACH)|(CODES)|(COFFEE)|(COLLEGE)|(COLOGNE)|(COM)|(COMMUNITY)|(COMPANY)|(COMPUTER)|(CONDOS)|(CONSTRUCTION)|(CONSULTING)|(CONTRACTORS)|(COOKING)|(COOL)|(COOP)|(COUNTRY)|(CR)|(CREDIT)|(CREDITCARD)|(CRICKET)|(CRS)|(CRUISES)|(CU)|(CUISINELLA)|(CV)|(CW)|(CX)|(CY)|(CYMRU)|(CZ)|(DABUR)|(DAD)|(DANCE)|(DATING)|(DAY)|(DCLK)|(DE)|(DEALS)|(DEGREE)|(DELIVERY)|(DEMOCRAT)|(DENTAL)|(DENTIST)|(DESI)|(DESIGN)|(DEV)|(DIAMONDS)|(DIET)|(DIGITAL)|(DIRECT)|(DIRECTORY)|(DISCOUNT)|(DJ)|(DK)|(DM)|(DNP)|(DO)|(DOCS)|(DOMAINS)|(DOOSAN)|(DURBAN)|(DVAG)|(DZ)|(EAT)|(EC)|(EDU)|(EDUCATION)|(EE)|(EG)|(EMAIL)|(EMERCK)|(ENERGY)|(ENGINEER)|(ENGINEERING)|(ENTERPRISES)|(EQUIPMENT)|(ER)|(ES)|(ESQ)|(ESTATE)|(ET)|(EU)|(EUS)|(EVENTS)|(EVERBANK)|(EXCHANGE)|(EXPERT)|(EXPOSED)|(FAIL)|(FARM)|(FASHION)|(FEEDBACK)|(FI)|(FINANCE)|(FINANCIAL)|(FISH)|(FISHING)|(FIT)|(FITNESS)|(FJ)|(FK)|(FLIGHTS)|(FLORIST)|(FLOWERS)|(FLSMIDTH)|(FLY)|(FM)|(FO)|(FOO)|(FORSALE)|(FOUNDATION)|(FR)|(FRL)|(FROGANS)|(FUND)|(FURNITURE)|(FUTBOL)|(GA)|(GAL)|(GALLERY)|(GARDEN)|(GB)|(GBIZ)|(GD)|(GE)|(GENT)|(GF)|(GG)|(GGEE)|(GH)|(GI)|(GIFT)|(GIFTS)|(GIVES)|(GL)|(GLASS)|(GLE)|(GLOBAL)|(GLOBO)|(GM)|(GMAIL)|(GMO)|(GMX)|(GN)|(GOOG)|(GOOGLE)|(GOP)|(GOV)|(GP)|(GQ)|(GR)|(GRAPHICS)|(GRATIS)|(GREEN)|(GRIPE)|(GS)|(GT)|(GU)|(GUIDE)|(GUITARS)|(GURU)|(GW)|(GY)|(HAMBURG)|(HANGOUT)|(HAUS)|(HEALTHCARE)|(HELP)|(HERE)|(HERMES)|(HIPHOP)|(HIV)|(HK)|(HM)|(HN)|(HOLDINGS)|(HOLIDAY)|(HOMES)|(HORSE)|(HOST)|(HOSTING)|(HOUSE)|(HOW)|(HR)|(HT)|(HU)|(IBM)|(ID)|(IE)|(IFM)|(IL)|(IM)|(IMMO)|(IMMOBILIEN)|(IN)|(INDUSTRIES)|(INFO)|(ING)|(INK)|(INSTITUTE)|(INSURE)|(INT)|(INTERNATIONAL)|(INVESTMENTS)|(IO)|(IQ)|(IR)|(IRISH)|(IS)|(IT)|(IWC)|(JCB)|(JE)|(JETZT)|(JM)|(JO)|(JOBS)|(JOBURG)|(JP)|(JUEGOS)|(KAUFEN)|(KDDI)|(KE)|(KG)|(KH)|(KI)|(KIM)|(KITCHEN)|(KIWI)|(KM)|(KN)|(KOELN)|(KP)|(KR)|(KRD)|(KRED)|(KW)|(KY)|(KYOTO)|(KZ)|(LA)|(LACAIXA)|(LAND)|(LAT)|(LATROBE)|(LAWYER)|(LB)|(LC)|(LDS)|(LEASE)|(LEGAL)|(LGBT)|(LI)|(LIDL)|(LIFE)|(LIGHTING)|(LIMITED)|(LIMO)|(LINK)|(LK)|(LOANS)|(LONDON)|(LOTTE)|(LOTTO)|(LR)|(LS)|(LT)|(LTDA)|(LU)|(LUXE)|(LUXURY)|(LV)|(LY)|(MA)|(MADRID)|(MAISON)|(MANAGEMENT)|(MANGO)|(MARKET)|(MARKETING)|(MARRIOTT)|(MC)|(MD)|(ME)|(MEDIA)|(MEET)|(MELBOURNE)|(MEME)|(MEMORIAL)|(MENU)|(MG)|(MH)|(MIAMI)|(MIL)|(MINI)|(MK)|(ML)|(MM)|(MN)|(MO)|(MOBI)|(MODA)|(MOE)|(MONASH)|(MONEY)|(MORMON)|(MORTGAGE)|(MOSCOW)|(MOTORCYCLES)|(MOV)|(MP)|(MQ)|(MR)|(MS)|(MT)|(MU)|(MUSEUM)|(MV)|(MW)|(MX)|(MY)|(MZ)|(NA)|(NAGOYA)|(NAME)|(NAVY)|(NC)|(NE)|(NET)|(NETWORK)|(NEUSTAR)|(NEW)|(NEXUS)|(NF)|(NG)|(NGO)|(NHK)|(NI)|(NINJA)|(NL)|(NO)|(NP)|(NR)|(NRA)|(NRW)|(NTT)|(NU)|(NYC)|(NZ)|(OKINAWA)|(OM)|(ONE)|(ONG)|(ONL)|(OOO)|(ORG)|(ORGANIC)|(OSAKA)|(OTSUKA)|(OVH)|(PA)|(PARIS)|(PARTNERS)|(PARTS)|(PARTY)|(PE)|(PF)|(PG)|(PH)|(PHARMACY)|(PHOTO)|(PHOTOGRAPHY)|(PHOTOS)|(PHYSIO)|(PICS)|(PICTURES)|(PINK)|(PIZZA)|(PK)|(PL)|(PLACE)|(PLUMBING)|(PM)|(PN)|(POHL)|(POKER)|(PORN)|(POST)|(PR)|(PRAXI)|(PRESS)|(PRO)|(PROD)|(PRODUCTIONS)|(PROF)|(PROPERTIES)|(PROPERTY)|(PS)|(PT)|(PUB)|(PW)|(PY)|(QA)|(QPON)|(QUEBEC)|(RE)|(REALTOR)|(RECIPES)|(RED)|(REHAB)|(REISE)|(REISEN)|(REIT)|(REN)|(RENTALS)|(REPAIR)|(REPORT)|(REPUBLICAN)|(REST)|(RESTAURANT)|(REVIEWS)|(RICH)|(RIO)|(RIP)|(RO)|(ROCKS)|(RODEO)|(RS)|(RSVP)|(RU)|(RUHR)|(RW)|(RYUKYU)|(SA)|(SAARLAND)|(SALE)|(SAMSUNG)|(SARL)|(SB)|(SC)|(SCA)|(SCB)|(SCHMIDT)|(SCHULE)|(SCHWARZ)|(SCIENCE)|(SCOT)|(SD)|(SE)|(SERVICES)|(SEW)|(SEXY)|(SG)|(SH)|(SHIKSHA)|(SHOES)|(SHRIRAM)|(SI)|(SINGLES)|(SJ)|(SK)|(SKY)|(SL)|(SM)|(SN)|(SO)|(SOCIAL)|(SOFTWARE)|(SOHU)|(SOLAR)|(SOLUTIONS)|(SOY)|(SPACE)|(SPIEGEL)|(SR)|(ST)|(STYLE)|(SU)|(SUPPLIES)|(SUPPLY)|(SUPPORT)|(SURF)|(SURGERY)|(SUZUKI)|(SV)|(SX)|(SY)|(SYDNEY)|(SYSTEMS)|(SZ)|(TAIPEI)|(TATAR)|(TATTOO)|(TAX)|(TC)|(TD)|(TECHNOLOGY)|(TEL)|(TEMASEK)|(TENNIS)|(TF)|(TG)|(TH)|(TIENDA)|(TIPS)|(TIRES)|(TIROL)|(TJ)|(TK)|(TL)|(TM)|(TN)|(TO)|(TODAY)|(TOKYO)|(TOOLS)|(TOP)|(TOWN)|(TOYS)|(TP)|(TR)|(TRADE)|(TRAINING)|(TRAVEL)|(TRUST)|(TT)|(TUI)|(TV)|(TW)|(TZ)|(UA)|(UG)|(UK)|(UNIVERSITY)|(UNO)|(UOL)|(US)|(UY)|(UZ)|(VA)|(VC)|(VE)|(VET)|(VG)|(VI)|(VIDEOS)|(VN)|(VU)|(WANG)|(WATCH)|(WEBCAM)|(WEBSITE)|(WED)|(WEDDING)|(WF)|(WIKI)|(WORLD)|(WS)|(WTC)|(WTF)|(XXX)|(XYZ)|(YE)|(YT)|(ZA)|(ZIP)|(ZM)|(ZW)[\/\?\#]".ToLower());
+                    MatchCollection mc = Regex.Matches(message, @"([^ ]+\.[a-z]{2,})[\/\?\#]?".ToLower());
                     int b = mc.Count;
+                    if (b > 0) { }
                     b -= Regex.Matches(message, @"imgur\.com").Count;
                     b -= Regex.Matches(message, @"xkcd\.com").Count;
                     b -= Regex.Matches(message, @"rngpp\.booru\.org").Count;
@@ -315,7 +317,7 @@ namespace RNGBot
                 if(type!=-1 && asUsers[a].points<1){
                     irc.RfcPrivmsg(channel,".timeout "+user+" 1");//overrides the send delay (hopefully)
                     int c = new Random().Next(0,4);
-                    sendMess(channel,user+" -> "+responses[type][c]+" ("+costs[a].Str+")");
+                    sendMess(channel,user+" -> "+responses[type][c]+" ("+costs[type].Str+")");
                 }
             }
             if (user == "zackattack9909" && Regex.Match(message,"wix[1-4]").Success) {irc.RfcPrivmsg(channel,".clear");sendMess(channel,"Zack, please don't.");}
@@ -594,7 +596,7 @@ namespace RNGBot
                             }
                             else
                             {
-                                sendMess(channel, "No vote currently in progress, try again in " + ((getNow()-(lastVoteTime + timeBetweenVotes))/60 )+" minutes.");
+                                sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes)- getNow())/60 )+" minutes.");
                             }
                             break;
                         case "!balance":
