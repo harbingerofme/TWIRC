@@ -25,6 +25,9 @@ namespace RNGBot
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
         public List<asUser> asUsers = new List<asUser>();
+        public List<intStr> asCosts = new List<intStr>();
+        public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>();
+        List<List<string>> asResponses = new List<List<string>>();
         public int globalCooldown;
         public int logLevel;
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
@@ -46,6 +49,21 @@ namespace RNGBot
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
 
+            //antispam initialisation
+            asCosts.Add(new intStr("link", 5));//0
+            asCosts.Add(new intStr("emote spam", 3));//1
+            asCosts.Add(new intStr("letter spam", 1));//2
+            asCosts.Add(new intStr("ASCII", 5));//3
+            asCosts.Add(new intStr("tpp", 2));//4
+            asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>());
+            asResponses[0].Add("Google those nudes!"); asResponses[0].Add("We are not buying your shoes!"); asResponses[0].Add("The stuff people would have to put up with...");
+            asResponses[1].Add("Images say more than a thousand words, so stop writing essays!"); asResponses[1].Add("How is a timeout for a twitch chat feature?"); asResponses[1].Add("I dislike emotes, they are all text to me.");
+            asResponses[2].Add("There's no need to type that way."); asResponses[2].Add("I do not take kindly upon that."); asResponses[2].Add("Stop behaving like a spoiled little RNG!");
+            asResponses[3].Add("Whatever that was, it's gone now."); asResponses[3].Add("This is not the place to use that!"); asResponses[3].Add("Woah, you typed all of that? Who am I kidding, get out!");
+            asResponses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually."); asResponses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP"); asResponses[4].Add("You think you know better than the RNGesus? Download the save and play it without annoying us.");
+            asWhitelist.Add(@"imgur\.com"); asWhitelist.Add(@"xkcd\.com"); asWhitelist.Add(@"rngpp\.booru\.org"); asWhitelist.Add(@"youtube\.com"); asWhitelist.Add(@"imgur\.com");
+
+
             //write these Methods
             irc.OnConnected += ircConnected;
             irc.OnJoin += ircJoined;
@@ -62,7 +80,6 @@ namespace RNGBot
             {
                 logger.WriteLine("IRC: Booting up, shouldn't take long!");
             }
-            string temp;
             if (!File.Exists("db.sqlite"))
             {
                 if (logLevel != 0)
@@ -92,19 +109,29 @@ namespace RNGBot
             }
             else
             {
-                dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
-                dbConn.Open();
-                SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM settings;", dbConn).ExecuteReader();
-                sqldr.Read();
-                bot_name = sqldr.GetString(0);
-                channels = sqldr.GetString(1);
-                antispam = false; if (sqldr.GetInt32(2) == 1) { antispam = true; }
-                silence = false; if (sqldr.GetInt32(3) == 1) { silence = true; }
-                oauth = sqldr.GetString(4);
-                globalCooldown = sqldr.GetInt32(5);
-                logLevel = sqldr.GetInt32(6);
-                progressLogPATH = sqldr.GetString(7);
+                try
+                {
+                    dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
+                    dbConn.Open();
+                    SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM settings;", dbConn).ExecuteReader();
+                    sqldr.Read();
+                    bot_name = sqldr.GetString(0);
+                    channels = sqldr.GetString(1);
+                    antispam = false; if (sqldr.GetInt32(2) == 1) { antispam = true; }
+                    silence = false; if (sqldr.GetInt32(3) == 1) { silence = true; }
+                    oauth = sqldr.GetString(4);
+                    globalCooldown = sqldr.GetInt32(5);
+                    logLevel = sqldr.GetInt32(6);
+                    progressLogPATH = sqldr.GetString(7);
+                }
+                catch { logger.WriteLine("FATAL DATABASE ERROR, salvage what you can, and delete it.\nIRC will likely crash and burn in a second."); }
             }
+
+            if(!File.Exists("TLDs.twirc"))
+            {
+                writeFile("TLDs.twirc","com\nnl\nde\nnet\nbiz\nuk");
+            }
+            asTLDs = FileLines("TLDs.twirc").ToList();
 
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
             while (rdr.Read())
@@ -274,22 +301,7 @@ namespace RNGBot
             if (pullAuth(user) < 2)
             {
                 int a = asUsers.FindIndex(x => x.name == user);
-                List<intStr> costs = new List<intStr>();
                 int type = -1;
-
-                costs.Add(new intStr("link", 5));//0
-                costs.Add(new intStr("emote spam", 3));//1
-                costs.Add(new intStr("letter spam", 1));//2
-                costs.Add(new intStr("ASCII", 5));//3
-                costs.Add(new intStr("tpp",2));//4
-
-                List<List<string>> responses = new List<List<string>>(); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>()); responses.Add(new List<string>());
-                responses[0].Add("Google those nudes!");responses[0].Add("We are not buying your shoes!");responses[0].Add("The stuff people would have to put up with...");
-                responses[1].Add("Images say more than a thousand words, so stop writing essays!");responses[1].Add("How is a timeout for a twitch chat feature?");responses[1].Add("I dislike emotes, they are all text to me.");
-                responses[2].Add("There's no need to type that way.");responses[2].Add("I do not take kindly upon that.");responses[2].Add("Stop behaving like a spoiled little RNG!");
-                responses[3].Add("Whatever that was, it's gone now.");responses[3].Add("This is not the place to use that!");responses[3].Add("Woah, you typed all of that? Who am I kidding, get out!");
-                responses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually.");responses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP");responses[4].Add("You think you know better than the RNGesus? Download the save and play it without annoying us.");
-
                 if (a == -1)
                 {
                     a = asUsers.Count;
@@ -298,26 +310,38 @@ namespace RNGBot
                 if (message != "")
                 {
                     message = message.ToLower();
-                    if (Regex.Match(message, @"^.$").Success || Regex.Match(message,@"([a-zA-Z])\1\1").Success || Regex.Match(message,@"([0-9])\1\1\1").Success || Regex.Match(message,@"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(costs[2].Int); type=2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
-                    if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(costs[3].Int); type=3; }
+                    if (Regex.Match(message, @"^.$").Success || Regex.Match(message,@"([a-zA-Z])\1\1").Success || Regex.Match(message,@"([0-9])\1\1\1").Success || Regex.Match(message,@"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(asCosts[2].Int); type=2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
+                    if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(asCosts[3].Int); type=3; }
 
-                    MatchCollection mc = Regex.Matches(message, @"([^ ]+\.[a-z]{2,})[\/\?\#]?".ToLower());
-                    int b = mc.Count;
-                    if (b > 0) { }
-                    b -= Regex.Matches(message, @"imgur\.com").Count;
-                    b -= Regex.Matches(message, @"xkcd\.com").Count;
-                    b -= Regex.Matches(message, @"rngpp\.booru\.org").Count;
-                    b -= Regex.Matches(message, @"bulbapedia\.bulbagarden\.net").Count;
-                    foreach (intStr f in permits)
+                    MatchCollection mc = Regex.Matches(message, @"[^ ]+\.([a-z]{2,})[\/\?\#]?".ToLower());
+                    MatchCollection me = Regex.Matches(message, @"([^ ]+\.[a-z]{2,})[\/\?\#]?".ToLower());
+                    int b = mc.Count; int d = 0; ;
+                    if (b > 0)
                     {
-                        if (f.Str == user) { b = 0; permits.Remove(f); break; }
+                        foreach (Match c in mc)
+                        {
+                            if (asTLDs.Contains(c.Groups[1].Value.ToUpper())) { d++; }
+                        }
+                        foreach (Match c in me)
+                        {
+                            if (Regex.Match(message, @"twitch\.tv\/" + channel + @"\/c\/").Success) { d--; continue; }
+                            foreach(string e in asWhitelist)
+                            {
+                                if (Regex.Match(c.Value, e).Success) { d--; continue; }
+
+                            }
+                        }
+                        foreach (intStr f in permits)
+                        {
+                            if (f.Str == user) { b = 0; permits.Remove(f); break; }
+                        }
+                        if(d>0){ asUsers[a].update(asCosts[0].Int); type = 0; }
                     }
-                    if (b > 0) { asUsers[a].update(costs[0].Int); type=0; }   
                 }
                 if(type!=-1 && asUsers[a].points<1){
                     irc.RfcPrivmsg(channel,".timeout "+user+" 1");//overrides the send delay (hopefully)
                     int c = new Random().Next(0,4);
-                    sendMess(channel,user+" -> "+responses[type][c]+" ("+costs[type].Str+")");
+                    sendMess(channel,user+" -> "+asResponses[type][c]+" ("+asCosts[type].Str+")");
                 }
             }
             if (user == "zackattack9909" && Regex.Match(message,"wix[1-4]").Success) {irc.RfcPrivmsg(channel,".clear");sendMess(channel,"Zack, please don't.");}
