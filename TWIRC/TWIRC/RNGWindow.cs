@@ -17,6 +17,7 @@ namespace RNGBot
         LuaServer RNGLuaServer = null;
         Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators = null;
         ButtonMasher RNGesus = null;
+        HarbBot HB = null;
         Thread irc;
         Random randy = new Random();
         bool ishold = false;
@@ -46,6 +47,7 @@ namespace RNGBot
 #if !offline
             irc = new Thread(createIrc);
             irc.Name = "RNGPPBOT irc main thread";
+            irc.IsBackground = true;
             irc.Start();
 #endif
 
@@ -54,7 +56,7 @@ namespace RNGBot
 
         private void createIrc()
         {
-            HarbBot HB = new HarbBot(RNGLogger);
+            HB = new HarbBot(RNGLogger,RNGesus);    
         }
 
         private void RNGWindow_Load(object sender, EventArgs e)

@@ -429,6 +429,37 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
             return (int)Math.Floor(diff.TotalSeconds);
         }
     }
+    public class intIntStr
+    {
+        public int Int1;
+        public int Int2;
+        public string Str;
+
+        public intIntStr(string str, int one, int two)
+        {
+            Str = str;
+            Int1 = one;
+            Int2 = two;
+        }
+
+        public intIntStr(int one, string str, int two)
+        {
+            Str = str;
+            Int1 = one;
+            Int2 = two;
+        }
+
+        public intIntStr(int one, int two, string str)
+        {
+            Str = str;
+            Int1 = one;
+            Int2 = two;
+        }
+        public string toString()
+        {
+            return "\"" + Str + "\": <" + Int1 + "> : <" + Int2 + ">";
+        }
+    }
 
     public class intStr
     {

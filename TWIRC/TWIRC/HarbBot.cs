@@ -32,22 +32,25 @@ namespace RNGBot
         public int logLevel;
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
         public bool silence;
-        public List<intStr> votingList = new List<intStr>();
+        public List<intIntStr> votingList = new List<intIntStr>();
         public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
+        public ButtonMasher biasControl; public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
 
         public Thread two;
 
-        public HarbBot(Logger logLogger)
+        public HarbBot(Logger logLogger, ButtonMasher buttMuncher)
         {
             lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
+
+            biasControl = buttMuncher;
 
             //antispam initialisation
             asCosts.Add(new intStr("link", 5));//0
@@ -63,6 +66,18 @@ namespace RNGBot
             asResponses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually."); asResponses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP"); asResponses[4].Add("You think you know better than the RNGesus? Download the save and play it without annoying us.");
             asWhitelist.Add(@"imgur\.com"); asWhitelist.Add(@"xkcd\.com"); asWhitelist.Add(@"rngpp\.booru\.org"); asWhitelist.Add(@"youtube\.com"); asWhitelist.Add(@"imgur\.com");
 
+            newBias.Add(new double[7] { 0,0,0,0,0,0,10 });//0 (start)
+            newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
+            newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
+            newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
+            newBias.Add(new double[7] { 10,0,0,0,0,0,0 });//4
+            newBias.Add(new double[7] { 0,0,0,0,0,0,0 });//5
+            newBias.Add(new double[7] { 0,0,0,10,0,0,0 });//6
+            newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
+            newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
+            newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
+            newBias.Add(new double[7] { 0,0,0,0,10,0,0 });//10 (a)
+            newBias.Add(new double[7] { 0,0,0,0,0,10,0 });//11 (b)
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -93,6 +108,7 @@ namespace RNGBot
                 oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
                 logLevel = 1;
                 progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
+                maxBiasDiff = 0.05;
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -102,10 +118,12 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE biassettings (def VARCHAR(200) NOT NULL, maxDiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO biassettings (def,maxDiff) VALUES ('1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -123,6 +141,15 @@ namespace RNGBot
                     globalCooldown = sqldr.GetInt32(5);
                     logLevel = sqldr.GetInt32(6);
                     progressLogPATH = sqldr.GetString(7);
+
+                    sqldr = new SQLiteCommand("SELECT * FROM biassettings;", dbConn).ExecuteReader();
+                    sqldr.Read();
+                    string[] temp = sqldr.GetString(0).Split(';'); double[] b = new double[7];
+                    for (int a = 0; a < 7;a++ )
+                    {
+                        b[a] = double.Parse(temp[a]);
+                    }
+                    biasControl.setDefaultBias(b);
                 }
                 catch { logger.WriteLine("FATAL DATABASE ERROR, salvage what you can, and delete it.\nIRC will likely crash and burn in a second."); }
             }
@@ -160,12 +187,12 @@ namespace RNGBot
             }
 
 
-            //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persitency)
-            hardList.Add(new hardCom("!adco", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
-            hardList.Add(new hardCom("!dc", 3, 1));//delcom
-            hardList.Add(new hardCom("!ec", 3, 2));//editcom
-            hardList.Add(new hardCom("!aa", 3, 2));//addalias
-            hardList.Add(new hardCom("!da", 3, 1));//delete alias
+            //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
+            hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
+            hardList.Add(new hardCom("!delccom", 3, 1));//delcom
+            hardList.Add(new hardCom("!editcom", 3, 2));//editcom
+            hardList.Add(new hardCom("!addalias", 3, 2));//addalias
+            hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
             hardList.Add(new hardCom("!set", 2, 2));//elevate another user
             hardList.Add(new hardCom("!editcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
@@ -175,7 +202,9 @@ namespace RNGBot
             hardList.Add(new hardCom("!permit", 2, 1));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
-            hardList.Add(new hardCom("!setbias",2,1));
+            hardList.Add(new hardCom("!setbias",4,7));
+            hardList.Add(new hardCom("!setdefaultbias",4,7));
+            hardList.Add(new hardCom("!setbiasmaxdiff", 6, 1));
             hardList.Add(new hardCom("!bias",0,1));
             hardList.Add(new hardCom("!balance", 0, 0,600));
             hardList.Add(new hardCom("!addlog", 0, 1));
@@ -187,6 +216,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!save", 3, 0));
             hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
             
+            /*
             //sayingsbot overrides, we might add these eventually            
             hardList.Add(new hardCom("!whois",0,1,20));
             hardList.Add(new hardCom("!editme",1,1));
@@ -194,7 +224,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!classic",0,1,20));
             hardList.Add(new hardCom("!addclassic",2,2));
             hardList.Add(new hardCom("!delclassic",2,2));
-
+            */
             
             two = new Thread(run_2);//manages saving of commandlists, etc.
             two.Name = "RNGPPBOT background irc thread.";
@@ -224,15 +254,38 @@ namespace RNGBot
             }
             else
             {
-                int a = 0;
-                foreach(intStr b in votingList){
-                    a += b.Int;
+                string str = "Voting is over.";
+                double[] tobebias = biasControl.getDefaultBias();
+                double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
+                if (votingList.Count > 0)
+                {
+                    int a = 0;
+                    foreach(intIntStr b in votingList){
+                         a += b.Int1;
+                         for (int i = 0; i < b.Int1; i++)
+                         {
+                             for (int j = 0; j<7;j++){
+                             values[j] += newBias[b.Int2][j];
+                             }
+                         }
+                     }
+                    for(int i =0; i<7;i++){
+                        values[i] = (values[i] * maxBiasDiff) / (a * 10);
+                        tobebias[i] += values[i];
+                    }
+                    str += "Processed " + a + " votes from " + votingList.Count + " users.";
+                    biasControl.setBias(tobebias);
                 }
-                sendMess(channels, "Voting is over. Processed " + a + " votes from " + votingList.Count + " users. Next vote starts in "+(Math.Floor((((double)timeBetweenVotes))/6)/10) + " minutes.");
-                votingList = new List<intStr>();
+                else
+                {
+                    biasControl.doDecay();
+                }
+                str += "Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes.";
+                votingList.Clear();
                 lastVoteTime = getNow();
                 voteStatus = 0;
                 voteTimer.Start();
+                sendMess(channels, str);
             }
         }
 
@@ -372,7 +425,7 @@ namespace RNGBot
                     if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
                     switch (h.returnKeyword())
                     {
-                        case "!adco":
+                        case "!addcom":
                                 fail = false;
 
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -390,7 +443,7 @@ namespace RNGBot
                                     sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
                             break;
-                        case "!ec":
+                        case "!editcom":
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -413,7 +466,7 @@ namespace RNGBot
                                     sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
-                        case "!dc"://delete command
+                        case "!delcom"://delete command
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -431,7 +484,7 @@ namespace RNGBot
                                     sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
-                        case "!aa": //add alias
+                        case "!addalias": //add alias
                                 fail = false;
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
                                 foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
@@ -450,7 +503,7 @@ namespace RNGBot
                                     safe();
                                 }
                             break;
-                        case "!da":
+                        case "!delalias":
                                 fail = true;
                                 foreach (ali c in aliList)
                                 {
@@ -543,21 +596,63 @@ namespace RNGBot
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
-                            tempVar2 = str[1];
-                            tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
-                            tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
-                            tempVar2 = tempVar2.ToLower().Replace("up", "8");
-                            tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
-                            tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
-                            tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
-                            tempVar2 = tempVar2.ToLower().Replace("left", "4");
-                            tempVar2 = tempVar2.ToLower().Replace("right", "6");
-                            tempVar2 =  tempVar2.ToLower().Replace("start","0");//f00?
-                            if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
+                            double[] tobebias = new double[7];fail = false;
+                            for (int a = 1; a < 8;a++ )
                             {
-                                //code for tempVar2 setting here
-                            }     
-                        
+                                str[a] = str[a].Replace(',','.');//So people for who 0,1 == 0.1 also can do stuff (like me)
+                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
+                                {
+                                    fail = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    tobebias[a-1]= double.Parse(str[a]);
+                                }
+                            }
+                                if (!fail)
+                                {
+                                    biasControl.setBias(tobebias);
+                                    sendMess(channel,user + "-> Bias set!");
+                                }
+                                else
+                                {
+                                    sendMess(channel, user + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
+                                }
+                            break;
+                        case "!setdefaultbias":
+                            double[] tobedefaultbias = new double[7]; fail = false;
+                            for (int a = 1; a < 8; a++)
+                            {
+                                str[a] = str[a].Replace(',', '.');//So people for who 0,1 == 0.1 also can do stuff (like me)
+                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
+                                {
+                                    fail = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    tobedefaultbias[a - 1] = double.Parse(str[a]);
+                                }
+                            }
+                            if (!fail)
+                            {
+                                biasControl.setDefaultBias(tobedefaultbias);
+                                string sqlStr = "UPDATE biassettings SET default='";
+                                for (int a = 0; a < 7; a++)
+                                {
+                                    sqlStr += tobedefaultbias[a].ToString();
+                                    if (a != 6) { sqlStr += ":"; }
+                                }
+                                sendMess(channel, user + "-> Default bias set! I really hope you know what you are doing.");
+                            }
+                            else
+                            {
+                                sendMess(channel, user + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
+                            }
+                            break;
+                        case "!setbiasmaxdiff":
+
                             break;
                         case "!bias":
                             if (voteStatus == 1)
@@ -572,10 +667,12 @@ namespace RNGBot
                                 tempVar2 = tempVar2.ToLower().Replace("left", "4");
                                 tempVar2 = tempVar2.ToLower().Replace("right", "6");
                                 tempVar2 = tempVar2.ToLower().Replace("start", "0");//f00?
-                                if (Regex.Match(tempVar2, @"^[0-9ab]$").Success)
+                                if (Regex.Match(tempVar2, @"^([0-9ab])|(10)|(11)$").Success)
                                 {
+                                    tempVar2.Replace("a","10");
+                                    tempVar2.Replace("b", "11");
                                     tempVar1 = 1;
-                                    if (Regex.Match(str[2], @"^[0-9]+\b").Success)
+                                    if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
                                     {
                                         try//don't trust this one bit.
                                         {
@@ -583,37 +680,43 @@ namespace RNGBot
                                         }
                                         catch
                                         {
+                                            fail = true;
                                             logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
                                         }
                                     }
                                     if (tempVar1 - 1 <= getPoints(user) && tempVar1 != 0)
                                     {
                                         fail = false;
-                                        foreach (intStr IS in votingList)
+                                        foreach (intIntStr IS in votingList)
                                         {
-                                            if (IS.s() == user) { fail = true; break; }
+                                            if (IS.Str == user) { fail = true; break; }
                                         }
                                         if (!fail)
                                         {
-                                            votingList.Add(new intStr(user, tempVar1));
+                                            votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
                                             addPoints(user, tempVar1 - 2, "vote");
-                                            //code for bias voting here
-                                            //biascontrol.addvote(user,tempVar2,tempVar1);//<user>,<dir>,<amount>
+                                        }
+                                        else
+                                        {
+                                            int a = votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1;
+                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1 = tempVar1;
+                                            a -= tempVar1;
+                                            if (a != 0) { addPoints(user, a, "changevote"); }
+                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int2 = int.Parse(tempVar2);
                                         }
                                     }
                                     if (tempVar1 == 0)
                                     {
                                         fail = true; int a = 0;
-                                        foreach (intStr IS in votingList)
+                                        foreach (intIntStr IS in votingList)
                                         {
-                                            if (IS.s() == user) { fail = false; break; }
+                                            if (IS.Str == user) { fail = false; break; }
                                             a++;
                                         }
                                         if (!fail)
                                         {
-                                            addPoints(user, votingList[a].i() + 2, "refundvote");
+                                            addPoints(user, votingList[a].Int1 + 2, "refundvote");
                                             votingList.RemoveAt(a);
-                                            //remove vote (biascontrol.removevote(user)
                                         }
                                     }
                                 }

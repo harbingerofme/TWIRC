@@ -73,13 +73,20 @@ namespace RNGBot
 
         public void setBias(double[] newbias)
         {
-            Array.Copy(newbias, thisBias,7);
-            
+            try
+            {
+                Array.Copy(newbias, thisBias, 7);
+            }
+            catch { }
         }
         
         public void setDefaultBias(double[] newbias)
         {
             Array.Copy(newbias, defaultBias, 7 );
+        }
+        public double[] getDefaultBias()
+        {
+            return defaultBias;
         }
 
         public void doDecay()
