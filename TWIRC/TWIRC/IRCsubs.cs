@@ -55,14 +55,14 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
 
         public bool hardMatch(string user,string input,int auth)
         {
-            string[] pars; int now = getNow();bool failure = false;
+            string[] pars;  int now = getNow();bool failure = false;
             if (doesMatch(input) && auth>= authLevel)
             {
                 pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
                 if (pars.Count() >= parameters+1)
                 {
                     if(cdlist.Count>0){
-                        while (cdlist[0].i() > now - persCooldown)
+                        while (cdlist[0].i() < now - persCooldown)
                         {
                             cdlist.RemoveAt(0);
                             if (cdlist.Count == 0)

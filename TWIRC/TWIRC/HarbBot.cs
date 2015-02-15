@@ -118,12 +118,12 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE biassettings (def VARCHAR(200) NOT NULL, maxDiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE biassettings (def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO biassettings (def,maxDiff) VALUES ('1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO biassettings (def,maxdiff) VALUES ('1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -144,7 +144,7 @@ namespace RNGBot
 
                     sqldr = new SQLiteCommand("SELECT * FROM biassettings;", dbConn).ExecuteReader();
                     sqldr.Read();
-                    string[] temp = sqldr.GetString(0).Split(';'); double[] b = new double[7];
+                    string[] temp = sqldr.GetString(0).Split(':'); double[] b = new double[7];
                     for (int a = 0; a < 7;a++ )
                     {
                         b[a] = double.Parse(temp[a]);
@@ -638,12 +638,14 @@ namespace RNGBot
                             if (!fail)
                             {
                                 biasControl.setDefaultBias(tobedefaultbias);
-                                string sqlStr = "UPDATE biassettings SET default='";
+                                string sqlStr = "UPDATE biassettings SET def='";
                                 for (int a = 0; a < 7; a++)
                                 {
                                     sqlStr += tobedefaultbias[a].ToString();
                                     if (a != 6) { sqlStr += ":"; }
                                 }
+                                sqlStr += "';";
+                                new SQLiteCommand(sqlStr, dbConn).ExecuteNonQuery();
                                 sendMess(channel, user + "-> Default bias set! I really hope you know what you are doing.");
                             }
                             else
@@ -652,7 +654,15 @@ namespace RNGBot
                             }
                             break;
                         case "!setbiasmaxdiff":
-
+                            str[1] = str[1].Replace(",",".");//make it accessible for dutchies ( we use commas to define floating points here (and dots for thousands).)
+                            if (Regex.Match(str[1], @"^([01]\.[0-9]{1,9})|(1)").Success)
+                            {
+                                maxBiasDiff = double.Parse(str[1]);
+                                new SQLiteCommand("UPDATE biassettings SET maxdiff='"+ maxBiasDiff+"';", dbConn).ExecuteNonQuery();
+                                sendMess(channel, user + "-> Max bias difference updated, this will take effect after the next vote.");
+                            }else{
+                                sendMess(channel, user + "-> Value in incorrect format, no changes made.");
+                            }
                             break;
                         case "!bias":
                             if (voteStatus == 1)
@@ -768,7 +778,7 @@ namespace RNGBot
                         if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';");
+                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';").ExecuteNonQuery();
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
                         foreach (string b in str)
                         {
