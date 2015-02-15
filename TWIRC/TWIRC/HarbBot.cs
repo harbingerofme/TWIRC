@@ -754,7 +754,7 @@ namespace RNGBot
                             break;
 
                         case "!addlog":
-                            appendFile(progressLogPATH, getNowExtended()+" "+user+ " "+str[1] + str[2]);
+                            appendFile(progressLogPATH,"\n" + getNowExtended() + " " + user + " " + str[1] + " " + str[2]);
                             sendMess(channel,"Affirmative, " + user+"!");
                             break;
 
