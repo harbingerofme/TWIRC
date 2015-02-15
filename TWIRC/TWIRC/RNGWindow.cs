@@ -483,5 +483,51 @@ namespace RNGBot
                 }
             }
         }
+
+        private void textBox4_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox4_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Return)
+            {
+                do_manual_command();
+            }
+        }
+
+        private void textBox2_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Return)
+            {
+                do_manual_command();
+            }
+        }
+
+
+        private void do_manual_command()
+        { 
+            if (textBox4.Text == "") textBox4.Text = "COMMAND";
+            if (textBox2.Text == "") textBox2.Text = "0";
+            string command = textBox4.Text + ":" + textBox2.Text;
+            RNGLogger.WriteLine("manually sent" + command);
+            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
+            {
+                        
+                //RNGLogger.addLog("RNG-manually", 0, "rngagege");
+                try
+                {
+
+                    rngclient.sendCommand(command);
+                }
+                catch (Exception ex)
+                {
+                    RNGLogger.addLog("Network", 0, "Regret, didn't send!:" + ex.Message);
+                }
+
+            }
+        }
+        
     }
 }

@@ -55,6 +55,7 @@
             this.button13 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -134,11 +135,14 @@
             // 
             // textBox4
             // 
-            this.textBox4.Dock = System.Windows.Forms.DockStyle.Top;
+            this.textBox4.Dock = System.Windows.Forms.DockStyle.Left;
             this.textBox4.Location = new System.Drawing.Point(0, 228);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(415, 20);
+            this.textBox4.Size = new System.Drawing.Size(134, 20);
             this.textBox4.TabIndex = 15;
+            this.textBox4.Text = "COMMAND";
+            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
+            this.textBox4.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox4_KeyDown);
             // 
             // text_log
             // 
@@ -290,11 +294,22 @@
             this.button15.UseVisualStyleBackColor = true;
             this.button15.Click += new System.EventHandler(this.button15_Click);
             // 
+            // textBox2
+            // 
+            this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBox2.Location = new System.Drawing.Point(134, 228);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(281, 20);
+            this.textBox2.TabIndex = 29;
+            this.textBox2.Text = "0";
+            this.textBox2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox2_KeyDown);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 392);
+            this.Controls.Add(this.textBox2);
             this.Controls.Add(this.button15);
             this.Controls.Add(this.button14);
             this.Controls.Add(this.button13);
@@ -355,6 +370,7 @@
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.TextBox textBox2;
     }
 }
 
