@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Threading;
+using System.Timers;
 
 namespace RNGBot
 {
@@ -17,13 +17,14 @@ namespace RNGBot
         LuaServer RNGLuaServer = null;
         Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators = null;
         ButtonMasher RNGesus = null;
-        HarbBot HB = null;
-        Thread irc;
         Random randy = new Random();
         bool ishold = false;
         String lasthold = "";
         int holdtime = 0;
-        string ircchannel;
+
+        HarbBot HB = null;
+        List<System.Timers.Timer> HBtimerList = new List<System.Timers.Timer>();
+
 
         Action<string,string> sayfunc; 
         
@@ -40,26 +41,16 @@ namespace RNGBot
         double[] bias9 = { 1.00, 1.00, 1.20, 1.20, 0.96, 0.92, 0.82 };
 
 
-        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string,LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher)
+        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string, LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher, HarbBot bot)
         {
-            
+
             RNGLogger = newlogger;
             RNGLuaServer = newluaserver;
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
-#if !OFFLINE
-            irc = new Thread(createIrc);
-            irc.Name = "RNGPPBOT irc main thread";
-            irc.IsBackground = true;
-            irc.Start();
-#endif
-
-            InitializeComponent();
-        }
-
-        private void createIrc()
-        {
-            HB = new HarbBot(RNGLogger,RNGesus,this);    
+            HB = bot;
+            HBtimerList.Add(HB.voteTimer);
+            HBtimerList.Add(HB.voteTimer2);
         }
 
         private void RNGWindow_Load(object sender, EventArgs e)
@@ -89,7 +80,17 @@ namespace RNGBot
             RNGLuaServer.shutdown();
             RNGLuaServer.serverSocket.Stop();
 
-            irc.Abort();
+            try
+            {
+                HB.running = false;
+                foreach (System.Timers.Timer timer in HBtimerList)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                }
+                HB.Close();
+            }
+            catch { }
             
         }
 
@@ -141,10 +142,17 @@ namespace RNGBot
 
         private void button3_Click(object sender, EventArgs e)
         {
-            irc.Abort();
-            irc = new Thread(createIrc);
-            irc.Name = "irc";
-            irc.Start();
+            try
+            {
+                foreach (System.Timers.Timer timer in HBtimerList)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                }
+                HBtimerList.Clear();
+            }
+            catch { }
+            HB.reconnect();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -542,23 +550,10 @@ namespace RNGBot
         {
             if (e.KeyCode == Keys.Return)
             {
-                RNGLogger.WriteLine("trying to beep..." + ircchannel + ".." + textBox3.Text);
-                if (ircchannel != null)
-                {
-                    sayfunc(ircchannel, textBox3.Text);
-                }
+                RNGLogger.WriteLine("Manual irc message:");
+                HB.say(textBox3.Text);
+                
             }
-        }
-
-        public void set_sayfunc(Action<string,string> newsayfunc)
-        {
-          RNGLogger.WriteLine("set sayfunc");
-          sayfunc = newsayfunc;
-        }
-        public void set_ircchannel(string newircchannel)
-        {
-            RNGLogger.WriteLine("set irc channel for sayfunc: " + newircchannel);
-            ircchannel = newircchannel;
         }
         
     }

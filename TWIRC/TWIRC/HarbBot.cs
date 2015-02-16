@@ -18,9 +18,8 @@ namespace RNGBot
         public static IrcClient irc = new IrcClient();
         public bool running = true;
 
-        public string bot_name;
-        public string channels;
-        public string oauth;
+        public string bot_name, oauth, channels;
+
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
@@ -28,26 +27,23 @@ namespace RNGBot
         public List<intStr> asCosts = new List<intStr>();
         public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>();
         List<List<string>> asResponses = new List<List<string>>();
+
         public int globalCooldown;
         public int logLevel;
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
-        public bool silence;
+        public bool silence,loggedIn = false;
         public List<intIntStr> votingList = new List<intIntStr>();
         public string progressLogPATH;
         SQLiteConnection dbConn;
         public Logger logger;
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
+
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
         public ButtonMasher biasControl; public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
-        private RNGWindow thewindow;
+        public Thread one,two;
 
-        public Thread two;
-
-        public HarbBot(Logger logLogger, ButtonMasher buttMuncher, RNGWindow tehwindow)
+        public HarbBot(Logger logLogger, ButtonMasher buttMuncher)
         {
-            thewindow = tehwindow;
-
-
             lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
@@ -85,9 +81,9 @@ namespace RNGBot
 
             //write these Methods
             irc.OnConnected += ircConnected;
-            irc.OnJoin += ircJoined;
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
+            //irc.OnQueryNotice += 
 
             irc.OnQueryMessage += ircQuery;
             irc.OnRawMessage += ircRaw;
@@ -106,7 +102,7 @@ namespace RNGBot
                     logger.WriteLine("First time setup detected, making database");
                 }
                 bot_name = "harbbot";
-                channels = "#rngplayspokemon";
+                channels = "#harbbot";
                 
                 
 
@@ -232,12 +228,18 @@ namespace RNGBot
             hardList.Add(new hardCom("!addclassic",2,2));
             hardList.Add(new hardCom("!delclassic",2,2));
             */
-            
+
+            one = new Thread(connection);
+            one.Name = "RNGPPBOT IRC CONNECTION";
+            one.IsBackground = true;
+
+            /*
             two = new Thread(run_2);//manages saving of commandlists, etc.
             two.Name = "RNGPPBOT background irc thread.";
             two.IsBackground = true;
             two.Start();
-
+            */
+              
             voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
             voteTimer.Elapsed += voteTimer_Elapsed;
             voteTimer.Start();
@@ -245,14 +247,26 @@ namespace RNGBot
             voteTimer2 = new System.Timers.Timer(timeToVote*1000);
             voteTimer2.Elapsed += voteTimer_Elapsed;
 
+            try
+            {
+                irc.Connect("irc.twitch.tv", 6667);
+            }
+            catch { }
+        }
 
-            thewindow.set_sayfunc(sendMess);
-            thewindow.set_ircchannel(channels);
+        void connection()
+        {
+            Thread.Sleep(500);
+            if (loggedIn)
+            {
+                irc.RfcJoin(channels);
+                irc.Listen();
+            }
+        }
 
-            try { irc.Connect("irc.twitch.tv", 6667); }
-            catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
-
-
+        public void say(string message)
+        {
+            sendMess(channels, message);
         }
 
         void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -263,7 +277,7 @@ namespace RNGBot
                 voteTimer2.Start();
                 sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your points)");
             }
-            else
+            if(sender == voteTimer2)
             {
                 string str = "Voting is over.";
                 double[] tobebias = biasControl.getDefaultBias();
@@ -325,17 +339,6 @@ namespace RNGBot
 
         public void run_2()
         {
-            int count = 0;
-            while (running)
-            {
-                count++;
-                Thread.Sleep(1000);
-                if (count > 3600)
-                {
-                    safe();
-                    count = 0;
-                }
-            }
         }
 
         public void checkSpam(string channel, string user, string message)
@@ -800,6 +803,14 @@ namespace RNGBot
             }
         }
 
+        public void Close()
+        {
+            one.Abort();
+            two.Abort();
+            voteTimer.Stop();
+            voteTimer2.Stop();
+        }
+
         public void sendMess(string channel, string message)
         {
             if (logLevel > 0)
@@ -919,16 +930,9 @@ namespace RNGBot
         //eventbinders
         public void ircConnected(object sender, EventArgs e)
         {
-            IrcClient a = (IrcClient)sender;
-            a.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
-            a.RfcJoin(channels);
-            logger.WriteLine("IRC: Joined Twitch chat");
-            a.Listen();
-        }
-
-        public void ircJoined(object sender, EventArgs e)
-        {
-            logger.WriteLine("IRC: Succesfully joined " + channels);
+            logger.WriteLine("IRC: Joining Twitch chat");
+            irc.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
+            one.Start();
         }
 
         public void ircConError(object sender, EventArgs e)
@@ -947,6 +951,11 @@ namespace RNGBot
                 logger.WriteLine("IRC RAW:<- " + e.Data.RawMessage);
             }
         }
+        public void ircNotice(object sender, IrcEventArgs e)
+        {
+            logger.WriteLine("IRC: NOTICE: " + e.Data.Message);
+        }
+
         public void ircChanMess(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;

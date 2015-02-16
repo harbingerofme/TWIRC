@@ -17,7 +17,8 @@ namespace RNGBot
         static Logger RNGLogger;
         static LuaServer RNGLuaServer;
         static ButtonMasher RNGesus;
-        static RNGWindow mainWindow; 
+        static RNGWindow mainWindow;
+        static HarbBot HarbBot;
         //static DBHandler RNGDB;
         
 
@@ -54,11 +55,17 @@ namespace RNGBot
             RNGesus.setDefaultBias(bias5); //values to average against
             RNGesus.setBias(bias5);
 
+#if !OFFLINE
+            HarbBot = new HarbBot(RNGLogger, RNGesus);
+#endif
+
             //RNGDB = new DBHandler("rngppbot.sqlite", RNGLogger);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus);
+            mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus,HarbBot);
+            
+
             Application.Run(mainWindow);
 
 
