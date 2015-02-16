@@ -119,7 +119,7 @@ namespace RNGBot
         private void button2_Click(object sender, EventArgs e)
         {
             timer_RNG.Enabled = !timer_RNG.Enabled;
-            timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
+            //timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
             timer_decay.Enabled = !timer_decay.Enabled;
             int newinterval;
             if (int.TryParse(textBox1.Text, out newinterval))
