@@ -106,7 +106,7 @@ namespace RNGBot
                     logger.WriteLine("First time setup detected, making database");
                 }
                 bot_name = "harbbot";
-                channels = "#f00barbob";
+                channels = "#rngplayspokemon";
                 
                 
 
