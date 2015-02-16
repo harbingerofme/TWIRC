@@ -23,7 +23,9 @@ namespace RNGBot
         bool ishold = false;
         String lasthold = "";
         int holdtime = 0;
-        
+        string ircchannel;
+
+        Action<string,string> sayfunc; 
         
         //ewww
                            // LT   DN     UP     RT
@@ -40,6 +42,7 @@ namespace RNGBot
 
         public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string,LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher)
         {
+            
             RNGLogger = newlogger;
             RNGLuaServer = newluaserver;
             RNGEmulators = newrngemulators;
@@ -56,7 +59,7 @@ namespace RNGBot
 
         private void createIrc()
         {
-            HB = new HarbBot(RNGLogger,RNGesus);    
+            HB = new HarbBot(RNGLogger,RNGesus,this);    
         }
 
         private void RNGWindow_Load(object sender, EventArgs e)
@@ -527,6 +530,35 @@ namespace RNGBot
                 }
 
             }
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void textBox3_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Return)
+            {
+                RNGLogger.WriteLine("trying to beep..." + ircchannel + ".." + textBox3.Text);
+                if (ircchannel != null)
+                {
+                    sayfunc(ircchannel, textBox3.Text);
+                }
+            }
+        }
+
+        public void set_sayfunc(Action<string,string> newsayfunc)
+        {
+          RNGLogger.WriteLine("set sayfunc");
+          sayfunc = newsayfunc;
+        }
+        public void set_ircchannel(string newircchannel)
+        {
+            RNGLogger.WriteLine("set irc channel for sayfunc: " + newircchannel);
+            ircchannel = newircchannel;
         }
         
     }
