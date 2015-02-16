@@ -121,7 +121,7 @@ namespace RNGBot
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
-                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), money INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
+                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
@@ -889,12 +889,12 @@ namespace RNGBot
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET money='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET points='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetString(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
             else
             {
-                new SQLiteCommand("INSERT INTO users (name,lastseen,money) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
             }
         }
         public int addPoints(string name, int amount,string why)
@@ -904,14 +904,14 @@ namespace RNGBot
             if (sqldr.Read())
             {
                 things = sqldr.GetInt32(0)+amount;
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' money='"+ things+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' points='"+ things+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + sqldr.GetString(0) + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 return things;
             }
             else
             {
 
-                new SQLiteCommand("INSERT INTO users (name,lastseen,money) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
                 return 0;
             }
         }
