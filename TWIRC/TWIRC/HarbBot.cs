@@ -39,11 +39,15 @@ namespace RNGBot
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer,voteTimer2;
         public ButtonMasher biasControl; public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
+        private RNGWindow thewindow;
 
         public Thread two;
 
-        public HarbBot(Logger logLogger, ButtonMasher buttMuncher)
+        public HarbBot(Logger logLogger, ButtonMasher buttMuncher, RNGWindow tehwindow)
         {
+            thewindow = tehwindow;
+
+
             lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
@@ -102,7 +106,10 @@ namespace RNGBot
                     logger.WriteLine("First time setup detected, making database");
                 }
                 bot_name = "harbbot";
-                channels = "#rngplayspokemon";
+                channels = "#f00barbob";
+                
+                
+
                 globalCooldown = 20; 
                 antispam = true;
                 oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
@@ -237,6 +244,10 @@ namespace RNGBot
 
             voteTimer2 = new System.Timers.Timer(timeToVote*1000);
             voteTimer2.Elapsed += voteTimer_Elapsed;
+
+
+            thewindow.set_sayfunc(sendMess);
+            thewindow.set_ircchannel(channels);
 
             try { irc.Connect("irc.twitch.tv", 6667); }
             catch (ConnectionException e) { System.Diagnostics.Debug.WriteLine("Thread 1 Connection error: " + e.Message); }
