@@ -153,18 +153,21 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         }
         public string[] makeLowerCase(string[] respos){
             string[] ret = respos;
-            String[] regs = new String[4];
+            String[] regs = new String[6];
             regs[0] = "@count@";
             regs[1] = @"@par([\d|(\d-)|(\d-\d)])@";
             regs[2] = @"@rand([\d|(\d-\d)])@";
             regs[3] = "@user@";
+            regs[4] = @"@cap(\d)@";
+            regs[5] = @"#par(\d)@";
 
             for(int a =0; a< respos.Count();a++){
-                respos[a] = Regex.Replace(respos[a],regs[0],"@count@");
-                respos[a] = Regex.Replace(respos[a],regs[3], "@user@");
-                respos[a] = Regex.Replace(respos[a], regs[1], @"@par$1@");
-                respos[a] = Regex.Replace(respos[a],regs[2], @"@rand$1@");
-
+                ret[a] = Regex.Replace(respos[a],regs[0],"@count@",RegexOptions.IgnoreCase);
+                ret[a] = Regex.Replace(respos[a], regs[3], "@user@", RegexOptions.IgnoreCase);
+                ret[a] = Regex.Replace(respos[a], regs[1], @"@par$1@", RegexOptions.IgnoreCase);
+                ret[a] = Regex.Replace(respos[a], regs[2], @"@rand$1@", RegexOptions.IgnoreCase);
+                ret[a] = Regex.Replace(respos[a], regs[4], @"@cap$1@", RegexOptions.IgnoreCase);
+                ret[a] = Regex.Replace(respos[a], regs[5], @"#par$1#", RegexOptions.IgnoreCase);
             }
             return ret;
         }
@@ -277,6 +280,10 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                 {
                     returnString = returnString.Replace("@par" + b + "@", pars[b - 1]);
                 }
+                for (int b = 1; b < pars.Count() + 1; b++)
+                {
+                    returnString = returnString.Replace("@cap" + b + "@", pars[b - 1].Substring(0,1).ToUpper()+pars[b-1].Substring(1));
+                }
 
                 for (int b = 1; b < pars.Count() + 1; b++)
                 {
@@ -285,9 +292,9 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                     returnString = returnString.Replace("@par" + b + "-@", str2);
                 }
                 returnString = returnString.Replace("@count@", count.ToString());
-                returnString = returnString.Replace("@user@", user);
+                returnString = returnString.Replace("@user@", user.Substring(0,1).ToUpper()+user.Substring(1));
                 Random rnd = new Random();
-                while (Regex.Match(returnString, "@rand(\\d+)@").Success)
+                while (Regex.Match(returnString, @"@rand(\d){1,9}@").Success)
                 {
                     Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
                     str2 = returnString.Substring(0, match.Index);
@@ -295,7 +302,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                     returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value)) + str3;
                 }
 
-                while (Regex.Match(returnString, "@rand(\\d+)-(\\d+)@").Success)
+                while (Regex.Match(returnString, "@rand(\\d){1,9}-(\\d){1,9}@").Success)
                 {
                     Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
                     if (int.Parse(match.Groups[1].Captures[0].Value) > int.Parse(match.Groups[2].Captures[0].Value)) { break; }

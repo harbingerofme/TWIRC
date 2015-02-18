@@ -20,8 +20,9 @@ namespace RNGBot
         Random randy = new Random();
         bool ishold = false;
         String lasthold = "";
-        int holdtime = 0;
+        int holdtime = 0,messagePoint = -1;
 
+        List<string> sendMessages = new List<string>();
         HarbBot HB = null;
         List<System.Timers.Timer> HBtimerList = new List<System.Timers.Timer>();
 
@@ -51,6 +52,8 @@ namespace RNGBot
             HB = bot;
             HBtimerList.Add(HB.voteTimer);
             HBtimerList.Add(HB.voteTimer2);
+
+            InitializeComponent();
         }
 
         private void RNGWindow_Load(object sender, EventArgs e)
@@ -142,16 +145,6 @@ namespace RNGBot
 
         private void button3_Click(object sender, EventArgs e)
         {
-            try
-            {
-                foreach (System.Timers.Timer timer in HBtimerList)
-                {
-                    timer.Stop();
-                    timer.Dispose();
-                }
-                HBtimerList.Clear();
-            }
-            catch { }
             HB.reconnect();
         }
 
@@ -552,7 +545,36 @@ namespace RNGBot
             {
                 RNGLogger.WriteLine("Manual irc message:");
                 HB.say(textBox3.Text);
-                
+                sendMessages.Add(textBox3.Text);
+                if (sendMessages.Count > 100)
+                {
+                    sendMessages.RemoveAt(0);
+                }
+                textBox3.Text = "";//empty the textbox.
+                messagePoint = sendMessages.Count;
+            }
+            if(e.KeyCode == Keys.Down)
+            {
+                if(messagePoint<sendMessages.Count)
+                {
+                    messagePoint++;
+                    if(messagePoint==sendMessages.Count)
+                    {
+                        textBox3.Text = "";//wipe textbox
+                    }
+                    else
+                    {
+                        textBox3.Text = sendMessages[messagePoint];
+                    }
+                }
+            }
+            if(e.KeyCode == Keys.Up)
+            {
+                if (messagePoint > 0)
+                {
+                    messagePoint--;
+                    textBox3.Text = sendMessages[messagePoint];
+                }
             }
         }
         

@@ -31,7 +31,7 @@ namespace RNGBot
         public int globalCooldown;
         public int logLevel;
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
-        public bool silence,loggedIn = false;
+        public bool silence,isMod = false;
         public List<intIntStr> votingList = new List<intIntStr>();
         public string progressLogPATH;
         SQLiteConnection dbConn;
@@ -83,7 +83,7 @@ namespace RNGBot
             irc.OnConnected += ircConnected;
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
-            //irc.OnQueryNotice += 
+            irc.OnQueryNotice += ircNotice;
 
             irc.OnQueryMessage += ircQuery;
             irc.OnRawMessage += ircRaw;
@@ -123,10 +123,18 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biassettings (def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
+                
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (def,maxdiff) VALUES ('1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
+
+                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('emote spam','3','Images say more than a thousand words, so stop writing essays.\nHow is a timeout for a twitch feature?\nI dislike emotes, they are all text to me.');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1','There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7','Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,'Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what.');").ExecuteNonQuery();
             }
             else
             {
@@ -207,11 +215,13 @@ namespace RNGBot
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",4,7));
             hardList.Add(new hardCom("!setdefaultbias",4,7));
-            hardList.Add(new hardCom("!setbiasmaxdiff", 6, 1));
+            hardList.Add(new hardCom("!setbiasmaxdiff", 4, 1));
+            hardList.Add(new hardCom("!resetbias", 4, 0));
             hardList.Add(new hardCom("!bias",0,1));
             hardList.Add(new hardCom("!balance", 0, 0,600));
-            hardList.Add(new hardCom("!addlog", 0, 1));
+            hardList.Add(new hardCom("!addlog", 0, 1,5));
             hardList.Add(new hardCom("!setpoints",4,2));
+            hardList.Add(new hardCom("!voting", 3, 1));
             //hardList.Add(new hardCom("!maintenance", 3, 1));
             //hardList.Add(new hardCom("!background",0,1));
             //hardList.Add(new hardCom("!song",0,1));
@@ -256,61 +266,65 @@ namespace RNGBot
 
         void connection()
         {
-            Thread.Sleep(500);
-            if (loggedIn)
-            {
-                irc.RfcJoin(channels);
-                irc.Listen();
-            }
+            irc.RfcJoin(channels);
+            irc.Listen();
+
         }
 
         public void say(string message)
-        {
+        {   
             sendMess(channels, message);
+            checkCommand(channels, channels.Substring(1), filter(message));//I guess?
         }
 
         void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (sender == voteTimer)
+            if (voteStatus != -1)
             {
-                voteStatus = 1;
-                voteTimer2.Start();
-                sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your points)");
-            }
-            if(sender == voteTimer2)
-            {
-                string str = "Voting is over.";
-                double[] tobebias = biasControl.getDefaultBias();
-                double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
-                if (votingList.Count > 0)
+                if (sender == voteTimer)
                 {
-                    int a = 0;
-                    foreach(intIntStr b in votingList){
-                         a += b.Int1;
-                         for (int i = 0; i < b.Int1; i++)
-                         {
-                             for (int j = 0; j<7;j++){
-                             values[j] += newBias[b.Int2][j];
-                             }
-                         }
-                     }
-                    for(int i =0; i<7;i++){
-                        values[i] = (values[i] * maxBiasDiff) / (a * 10);
-                        tobebias[i] += values[i];
+                    voteStatus = 1;
+                    voteTimer2.Start();
+                    sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                }
+                if (sender == voteTimer2)
+                {
+                    string str = "Voting is over.";
+                    double[] tobebias = biasControl.getDefaultBias();
+                    double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
+                    if (votingList.Count > 0)
+                    {
+                        int a = 0;
+                        foreach (intIntStr b in votingList)
+                        {
+                            a += b.Int1;
+                            for (int i = 0; i < b.Int1; i++)
+                            {
+                                for (int j = 0; j < 7; j++)
+                                {
+                                    values[j] += newBias[b.Int2][j];
+                                }
+                            }
+                        }
+                        for (int i = 0; i < 7; i++)
+                        {
+                            values[i] = (values[i] * maxBiasDiff) / (a * 10);
+                            tobebias[i] += values[i];
+                        }
+                        str += " Processed " + a + " votes from " + votingList.Count + " users.";
+                        biasControl.setBias(tobebias);
                     }
-                    str += "Processed " + a + " votes from " + votingList.Count + " users.";
-                    biasControl.setBias(tobebias);
+                    else
+                    {
+                        biasControl.doDecay();
+                    }
+                    str += " Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes.";
+                    votingList.Clear();
+                    lastVoteTime = getNow();
+                    voteStatus = 0;
+                    voteTimer.Start();
+                    sendMess(channels, str);
                 }
-                else
-                {
-                    biasControl.doDecay();
-                }
-                str += "Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes.";
-                votingList.Clear();
-                lastVoteTime = getNow();
-                voteStatus = 0;
-                voteTimer.Start();
-                sendMess(channels, str);
             }
         }
 
@@ -318,12 +332,17 @@ namespace RNGBot
         {
             try
             {
+                one.Abort();
+                voteTimer.Stop();
+                voteTimer2.Stop();
                 irc.Disconnect();
             }
             catch { };
             try
             {
                 irc.Connect("irc.twitch.tv", 6667);
+                voteTimer2.Start();
+                voteTimer.Start();
             }
             catch (ConnectionException e)
             {
@@ -341,7 +360,7 @@ namespace RNGBot
         {
         }
 
-        public void checkSpam(string channel, string user, string message)
+        public bool checkSpam(string channel, string user, string message)
         {
             List<asUser> temp = new List<asUser>();List<intStr> temp2 = new List<intStr>();
             foreach(asUser person in asUsers)
@@ -409,9 +428,11 @@ namespace RNGBot
                     irc.RfcPrivmsg(channel,".timeout "+user+" 1");//overrides the send delay (hopefully)
                     int c = new Random().Next(0,4);
                     sendMess(channel,user+" -> "+asResponses[type][c]+" ("+asCosts[type].Str+")");
+                    return true;
                 }
             }
             if (user == "zackattack9909" && Regex.Match(message,"wix[1-4]").Success) {irc.RfcPrivmsg(channel,".clear");sendMess(channel,"Zack, please don't.");}
+            return false;
         }
 
         public string filter(string message)
@@ -430,6 +451,7 @@ namespace RNGBot
             string[] str, tempVar3;
             bool done = false; int auth = pullAuth(user);
             bool fail; int tempVar1 = 0; string tempVar2 = "";
+            string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
             foreach (hardCom h in hardList)//hardcoded command
             {
                 if (h.hardMatch(user,message,auth))
@@ -445,7 +467,7 @@ namespace RNGBot
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
                                 foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
                                 foreach (ali c in aliList) { if (c.filter(str[1]) != str[1] || fail) { fail = true; break; } }
-                                if (fail) { sendMess(channel, "I'm sorry, " + user + ". A command or alias with the same name exists already."); }
+                                if (fail) { sendMess(channel, "I'm sorry, " + User + ". A command or alias with the same name exists already."); }
                                 else
                                 {
                                     tempVar1 = 0;
@@ -454,7 +476,7 @@ namespace RNGBot
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist.Add(new command(str[1], tempVar3, tempVar1));
                                     new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('" + str[1] + "','" + tempVar1 + "','" + 0 + "','" + MySqlEscape(tempVar2) + "');",dbConn).ExecuteNonQuery();
-                                    sendMess(channel, user + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
+                                    sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
                             break;
                         case "!editcom":
@@ -470,32 +492,32 @@ namespace RNGBot
                                         comlist[a].setResponse(tempVar3);
                                         comlist[a].setAuth(tempVar1);
                                         new SQLiteCommand("UPDATE commands SET response = '" + MySqlEscape(tempVar2) + "' WHERE keyword='" + str[1] + "';",dbConn).ExecuteNonQuery();
-                                        sendMess(channel, user + "-> command \"" + str[1] + "\" has been edited.");
+                                        sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
                                         safe();
                                         fail = false;
                                     }
                                 }
                                 if (fail)
                                 {
-                                    sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
+                                    sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
                         case "!delcom"://delete command
-                                fail = true;
+                            fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
                                     if (comlist[a].doesMatch(str[1])) { 
                                         comlist.RemoveAt(a);
                                         fail = false;
                                         new SQLiteCommand("DELETE FROM commands WHERE keyword='"+str[1]+"';",dbConn).ExecuteNonQuery();
-                                        sendMess(channel, user + "-> command \"" + str[1] + "\" has been deleted.");
+                                        sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
                                         safe();
                                         break; }
 
                                 }
                                 if (fail)
                                 {
-                                    sendMess(channel, "I'm sorry, " + user + ". I can't find a command named that way. (maybe it's an alias?)");
+                                    sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
                         case "!addalias": //add alias
@@ -513,7 +535,7 @@ namespace RNGBot
                                     }
                                     if (fail) { aliList.Add(new ali(str[1], str[2])); }
                                     new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES ('"+str[1]+"','"+str[2]+"');", dbConn).ExecuteNonQuery();
-                                    sendMess(channel, user + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                    sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
                             break;
@@ -531,7 +553,7 @@ namespace RNGBot
                                         break;
                                     }
                                 }
-                                if (fail) { sendMess(channel, "I'm sorry, " + user + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
+                                if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
                         case "!set"://!set <name> <level>
                             if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
@@ -542,7 +564,7 @@ namespace RNGBot
                             }
                             else
                             {
-                                sendMess(channel, "I'm sorry, " + user + ". You either lack the authorisation to give such levels, or that level is not a valid number.");
+                                sendMess(channel, "I'm sorry, " + User + ". You either lack the authorisation to give such levels, or that level is not a valid number.");
                             }
                             break;
                         case "!editcount":
@@ -567,7 +589,7 @@ namespace RNGBot
                                 if (auth > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
                                 {
                                     setAuth(str[1], -1);
-                                    sendMess(channel, user + "-> \"" + str[1] + "\" has been banned from using bot commands.");
+                                    sendMess(channel, User + "-> \"" + str[1] + "\" has been banned from using bot commands.");
                                 }
 
                             break;
@@ -575,7 +597,7 @@ namespace RNGBot
                                 if (pullAuth(str[1]) == -1)
                                 {
                                     setAuth(str[1], 0);
-                                    sendMess(channel, user + "-> \"" + str[1] + "\" has been unbanned.");
+                                    sendMess(channel, User + "-> \"" + str[1] + "\" has been unbanned.");
                                 }
 
                             break;
@@ -598,14 +620,14 @@ namespace RNGBot
                                 case 5: text = "an administrator of " + bot_name; break;
                                 default: text = "special"; break;
                             }
-                            sendMess(channel, user + ", you are "+text+".");
+                            sendMess(channel, User + ", you are "+text+".");
                             break;
 
                         case "!permit":
                             if (antispam)
                             {
                                 permits.Add(new intStr(str[1], getNow()));
-                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + user+". This permit expires in "+permitTime+" seconds.");
+                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User+". This permit expires in "+permitTime+" seconds.");
                             }
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
@@ -627,11 +649,11 @@ namespace RNGBot
                                 if (!fail)
                                 {
                                     biasControl.setBias(tobebias);
-                                    sendMess(channel,user + "-> Bias set!");
+                                    sendMess(channel,User + "-> Bias set!");
                                 }
                                 else
                                 {
-                                    sendMess(channel, user + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
+                                    sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
                                 }
                             break;
                         case "!setdefaultbias":
@@ -660,11 +682,11 @@ namespace RNGBot
                                 }
                                 sqlStr += "';";
                                 new SQLiteCommand(sqlStr, dbConn).ExecuteNonQuery();
-                                sendMess(channel, user + "-> Default bias set! I really hope you know what you are doing.");
+                                sendMess(channel, User + "-> Default bias set! I really hope you know what you are doing.");
                             }
                             else
                             {
-                                sendMess(channel, user + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
+                                sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
                             }
                             break;
                         case "!setbiasmaxdiff":
@@ -673,9 +695,9 @@ namespace RNGBot
                             {
                                 maxBiasDiff = double.Parse(str[1]);
                                 new SQLiteCommand("UPDATE biassettings SET maxdiff='"+ maxBiasDiff+"';", dbConn).ExecuteNonQuery();
-                                sendMess(channel, user + "-> Max bias difference updated, this will take effect after the next vote.");
+                                sendMess(channel, User + "-> Max bias difference updated, this will take effect after the next vote.");
                             }else{
-                                sendMess(channel, user + "-> Value in incorrect format, no changes made.");
+                                sendMess(channel, User + "-> Value in incorrect format, no changes made.");
                             }
                             break;
                         case "!bias":
@@ -764,12 +786,29 @@ namespace RNGBot
                             {
                                 tempVar2 = tempVar1+ "PokéDollars";
                             }
-                            sendMess(channel, user+", your balance is "+tempVar2+".");
+                            sendMess(channel, User+", your balance is "+tempVar2+".");
                             break;
 
                         case "!addlog":
-                            appendFile(progressLogPATH,"\n" + getNowExtended() + " " + user + " " + str[1] + " " + str[2]);
-                            sendMess(channel,"Affirmative, " + user+"!");
+                            appendFile(progressLogPATH,"\n" + getNowExtended() + " " + User + " " + str[1] + " " + str[2]);
+                            sendMess(channel,"Affirmative, " + User+"!");
+                            break;
+
+                        case "!resetbias":
+                            biasControl.setBias(biasControl.getDefaultBias());
+                            sendMess(channel, User + "-> Bias reset.");
+                            break;
+
+                        case "!voting":
+                            if (Regex.Match(str[1], @"(1)|(on)|(true)|(yes)").Success)
+                            {
+                                if (voteStatus == -1)
+                                {
+                                    voteStatus = 1;
+                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                                    voteTimer2.Start();
+                                }
+                            }
                             break;
 
                         case "!save":
@@ -805,10 +844,13 @@ namespace RNGBot
 
         public void Close()
         {
-            one.Abort();
-            two.Abort();
-            voteTimer.Stop();
-            voteTimer2.Stop();
+            try
+            {
+                one.Abort();
+                two.Abort();
+                irc.RfcQuit();
+            }
+            catch { }
         }
 
         public void sendMess(string channel, string message)
@@ -953,19 +995,30 @@ namespace RNGBot
         }
         public void ircNotice(object sender, IrcEventArgs e)
         {
-            logger.WriteLine("IRC: NOTICE: " + e.Data.Message);
+            if (logLevel < 3 && logLevel > 0)
+            {
+                logger.WriteLine("IRC NOTICE: " + e.Data.Message);
+            }
+            if (e.Data.Message == "Error logging in")
+            {
+                logger.WriteLine("IRC: SEVERE: Unsuccesful login, please check the username and oauth.");
+            }
         }
 
         public void ircChanMess(object sender, IrcEventArgs e)
         {
+            bool a = false;
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
             message = message.TrimEnd();
-            if (antispam) { checkSpam(channel, nick, message); };
-            message = filter(message);
-            this.checkCommand(channel, nick, message);
+            if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
+            if (!a)
+            {
+                message = filter(message);
+                this.checkCommand(channel, nick, message);
+            }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
