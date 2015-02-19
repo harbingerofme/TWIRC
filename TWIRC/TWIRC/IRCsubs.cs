@@ -282,7 +282,18 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                 }
                 for (int b = 1; b < pars.Count() + 1; b++)
                 {
-                    returnString = returnString.Replace("@cap" + b + "@", pars[b - 1].Substring(0,1).ToUpper()+pars[b-1].Substring(1));
+                    if (pars[b - 1].Length > 1)
+                    {
+                        returnString = returnString.Replace("@cap" + b + "@", pars[b - 1].Substring(0, 1).ToUpper() + pars[b - 1].Substring(1));
+                    }
+                    if(pars[b-1].Length == 1)
+                    {
+                        returnString = returnString.Replace("@cap" + b + "@", pars[b - 1].ToUpper());
+                    }
+                    else
+                    {
+                        returnString = returnString.Replace("@cap" + b + "@", user.Substring(0, 1).ToUpper() + user.Substring(1));
+                    }
                 }
 
                 for (int b = 1; b < pars.Count() + 1; b++)
@@ -296,7 +307,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
                 Random rnd = new Random();
                 while (Regex.Match(returnString, @"@rand(\d){1,9}@").Success)
                 {
-                    Match match = Regex.Match(returnString, "@rand(\\d+)-(\\d+)@");
+                    Match match = Regex.Match(returnString, "@rand(\\d+)@");
                     str2 = returnString.Substring(0, match.Index);
                     str3 = returnString.Substring(match.Groups[1].Captures[0].Value.Length + match.Index + 6);
                     returnString = str2 + rnd.Next(int.Parse(match.Groups[1].Captures[0].Value)) + str3;

@@ -37,7 +37,7 @@ namespace RNGBot
         SQLiteConnection dbConn;
         public Logger logger;
 
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
+        public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
         public ButtonMasher biasControl; public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
         public Thread one,two;
@@ -121,14 +121,14 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE biassettings (def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO biassettings (def,maxdiff) VALUES ('1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
 
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('emote spam','3','Images say more than a thousand words, so stop writing essays.\nHow is a timeout for a twitch feature?\nI dislike emotes, they are all text to me.');", dbConn).ExecuteNonQuery();
@@ -200,7 +200,7 @@ namespace RNGBot
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
             hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
-            hardList.Add(new hardCom("!delccom", 3, 1));//delcom
+            hardList.Add(new hardCom("!delcom", 3, 1));//delcom
             hardList.Add(new hardCom("!editcom", 3, 2));//editcom
             hardList.Add(new hardCom("!addalias", 3, 2));//addalias
             hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
@@ -252,9 +252,11 @@ namespace RNGBot
               
             voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
             voteTimer.Elapsed += voteTimer_Elapsed;
+            voteTimer.AutoReset = false;
             voteTimer.Start();
 
             voteTimer2 = new System.Timers.Timer(timeToVote*1000);
+            voteTimer2.AutoReset = false;
             voteTimer2.Elapsed += voteTimer_Elapsed;
 
             try
@@ -715,8 +717,8 @@ namespace RNGBot
                                 tempVar2 = tempVar2.ToLower().Replace("start", "0");//f00?
                                 if (Regex.Match(tempVar2, @"^([0-9ab])|(10)|(11)$").Success)
                                 {
-                                    tempVar2.Replace("a","10");
-                                    tempVar2.Replace("b", "11");
+                                    tempVar2 = tempVar2.Replace("a","10");
+                                    tempVar2 = tempVar2.Replace("b", "11");
                                     tempVar1 = 1;
                                     if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
                                     {
@@ -740,7 +742,7 @@ namespace RNGBot
                                         if (!fail)
                                         {
                                             votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
-                                            addPoints(user, tempVar1 - 2, "vote");
+                                            addPoints(user, 2 - tempVar1, "vote");
                                         }
                                         else
                                         {
@@ -831,7 +833,7 @@ namespace RNGBot
                         if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';").ExecuteNonQuery();
+                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';",dbConn).ExecuteNonQuery();
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
                         foreach (string b in str)
                         {
@@ -839,7 +841,7 @@ namespace RNGBot
                         }
                     }
                 }
-            }
+             }
         }
 
         public void Close()
@@ -956,9 +958,9 @@ namespace RNGBot
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
-                things = sqldr.GetInt32(0)+amount;
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' points='"+ things+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + sqldr.GetString(0) + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                things = sqldr.GetInt32(0);
+                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "', points='"+ (things+amount)+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 return things;
             }
             else
@@ -1064,8 +1066,8 @@ namespace RNGBot
             {
                 return null;
             }
-            // it escapes \r, \n, \x00, \x1a, baskslash, single quotes, and double quotes
-            return Regex.Replace(usString, "[\\r\\n\\x00\\x1a\\\'\"]", @"\$1");
+            // it escapes \r, \n, \x00, \x1a, baskslash, single quotes, double quotes and semi colons
+            return Regex.Replace(usString, "([\\r\\n\\x00\\x1a\\\'\";])", "\\$1");
         }
 
         public string[] FileLines(string path)
