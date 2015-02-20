@@ -589,6 +589,11 @@ namespace RNGBot
             ts_counter0.Text = "Clients: " + RNGLuaServer.get_client_count();
         }
 
+        private void txt_Halp_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("What you think we would halp you now?");
+        }
+
 
         
     }

@@ -58,6 +58,8 @@
             this.txt_Parameter = new System.Windows.Forms.TextBox();
             this.txt_IRCManual = new System.Windows.Forms.TextBox();
             this.timer_interface_stats = new System.Windows.Forms.Timer(this.components);
+            this.btn_Save = new System.Windows.Forms.Button();
+            this.txt_Halp = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -321,11 +323,32 @@
             this.timer_interface_stats.Enabled = true;
             this.timer_interface_stats.Tick += new System.EventHandler(this.timer_interface_stats_Tick);
             // 
+            // btn_Save
+            // 
+            this.btn_Save.Location = new System.Drawing.Point(0, 361);
+            this.btn_Save.Name = "btn_Save";
+            this.btn_Save.Size = new System.Drawing.Size(64, 23);
+            this.btn_Save.TabIndex = 31;
+            this.btn_Save.Text = "Save";
+            this.btn_Save.UseVisualStyleBackColor = true;
+            // 
+            // txt_Halp
+            // 
+            this.txt_Halp.Location = new System.Drawing.Point(352, 361);
+            this.txt_Halp.Name = "txt_Halp";
+            this.txt_Halp.Size = new System.Drawing.Size(62, 23);
+            this.txt_Halp.TabIndex = 32;
+            this.txt_Halp.Text = "Halp";
+            this.txt_Halp.UseVisualStyleBackColor = true;
+            this.txt_Halp.Click += new System.EventHandler(this.txt_Halp_Click);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+            this.Controls.Add(this.txt_Halp);
+            this.Controls.Add(this.btn_Save);
             this.Controls.Add(this.txt_IRCManual);
             this.Controls.Add(this.txt_Parameter);
             this.Controls.Add(this.btn_UpRight);
@@ -391,6 +414,8 @@
         private System.Windows.Forms.TextBox txt_Parameter;
         private System.Windows.Forms.TextBox txt_IRCManual;
         private System.Windows.Forms.Timer timer_interface_stats;
+        private System.Windows.Forms.Button btn_Save;
+        private System.Windows.Forms.Button txt_Halp;
     }
 }
 
