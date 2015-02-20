@@ -677,6 +677,29 @@ namespace RNGBot
                             {
 
                             }
+                            else
+                            {
+                                if(asWhitelist.Count == 0)
+                                {
+                                    tempVar2 = "There are no whitelisted links.";
+                                }
+                                if (asWhitelist.Count == 1)
+                                {
+                                    tempVar2 = "The only whitelisted website is " + asWhitelist2[0];
+                                }
+                                if (asWhitelist.Count > 1)
+                                {
+                                    tempVar2 = "Whitelisted websites are: ";
+                                    foreach (string tempStr1 in asWhitelist2)
+                                    {
+
+                                        tempVar2 += tempStr1 + ", ";
+                                    }
+                                    tempVar2 = tempVar2.Substring(0, tempVar2.Length - 2);
+                                    tempVar2 += ".";
+                                }
+                                sendMess(channel, tempVar2);
+                            }
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
