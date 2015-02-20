@@ -49,10 +49,11 @@ namespace RNGBot
             RNGLuaServer = newluaserver;
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
+#if !OFFLINE            
             HB = bot;
             HBtimerList.Add(HB.voteTimer);
             HBtimerList.Add(HB.voteTimer2);
-
+#endif
             InitializeComponent();
         }
 
@@ -109,7 +110,7 @@ namespace RNGBot
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btn_KillClients_Click(object sender, EventArgs e)
         {
             foreach (LuaServer.EmuClientHandler dyingclient in RNGEmulators.Values.ToList())
             {
@@ -120,20 +121,20 @@ namespace RNGBot
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void btn_RNGesus_Click(object sender, EventArgs e)
         {
             timer_RNG.Enabled = !timer_RNG.Enabled;
             //timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
             timer_decay.Enabled = !timer_decay.Enabled;
             int newinterval;
-            if (int.TryParse(textBox1.Text, out newinterval))
+            if (int.TryParse(txt_RNGInterval.Text, out newinterval))
             {
                 timer_RNG.Interval = newinterval;
             }
             else
             {
-                RNGLogger.WriteLine("Bad interval: " + textBox1.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
-                textBox1.Text = timer_RNG.Interval.ToString();
+                RNGLogger.WriteLine("Bad interval: " + txt_RNGInterval.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
+                txt_RNGInterval.Text = timer_RNG.Interval.ToString();
             }
 
 
@@ -143,7 +144,7 @@ namespace RNGBot
 
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btn_RestartIRC_Click(object sender, EventArgs e)
         {
             HB.reconnect();
         }
@@ -208,29 +209,29 @@ namespace RNGBot
 
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void btn_ClearLog_Click(object sender, EventArgs e)
         {
             text_log.Clear();
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private void btn_DumpLog_Click(object sender, EventArgs e)
         {
             RNGLogger.dumpLogger();
         }
 
-        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        private void txt_RNGInterval_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
             {
                 int newinterval;
-                if (int.TryParse(textBox1.Text, out newinterval))
+                if (int.TryParse(txt_RNGInterval.Text, out newinterval))
                 {
                     timer_RNG.Interval = newinterval;
                 }
                 else
                 {
-                    RNGLogger.WriteLine("Bad interval: " + textBox1.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
-                    textBox1.Text = timer_RNG.Interval.ToString();
+                    RNGLogger.WriteLine("Bad interval: " + txt_RNGInterval.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
+                    txt_RNGInterval.Text = timer_RNG.Interval.ToString();
                 }
 
 
@@ -240,7 +241,7 @@ namespace RNGBot
             }
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void btn_Decay_Click(object sender, EventArgs e)
         {
             RNGesus.doDecay();
         }
@@ -334,7 +335,7 @@ namespace RNGBot
             }
         }
 
-        private void button7_Click(object sender, EventArgs e)
+        private void btn_DownLeft_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias1);
   
@@ -351,7 +352,7 @@ namespace RNGBot
             }
         }
 
-        private void button8_Click(object sender, EventArgs e)
+        private void btn_Down_Click(object sender, EventArgs e)
         {
 
             RNGesus.setBias(bias2);
@@ -369,7 +370,7 @@ namespace RNGBot
             }
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private void btn_DownRight_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias3);
 
@@ -386,7 +387,7 @@ namespace RNGBot
             }
         }
 
-        private void button10_Click(object sender, EventArgs e)
+        private void btn_Left_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias4);
 
@@ -403,7 +404,7 @@ namespace RNGBot
             }
         }
 
-        private void button11_Click(object sender, EventArgs e)
+        private void btn_Neutral_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias5);
 
@@ -420,7 +421,7 @@ namespace RNGBot
             }
         }
 
-        private void button12_Click(object sender, EventArgs e)
+        private void btn_Right_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias6);
 
@@ -437,7 +438,7 @@ namespace RNGBot
             }
         }
 
-        private void button13_Click(object sender, EventArgs e)
+        private void btn_UpLeft_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias7);
 
@@ -454,7 +455,7 @@ namespace RNGBot
             }
         }
 
-        private void button14_Click(object sender, EventArgs e)
+        private void btn_Up_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias8);
 
@@ -471,7 +472,7 @@ namespace RNGBot
             }
         }
 
-        private void button15_Click(object sender, EventArgs e)
+        private void btn_UpRight_Click(object sender, EventArgs e)
         {
             RNGesus.setBias(bias9);
 
@@ -488,12 +489,12 @@ namespace RNGBot
             }
         }
 
-        private void textBox4_TextChanged(object sender, EventArgs e)
+        private void txt_Command_TextChanged(object sender, EventArgs e)
         {
 
         }
 
-        private void textBox4_KeyDown(object sender, KeyEventArgs e)
+        private void txt_Command_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
             {
@@ -501,7 +502,7 @@ namespace RNGBot
             }
         }
 
-        private void textBox2_KeyDown(object sender, KeyEventArgs e)
+        private void txt_Parameter_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
             {
@@ -512,9 +513,9 @@ namespace RNGBot
 
         private void do_manual_command()
         { 
-            if (textBox4.Text == "") textBox4.Text = "COMMAND";
-            if (textBox2.Text == "") textBox2.Text = "0";
-            string command = textBox4.Text + ":" + textBox2.Text;
+            if (txt_Command.Text == "") txt_Command.Text = "COMMAND";
+            if (txt_Parameter.Text == "") txt_Parameter.Text = "0";
+            string command = txt_Command.Text + ":" + txt_Parameter.Text;
             RNGLogger.WriteLine("manually sent" + command);
             foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
             {
@@ -533,24 +534,24 @@ namespace RNGBot
             }
         }
 
-        private void textBox2_TextChanged(object sender, EventArgs e)
+        private void txt_Parameter_TextChanged(object sender, EventArgs e)
         {
 
         }
 
 
-        private void textBox3_KeyDown(object sender, KeyEventArgs e)
+        private void txt_IRCManual_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
             {
                 RNGLogger.WriteLine("Manual irc message:");
-                HB.say(textBox3.Text);
-                sendMessages.Add(textBox3.Text);
+                HB.say(txt_IRCManual.Text);
+                sendMessages.Add(txt_IRCManual.Text);
                 if (sendMessages.Count > 100)
                 {
                     sendMessages.RemoveAt(0);
                 }
-                textBox3.Text = "";//empty the textbox.
+                txt_IRCManual.Text = "";//empty the textbox.
                 messagePoint = sendMessages.Count;
             }
             if(e.KeyCode == Keys.Down)
@@ -560,11 +561,11 @@ namespace RNGBot
                     messagePoint++;
                     if(messagePoint==sendMessages.Count)
                     {
-                        textBox3.Text = "";//wipe textbox
+                        txt_IRCManual.Text = "";//wipe textbox
                     }
                     else
                     {
-                        textBox3.Text = sendMessages[messagePoint];
+                        txt_IRCManual.Text = sendMessages[messagePoint];
                     }
                 }
             }
@@ -573,10 +574,22 @@ namespace RNGBot
                 if (messagePoint > 0)
                 {
                     messagePoint--;
-                    textBox3.Text = sendMessages[messagePoint];
+                    txt_IRCManual.Text = sendMessages[messagePoint];
                 }
             }
         }
+
+        private void ts_counter0_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void timer_interface_stats_Tick(object sender, EventArgs e)
+        {
+            ts_counter0.Text = "Clients: " + RNGLuaServer.get_client_count();
+        }
+
+
         
     }
 }
