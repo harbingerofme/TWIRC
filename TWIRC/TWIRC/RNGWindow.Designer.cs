@@ -30,75 +30,76 @@
         {
             this.components = new System.ComponentModel.Container();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
+            this.btn_KillClients = new System.Windows.Forms.Button();
+            this.btn_RNGesus = new System.Windows.Forms.Button();
+            this.btn_RestartIRC = new System.Windows.Forms.Button();
+            this.btn_Decay = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.ts_isconnected = new System.Windows.Forms.ToolStripStatusLabel();
             this.ts_counter0 = new System.Windows.Forms.ToolStripStatusLabel();
             this.ts_rngesus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.txt_Command = new System.Windows.Forms.TextBox();
             this.text_log = new System.Windows.Forms.TextBox();
             this.timer_RNG = new System.Windows.Forms.Timer(this.components);
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button5 = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
+            this.txt_RNGInterval = new System.Windows.Forms.TextBox();
+            this.btn_ClearLog = new System.Windows.Forms.Button();
+            this.btn_DumpLog = new System.Windows.Forms.Button();
             this.timer_decay = new System.Windows.Forms.Timer(this.components);
             this.timer_RNG_bias = new System.Windows.Forms.Timer(this.components);
-            this.button7 = new System.Windows.Forms.Button();
-            this.button8 = new System.Windows.Forms.Button();
-            this.button9 = new System.Windows.Forms.Button();
-            this.button10 = new System.Windows.Forms.Button();
-            this.button11 = new System.Windows.Forms.Button();
-            this.button12 = new System.Windows.Forms.Button();
-            this.button13 = new System.Windows.Forms.Button();
-            this.button14 = new System.Windows.Forms.Button();
-            this.button15 = new System.Windows.Forms.Button();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.btn_DownLeft = new System.Windows.Forms.Button();
+            this.btn_Down = new System.Windows.Forms.Button();
+            this.btn_DownRight = new System.Windows.Forms.Button();
+            this.btn_Left = new System.Windows.Forms.Button();
+            this.btn_Neutral = new System.Windows.Forms.Button();
+            this.btn_Right = new System.Windows.Forms.Button();
+            this.btn_UpLeft = new System.Windows.Forms.Button();
+            this.btn_Up = new System.Windows.Forms.Button();
+            this.btn_UpRight = new System.Windows.Forms.Button();
+            this.txt_Parameter = new System.Windows.Forms.TextBox();
+            this.txt_IRCManual = new System.Windows.Forms.TextBox();
+            this.timer_interface_stats = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // button1
+            // btn_KillClients
             // 
-            this.button1.Location = new System.Drawing.Point(0, 271);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(64, 24);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "DieDieDie";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btn_KillClients.Location = new System.Drawing.Point(0, 271);
+            this.btn_KillClients.Name = "btn_KillClients";
+            this.btn_KillClients.Size = new System.Drawing.Size(64, 24);
+            this.btn_KillClients.TabIndex = 0;
+            this.btn_KillClients.Text = "Kill Clients";
+            this.btn_KillClients.UseVisualStyleBackColor = true;
+            this.btn_KillClients.Click += new System.EventHandler(this.btn_KillClients_Click);
             // 
-            // button2
+            // btn_RNGesus
             // 
-            this.button2.Location = new System.Drawing.Point(70, 271);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(64, 24);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "RNGesus";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btn_RNGesus.Location = new System.Drawing.Point(70, 271);
+            this.btn_RNGesus.Name = "btn_RNGesus";
+            this.btn_RNGesus.Size = new System.Drawing.Size(64, 24);
+            this.btn_RNGesus.TabIndex = 1;
+            this.btn_RNGesus.Text = "RNGesus";
+            this.btn_RNGesus.UseVisualStyleBackColor = true;
+            this.btn_RNGesus.Click += new System.EventHandler(this.btn_RNGesus_Click);
             // 
-            // button3
+            // btn_RestartIRC
             // 
-            this.button3.Location = new System.Drawing.Point(186, 271);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(64, 24);
-            this.button3.TabIndex = 2;
-            this.button3.Text = "restart ircbot";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.btn_RestartIRC.Location = new System.Drawing.Point(186, 271);
+            this.btn_RestartIRC.Name = "btn_RestartIRC";
+            this.btn_RestartIRC.Size = new System.Drawing.Size(81, 24);
+            this.btn_RestartIRC.TabIndex = 2;
+            this.btn_RestartIRC.Text = "Restart IRC";
+            this.btn_RestartIRC.UseVisualStyleBackColor = true;
+            this.btn_RestartIRC.Click += new System.EventHandler(this.btn_RestartIRC_Click);
             // 
-            // button4
+            // btn_Decay
             // 
-            this.button4.Location = new System.Drawing.Point(256, 271);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(64, 24);
-            this.button4.TabIndex = 3;
-            this.button4.Text = "decaybias";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.btn_Decay.Location = new System.Drawing.Point(273, 271);
+            this.btn_Decay.Name = "btn_Decay";
+            this.btn_Decay.Size = new System.Drawing.Size(47, 24);
+            this.btn_Decay.TabIndex = 3;
+            this.btn_Decay.Text = "Decay";
+            this.btn_Decay.UseVisualStyleBackColor = true;
+            this.btn_Decay.Click += new System.EventHandler(this.btn_Decay_Click);
             // 
             // statusStrip1
             // 
@@ -126,6 +127,7 @@
             this.ts_counter0.Name = "ts_counter0";
             this.ts_counter0.Size = new System.Drawing.Size(110, 17);
             this.ts_counter0.Text = "ts_counter0";
+            this.ts_counter0.Click += new System.EventHandler(this.ts_counter0_Click);
             // 
             // ts_rngesus
             // 
@@ -134,16 +136,16 @@
             this.ts_rngesus.Size = new System.Drawing.Size(62, 17);
             this.ts_rngesus.Text = "ts_rngesus";
             // 
-            // textBox4
+            // txt_Command
             // 
-            this.textBox4.Dock = System.Windows.Forms.DockStyle.Left;
-            this.textBox4.Location = new System.Drawing.Point(0, 228);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(134, 20);
-            this.textBox4.TabIndex = 15;
-            this.textBox4.Text = "COMMAND";
-            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
-            this.textBox4.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox4_KeyDown);
+            this.txt_Command.Dock = System.Windows.Forms.DockStyle.Left;
+            this.txt_Command.Location = new System.Drawing.Point(0, 228);
+            this.txt_Command.Name = "txt_Command";
+            this.txt_Command.Size = new System.Drawing.Size(134, 20);
+            this.txt_Command.TabIndex = 15;
+            this.txt_Command.Text = "COMMAND";
+            this.txt_Command.TextChanged += new System.EventHandler(this.txt_Command_TextChanged);
+            this.txt_Command.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_Command_KeyDown);
             // 
             // text_log
             // 
@@ -166,34 +168,34 @@
             this.timer_RNG.Interval = 40;
             this.timer_RNG.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // textBox1
+            // txt_RNGInterval
             // 
-            this.textBox1.Location = new System.Drawing.Point(140, 271);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(40, 20);
-            this.textBox1.TabIndex = 17;
-            this.textBox1.Text = "40";
-            this.textBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyDown);
+            this.txt_RNGInterval.Location = new System.Drawing.Point(140, 271);
+            this.txt_RNGInterval.Name = "txt_RNGInterval";
+            this.txt_RNGInterval.Size = new System.Drawing.Size(40, 20);
+            this.txt_RNGInterval.TabIndex = 17;
+            this.txt_RNGInterval.Text = "40";
+            this.txt_RNGInterval.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_RNGInterval_KeyDown);
             // 
-            // button5
+            // btn_ClearLog
             // 
-            this.button5.Location = new System.Drawing.Point(369, 271);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(46, 24);
-            this.button5.TabIndex = 18;
-            this.button5.Text = "Clear";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.btn_ClearLog.Location = new System.Drawing.Point(368, 300);
+            this.btn_ClearLog.Name = "btn_ClearLog";
+            this.btn_ClearLog.Size = new System.Drawing.Size(46, 24);
+            this.btn_ClearLog.TabIndex = 18;
+            this.btn_ClearLog.Text = "Clear";
+            this.btn_ClearLog.UseVisualStyleBackColor = true;
+            this.btn_ClearLog.Click += new System.EventHandler(this.btn_ClearLog_Click);
             // 
-            // button6
+            // btn_DumpLog
             // 
-            this.button6.Location = new System.Drawing.Point(326, 271);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(37, 23);
-            this.button6.TabIndex = 19;
-            this.button6.Text = "button6";
-            this.button6.UseVisualStyleBackColor = true;
-            this.button6.Click += new System.EventHandler(this.button6_Click);
+            this.btn_DumpLog.Location = new System.Drawing.Point(326, 271);
+            this.btn_DumpLog.Name = "btn_DumpLog";
+            this.btn_DumpLog.Size = new System.Drawing.Size(88, 23);
+            this.btn_DumpLog.TabIndex = 19;
+            this.btn_DumpLog.Text = "DumpLog";
+            this.btn_DumpLog.UseVisualStyleBackColor = true;
+            this.btn_DumpLog.Click += new System.EventHandler(this.btn_DumpLog_Click);
             // 
             // timer_decay
             // 
@@ -205,141 +207,146 @@
             this.timer_RNG_bias.Interval = 60000;
             this.timer_RNG_bias.Tick += new System.EventHandler(this.timer_RNG_bias_Tick);
             // 
-            // button7
+            // btn_DownLeft
             // 
-            this.button7.Location = new System.Drawing.Point(81, 361);
-            this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(75, 23);
-            this.button7.TabIndex = 20;
-            this.button7.Text = "button7";
-            this.button7.UseVisualStyleBackColor = true;
-            this.button7.Click += new System.EventHandler(this.button7_Click);
+            this.btn_DownLeft.Location = new System.Drawing.Point(81, 361);
+            this.btn_DownLeft.Name = "btn_DownLeft";
+            this.btn_DownLeft.Size = new System.Drawing.Size(75, 23);
+            this.btn_DownLeft.TabIndex = 20;
+            this.btn_DownLeft.Text = "DN-LEFT";
+            this.btn_DownLeft.UseVisualStyleBackColor = true;
+            this.btn_DownLeft.Click += new System.EventHandler(this.btn_DownLeft_Click);
             // 
-            // button8
+            // btn_Down
             // 
-            this.button8.Location = new System.Drawing.Point(162, 361);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(75, 23);
-            this.button8.TabIndex = 21;
-            this.button8.Text = "button8";
-            this.button8.UseVisualStyleBackColor = true;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
+            this.btn_Down.Location = new System.Drawing.Point(162, 361);
+            this.btn_Down.Name = "btn_Down";
+            this.btn_Down.Size = new System.Drawing.Size(75, 23);
+            this.btn_Down.TabIndex = 21;
+            this.btn_Down.Text = "DOWN";
+            this.btn_Down.UseVisualStyleBackColor = true;
+            this.btn_Down.Click += new System.EventHandler(this.btn_Down_Click);
             // 
-            // button9
+            // btn_DownRight
             // 
-            this.button9.Location = new System.Drawing.Point(243, 361);
-            this.button9.Name = "button9";
-            this.button9.Size = new System.Drawing.Size(75, 23);
-            this.button9.TabIndex = 22;
-            this.button9.Text = "button9";
-            this.button9.UseVisualStyleBackColor = true;
-            this.button9.Click += new System.EventHandler(this.button9_Click);
+            this.btn_DownRight.Location = new System.Drawing.Point(243, 361);
+            this.btn_DownRight.Name = "btn_DownRight";
+            this.btn_DownRight.Size = new System.Drawing.Size(75, 23);
+            this.btn_DownRight.TabIndex = 22;
+            this.btn_DownRight.Text = "DN-RIGHT";
+            this.btn_DownRight.UseVisualStyleBackColor = true;
+            this.btn_DownRight.Click += new System.EventHandler(this.btn_DownRight_Click);
             // 
-            // button10
+            // btn_Left
             // 
-            this.button10.Location = new System.Drawing.Point(81, 332);
-            this.button10.Name = "button10";
-            this.button10.Size = new System.Drawing.Size(75, 23);
-            this.button10.TabIndex = 23;
-            this.button10.Text = "button10";
-            this.button10.UseVisualStyleBackColor = true;
-            this.button10.Click += new System.EventHandler(this.button10_Click);
+            this.btn_Left.Location = new System.Drawing.Point(81, 332);
+            this.btn_Left.Name = "btn_Left";
+            this.btn_Left.Size = new System.Drawing.Size(75, 23);
+            this.btn_Left.TabIndex = 23;
+            this.btn_Left.Text = "LEFT";
+            this.btn_Left.UseVisualStyleBackColor = true;
+            this.btn_Left.Click += new System.EventHandler(this.btn_Left_Click);
             // 
-            // button11
+            // btn_Neutral
             // 
-            this.button11.Location = new System.Drawing.Point(162, 332);
-            this.button11.Name = "button11";
-            this.button11.Size = new System.Drawing.Size(75, 23);
-            this.button11.TabIndex = 24;
-            this.button11.Text = "button11";
-            this.button11.UseVisualStyleBackColor = true;
-            this.button11.Click += new System.EventHandler(this.button11_Click);
+            this.btn_Neutral.Location = new System.Drawing.Point(162, 332);
+            this.btn_Neutral.Name = "btn_Neutral";
+            this.btn_Neutral.Size = new System.Drawing.Size(75, 23);
+            this.btn_Neutral.TabIndex = 24;
+            this.btn_Neutral.Text = "NEUTRAL";
+            this.btn_Neutral.UseVisualStyleBackColor = true;
+            this.btn_Neutral.Click += new System.EventHandler(this.btn_Neutral_Click);
             // 
-            // button12
+            // btn_Right
             // 
-            this.button12.Location = new System.Drawing.Point(243, 332);
-            this.button12.Name = "button12";
-            this.button12.Size = new System.Drawing.Size(75, 23);
-            this.button12.TabIndex = 25;
-            this.button12.Text = "button12";
-            this.button12.UseVisualStyleBackColor = true;
-            this.button12.Click += new System.EventHandler(this.button12_Click);
+            this.btn_Right.Location = new System.Drawing.Point(243, 332);
+            this.btn_Right.Name = "btn_Right";
+            this.btn_Right.Size = new System.Drawing.Size(75, 23);
+            this.btn_Right.TabIndex = 25;
+            this.btn_Right.Text = "RIGHT";
+            this.btn_Right.UseVisualStyleBackColor = true;
+            this.btn_Right.Click += new System.EventHandler(this.btn_Right_Click);
             // 
-            // button13
+            // btn_UpLeft
             // 
-            this.button13.Location = new System.Drawing.Point(81, 301);
-            this.button13.Name = "button13";
-            this.button13.Size = new System.Drawing.Size(75, 23);
-            this.button13.TabIndex = 26;
-            this.button13.Text = "button13";
-            this.button13.UseVisualStyleBackColor = true;
-            this.button13.Click += new System.EventHandler(this.button13_Click);
+            this.btn_UpLeft.Location = new System.Drawing.Point(81, 301);
+            this.btn_UpLeft.Name = "btn_UpLeft";
+            this.btn_UpLeft.Size = new System.Drawing.Size(75, 23);
+            this.btn_UpLeft.TabIndex = 26;
+            this.btn_UpLeft.Text = "UP-LEFT";
+            this.btn_UpLeft.UseVisualStyleBackColor = true;
+            this.btn_UpLeft.Click += new System.EventHandler(this.btn_UpLeft_Click);
             // 
-            // button14
+            // btn_Up
             // 
-            this.button14.Location = new System.Drawing.Point(162, 303);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(75, 23);
-            this.button14.TabIndex = 27;
-            this.button14.Text = "button14";
-            this.button14.UseVisualStyleBackColor = true;
-            this.button14.Click += new System.EventHandler(this.button14_Click);
+            this.btn_Up.Location = new System.Drawing.Point(162, 303);
+            this.btn_Up.Name = "btn_Up";
+            this.btn_Up.Size = new System.Drawing.Size(75, 23);
+            this.btn_Up.TabIndex = 27;
+            this.btn_Up.Text = "UP";
+            this.btn_Up.UseVisualStyleBackColor = true;
+            this.btn_Up.Click += new System.EventHandler(this.btn_Up_Click);
             // 
-            // button15
+            // btn_UpRight
             // 
-            this.button15.Location = new System.Drawing.Point(243, 303);
-            this.button15.Name = "button15";
-            this.button15.Size = new System.Drawing.Size(75, 23);
-            this.button15.TabIndex = 28;
-            this.button15.Text = "button15";
-            this.button15.UseVisualStyleBackColor = true;
-            this.button15.Click += new System.EventHandler(this.button15_Click);
+            this.btn_UpRight.Location = new System.Drawing.Point(243, 303);
+            this.btn_UpRight.Name = "btn_UpRight";
+            this.btn_UpRight.Size = new System.Drawing.Size(75, 23);
+            this.btn_UpRight.TabIndex = 28;
+            this.btn_UpRight.Text = "UP-RIGHT";
+            this.btn_UpRight.UseVisualStyleBackColor = true;
+            this.btn_UpRight.Click += new System.EventHandler(this.btn_UpRight_Click);
             // 
-            // textBox2
+            // txt_Parameter
             // 
-            this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox2.Location = new System.Drawing.Point(134, 228);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(281, 20);
-            this.textBox2.TabIndex = 29;
-            this.textBox2.Text = "0";
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
-            this.textBox2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox2_KeyDown);
+            this.txt_Parameter.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txt_Parameter.Location = new System.Drawing.Point(134, 228);
+            this.txt_Parameter.Name = "txt_Parameter";
+            this.txt_Parameter.Size = new System.Drawing.Size(281, 20);
+            this.txt_Parameter.TabIndex = 29;
+            this.txt_Parameter.Text = "0";
+            this.txt_Parameter.TextChanged += new System.EventHandler(this.txt_Parameter_TextChanged);
+            this.txt_Parameter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_Parameter_KeyDown);
             // 
-            // textBox3
+            // txt_IRCManual
             // 
-            this.textBox3.Location = new System.Drawing.Point(0, 249);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(414, 20);
-            this.textBox3.TabIndex = 30;
-            this.textBox3.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox3_KeyDown);
+            this.txt_IRCManual.Location = new System.Drawing.Point(0, 249);
+            this.txt_IRCManual.Name = "txt_IRCManual";
+            this.txt_IRCManual.Size = new System.Drawing.Size(414, 20);
+            this.txt_IRCManual.TabIndex = 30;
+            this.txt_IRCManual.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_IRCManual_KeyDown);
+            // 
+            // timer_interface_stats
+            // 
+            this.timer_interface_stats.Enabled = true;
+            this.timer_interface_stats.Tick += new System.EventHandler(this.timer_interface_stats_Tick);
             // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
-            this.Controls.Add(this.textBox3);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.button15);
-            this.Controls.Add(this.button14);
-            this.Controls.Add(this.button13);
-            this.Controls.Add(this.button12);
-            this.Controls.Add(this.button11);
-            this.Controls.Add(this.button10);
-            this.Controls.Add(this.button9);
-            this.Controls.Add(this.button8);
-            this.Controls.Add(this.button7);
-            this.Controls.Add(this.button6);
-            this.Controls.Add(this.button5);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.textBox4);
+            this.Controls.Add(this.txt_IRCManual);
+            this.Controls.Add(this.txt_Parameter);
+            this.Controls.Add(this.btn_UpRight);
+            this.Controls.Add(this.btn_Up);
+            this.Controls.Add(this.btn_UpLeft);
+            this.Controls.Add(this.btn_Right);
+            this.Controls.Add(this.btn_Neutral);
+            this.Controls.Add(this.btn_Left);
+            this.Controls.Add(this.btn_DownRight);
+            this.Controls.Add(this.btn_Down);
+            this.Controls.Add(this.btn_DownLeft);
+            this.Controls.Add(this.btn_DumpLog);
+            this.Controls.Add(this.btn_ClearLog);
+            this.Controls.Add(this.txt_RNGInterval);
+            this.Controls.Add(this.txt_Command);
             this.Controls.Add(this.text_log);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.button4);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btn_Decay);
+            this.Controls.Add(this.btn_RestartIRC);
+            this.Controls.Add(this.btn_RNGesus);
+            this.Controls.Add(this.btn_KillClients);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "RNGWindow";
@@ -356,33 +363,34 @@
         #endregion
 
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btn_KillClients;
+        private System.Windows.Forms.Button btn_RNGesus;
+        private System.Windows.Forms.Button btn_RestartIRC;
+        private System.Windows.Forms.Button btn_Decay;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel ts_isconnected;
-        private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.TextBox txt_Command;
         private System.Windows.Forms.TextBox text_log;
         private System.Windows.Forms.ToolStripStatusLabel ts_counter0;
         private System.Windows.Forms.Timer timer_RNG;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txt_RNGInterval;
         private System.Windows.Forms.ToolStripStatusLabel ts_rngesus;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button btn_ClearLog;
+        private System.Windows.Forms.Button btn_DumpLog;
         private System.Windows.Forms.Timer timer_decay;
         private System.Windows.Forms.Timer timer_RNG_bias;
-        private System.Windows.Forms.Button button7;
-        private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.Button button9;
-        private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.Button button11;
-        private System.Windows.Forms.Button button12;
-        private System.Windows.Forms.Button button13;
-        private System.Windows.Forms.Button button14;
-        private System.Windows.Forms.Button button15;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button btn_DownLeft;
+        private System.Windows.Forms.Button btn_Down;
+        private System.Windows.Forms.Button btn_DownRight;
+        private System.Windows.Forms.Button btn_Left;
+        private System.Windows.Forms.Button btn_Neutral;
+        private System.Windows.Forms.Button btn_Right;
+        private System.Windows.Forms.Button btn_UpLeft;
+        private System.Windows.Forms.Button btn_Up;
+        private System.Windows.Forms.Button btn_UpRight;
+        private System.Windows.Forms.TextBox txt_Parameter;
+        private System.Windows.Forms.TextBox txt_IRCManual;
+        private System.Windows.Forms.Timer timer_interface_stats;
     }
 }
 

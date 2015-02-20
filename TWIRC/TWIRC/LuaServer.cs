@@ -108,7 +108,11 @@ namespace RNGBot
                 dyingclient.stopClient();
             }
         }
-        
+
+        public int get_client_count()
+        {
+            return RNGEmulators.Count;
+        }
 
         //Class to handle each client request separatly
         public class EmuClientHandler

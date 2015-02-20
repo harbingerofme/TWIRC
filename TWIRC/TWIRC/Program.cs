@@ -64,8 +64,9 @@ namespace RNGBot
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus,HarbBot);
-            
 
+            RNGesus.set_MainWindow(mainWindow);
+            
             Application.Run(mainWindow);
 
 

@@ -16,7 +16,8 @@ namespace RNGBot
         //Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators;
         double[] thisBias;
         double[] defaultBias;
-        int numvals; 
+        int numvals;
+        RNGWindow MainWindow;
 
 
 
@@ -30,6 +31,11 @@ namespace RNGBot
             //RNGEmulators = clienttable;
             RNGLogger = thelogger;
 
+        }
+
+        public void set_MainWindow(RNGWindow NewMainWindow)
+        {
+            MainWindow = NewMainWindow;
         }
 
         Random RNGesus = new Random();
