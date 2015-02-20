@@ -423,19 +423,9 @@ namespace RNGBot
 
         private void btn_Right_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias6);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:RIGHT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.getBias("right"));
+            RNGLuaServer.send_to_all("SETBIAS","RIGHT");
+            RNGLogger.WriteLine("Manually set bias to RIGHT");
         }
 
         private void btn_UpLeft_Click(object sender, EventArgs e)
