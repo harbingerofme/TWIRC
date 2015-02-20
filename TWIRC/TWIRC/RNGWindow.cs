@@ -594,6 +594,21 @@ namespace RNGBot
             MessageBox.Show("What you think we would halp you now?");
         }
 
+        private void btn_Save_Click(object sender, EventArgs e)
+        {
+            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
+            {
+                try
+                {
+                    rngclient.sendCommand("SAVE:0"); // update all clients that a decay has happened
+                }
+                catch (Exception ex)
+                {
+                    RNGLogger.WriteLine("SAVED THE GAME!");
+                }
+            }
+        }
+
 
         
     }

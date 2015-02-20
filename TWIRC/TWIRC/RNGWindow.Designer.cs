@@ -331,6 +331,7 @@
             this.btn_Save.TabIndex = 31;
             this.btn_Save.Text = "Save";
             this.btn_Save.UseVisualStyleBackColor = true;
+            this.btn_Save.Click += new System.EventHandler(this.btn_Save_Click);
             // 
             // txt_Halp
             // 
