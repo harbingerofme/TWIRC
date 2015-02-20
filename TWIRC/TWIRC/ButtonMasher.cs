@@ -62,6 +62,7 @@ namespace RNGBot
 
         public void setBias(double[] newbias)
         {
+            RNGLogger.WriteLine("New bias:" + Biases.printBias(newbias));
             try
             {
                 Array.Copy(newbias, thisBias, 7);
@@ -71,7 +72,7 @@ namespace RNGBot
         
         public void setDefaultBias(double[] newbias)
         {
-            RNGLogger.WriteLine("Setting default bias to:" + newbias.ToString());
+            RNGLogger.WriteLine("Setting default bias to:" + Biases.printBias(newbias));
             Array.Copy(newbias, defaultBias, 7 );
         }
         public double[] getDefaultBias()
@@ -85,7 +86,7 @@ namespace RNGBot
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
-            RNGLogger.WriteLine("Doing Decay!");
+            RNGLogger.WriteLine("Doing Decay! " + Biases.printBias(thisBias));
         }
 
 
