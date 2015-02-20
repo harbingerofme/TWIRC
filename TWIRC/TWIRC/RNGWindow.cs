@@ -18,6 +18,9 @@ namespace RNGBot
         Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators = null;
         ButtonMasher RNGesus = null;
         Random randy = new Random();
+
+        frmBias biasWindow;
+
         bool ishold = false;
         String lasthold = "";
         int holdtime = 0,messagePoint = -1;
@@ -27,7 +30,7 @@ namespace RNGBot
         List<System.Timers.Timer> HBtimerList = new List<System.Timers.Timer>();
 
 
-        Action<string,string> sayfunc; 
+        //Action<string,string> sayfunc; 
         
         //ewww
                            // LT   DN     UP     RT
@@ -42,13 +45,15 @@ namespace RNGBot
         double[] bias9 = { 1.00, 1.00, 1.20, 1.20, 0.96, 0.92, 0.82 };
 
 
-        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string, LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher, HarbBot bot)
+        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string, LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher, frmBias newbiaswindow, HarbBot bot)
         {
 
             RNGLogger = newlogger;
             RNGLuaServer = newluaserver;
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
+
+            biasWindow = newbiaswindow;
 #if !OFFLINE            
             HB = bot;
             HBtimerList.Add(HB.voteTimer);
@@ -123,24 +128,6 @@ namespace RNGBot
 
         private void btn_RNGesus_Click(object sender, EventArgs e)
         {
-            timer_RNG.Enabled = !timer_RNG.Enabled;
-            //timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
-            timer_decay.Enabled = !timer_decay.Enabled;
-            int newinterval;
-            if (int.TryParse(txt_RNGInterval.Text, out newinterval))
-            {
-                timer_RNG.Interval = newinterval;
-            }
-            else
-            {
-                RNGLogger.WriteLine("Bad interval: " + txt_RNGInterval.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
-                txt_RNGInterval.Text = timer_RNG.Interval.ToString();
-            }
-
-
-            ts_rngesus.Text = "RNG=" + timer_RNG.Enabled.ToString();
-            RNGLogger.addLog("RNGTimer", 0, "enabled=" + timer_RNG.Enabled.ToString() + ", interval=" + timer_RNG.Interval.ToString());
-
 
         }
 
@@ -151,6 +138,8 @@ namespace RNGBot
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            if (RNGLuaServer.get_client_count() == 0) return; // we're not doing anything
+
             String command;
             int nextRNG = RNGesus.doRNG();
 
@@ -337,156 +326,65 @@ namespace RNGBot
 
         private void btn_DownLeft_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias1);
-  
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:DOWN-LEFT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.downLeft);
+            RNGLuaServer.send_to_all("SETBIAS", "DOWNLEFT");
+            RNGLogger.WriteLine("Manually set bias to DOWNLEFT");
         }
 
         private void btn_Down_Click(object sender, EventArgs e)
         {
-
-            RNGesus.setBias(bias2);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:DOWN"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.down);
+            RNGLuaServer.send_to_all("SETBIAS", "DOWN");
+            RNGLogger.WriteLine("Manually set bias to DOWN");
         }
 
         private void btn_DownRight_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias3);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:DOWN-RIGHT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.downRight);
+            RNGLuaServer.send_to_all("SETBIAS", "DOWNRIGHT");
+            RNGLogger.WriteLine("Manually set bias to DOWNRIGHT");
         }
 
         private void btn_Left_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias4);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:LEFT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.left);
+            RNGLuaServer.send_to_all("SETBIAS", "LEFT");
+            RNGLogger.WriteLine("Manually set bias to LEFT");
         }
 
         private void btn_Neutral_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias5);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:NEUTRAL"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.neutral);
+            RNGLuaServer.send_to_all("SETBIAS", "NEUTRAL");
+            RNGLogger.WriteLine("Manually set bias to NEUTRAL");
         }
 
         private void btn_Right_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias6);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:RIGHT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.getBias("right"));
+            RNGLuaServer.send_to_all("SETBIAS","RIGHT");
+            RNGLogger.WriteLine("Manually set bias to RIGHT");
         }
 
         private void btn_UpLeft_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias7);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:UP-LEFT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.upLeft);
+            RNGLuaServer.send_to_all("SETBIAS", "UPLEFT");
+            RNGLogger.WriteLine("Manually set bias to UPLEFT");
         }
 
         private void btn_Up_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias8);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:UP"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.up);
+            RNGLuaServer.send_to_all("SETBIAS","UP");
+            RNGLogger.WriteLine("Manually set bias to UP");
         }
 
         private void btn_UpRight_Click(object sender, EventArgs e)
         {
-            RNGesus.setBias(bias9);
-
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SETBIAS:UP-RIGHT"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-            }
+            RNGesus.setBias(Biases.upRight);
+            RNGLuaServer.send_to_all("SETBIAS", "UPRIGHT");
+            RNGLogger.WriteLine("Manually set bias to UPRIGHT");
         }
 
         private void txt_Command_TextChanged(object sender, EventArgs e)
@@ -517,21 +415,7 @@ namespace RNGBot
             if (txt_Parameter.Text == "") txt_Parameter.Text = "0";
             string command = txt_Command.Text + ":" + txt_Parameter.Text;
             RNGLogger.WriteLine("manually sent" + command);
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                        
-                //RNGLogger.addLog("RNG-manually", 0, "rngagege");
-                try
-                {
-
-                    rngclient.sendCommand(command);
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't send!:" + ex.Message);
-                }
-
-            }
+            RNGLuaServer.send_to_all(txt_Command.Text, txt_Parameter.Text);
         }
 
         private void txt_Parameter_TextChanged(object sender, EventArgs e)
@@ -587,6 +471,49 @@ namespace RNGBot
         private void timer_interface_stats_Tick(object sender, EventArgs e)
         {
             ts_counter0.Text = "Clients: " + RNGLuaServer.get_client_count();
+        }
+
+        private void txt_Halp_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Click buttons, get errors.");
+        }
+
+        private void btn_Save_Click(object sender, EventArgs e)
+        {
+            RNGLuaServer.send_to_all("SAVE", "0");
+            RNGLogger.WriteLine("Saved game!");
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            //timer_RNG.Enabled = !timer_RNG.Enabled;
+            //timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
+            //timer_decay.Enabled = !timer_decay.Enabled;
+            
+            timer_RNG.Enabled = checkBox1.Checked;
+            timer_decay.Enabled = checkBox1.Checked;
+
+            int newinterval;
+            if (int.TryParse(txt_RNGInterval.Text, out newinterval))
+            {
+                timer_RNG.Interval = newinterval;
+            }
+            else
+            {
+                RNGLogger.WriteLine("Bad interval: " + txt_RNGInterval.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
+                txt_RNGInterval.Text = timer_RNG.Interval.ToString();
+            }
+
+
+            ts_rngesus.Text = "RNG=" + timer_RNG.Enabled.ToString();
+            RNGLogger.addLog("RNGTimer", 0, "enabled=" + timer_RNG.Enabled.ToString() + ", interval=" + timer_RNG.Interval.ToString());
+
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            biasWindow.Show();
         }
 
 

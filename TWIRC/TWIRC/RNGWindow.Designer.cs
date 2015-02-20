@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.btn_KillClients = new System.Windows.Forms.Button();
-            this.btn_RNGesus = new System.Windows.Forms.Button();
             this.btn_RestartIRC = new System.Windows.Forms.Button();
             this.btn_Decay = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -58,6 +57,10 @@
             this.txt_Parameter = new System.Windows.Forms.TextBox();
             this.txt_IRCManual = new System.Windows.Forms.TextBox();
             this.timer_interface_stats = new System.Windows.Forms.Timer(this.components);
+            this.btn_Save = new System.Windows.Forms.Button();
+            this.txt_Halp = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,27 +68,17 @@
             // 
             this.btn_KillClients.Location = new System.Drawing.Point(0, 271);
             this.btn_KillClients.Name = "btn_KillClients";
-            this.btn_KillClients.Size = new System.Drawing.Size(64, 24);
+            this.btn_KillClients.Size = new System.Drawing.Size(75, 24);
             this.btn_KillClients.TabIndex = 0;
             this.btn_KillClients.Text = "Kill Clients";
             this.btn_KillClients.UseVisualStyleBackColor = true;
             this.btn_KillClients.Click += new System.EventHandler(this.btn_KillClients_Click);
             // 
-            // btn_RNGesus
-            // 
-            this.btn_RNGesus.Location = new System.Drawing.Point(70, 271);
-            this.btn_RNGesus.Name = "btn_RNGesus";
-            this.btn_RNGesus.Size = new System.Drawing.Size(64, 24);
-            this.btn_RNGesus.TabIndex = 1;
-            this.btn_RNGesus.Text = "RNGesus";
-            this.btn_RNGesus.UseVisualStyleBackColor = true;
-            this.btn_RNGesus.Click += new System.EventHandler(this.btn_RNGesus_Click);
-            // 
             // btn_RestartIRC
             // 
-            this.btn_RestartIRC.Location = new System.Drawing.Point(186, 271);
+            this.btn_RestartIRC.Location = new System.Drawing.Point(338, 273);
             this.btn_RestartIRC.Name = "btn_RestartIRC";
-            this.btn_RestartIRC.Size = new System.Drawing.Size(81, 24);
+            this.btn_RestartIRC.Size = new System.Drawing.Size(77, 24);
             this.btn_RestartIRC.TabIndex = 2;
             this.btn_RestartIRC.Text = "Restart IRC";
             this.btn_RestartIRC.UseVisualStyleBackColor = true;
@@ -93,9 +86,9 @@
             // 
             // btn_Decay
             // 
-            this.btn_Decay.Location = new System.Drawing.Point(273, 271);
+            this.btn_Decay.Location = new System.Drawing.Point(217, 273);
             this.btn_Decay.Name = "btn_Decay";
-            this.btn_Decay.Size = new System.Drawing.Size(47, 24);
+            this.btn_Decay.Size = new System.Drawing.Size(47, 23);
             this.btn_Decay.TabIndex = 3;
             this.btn_Decay.Text = "Decay";
             this.btn_Decay.UseVisualStyleBackColor = true;
@@ -170,7 +163,7 @@
             // 
             // txt_RNGInterval
             // 
-            this.txt_RNGInterval.Location = new System.Drawing.Point(140, 271);
+            this.txt_RNGInterval.Location = new System.Drawing.Point(171, 274);
             this.txt_RNGInterval.Name = "txt_RNGInterval";
             this.txt_RNGInterval.Size = new System.Drawing.Size(40, 20);
             this.txt_RNGInterval.TabIndex = 17;
@@ -179,19 +172,19 @@
             // 
             // btn_ClearLog
             // 
-            this.btn_ClearLog.Location = new System.Drawing.Point(368, 300);
+            this.btn_ClearLog.Location = new System.Drawing.Point(352, 303);
             this.btn_ClearLog.Name = "btn_ClearLog";
-            this.btn_ClearLog.Size = new System.Drawing.Size(46, 24);
+            this.btn_ClearLog.Size = new System.Drawing.Size(62, 24);
             this.btn_ClearLog.TabIndex = 18;
-            this.btn_ClearLog.Text = "Clear";
+            this.btn_ClearLog.Text = "Clear Log";
             this.btn_ClearLog.UseVisualStyleBackColor = true;
             this.btn_ClearLog.Click += new System.EventHandler(this.btn_ClearLog_Click);
             // 
             // btn_DumpLog
             // 
-            this.btn_DumpLog.Location = new System.Drawing.Point(326, 271);
+            this.btn_DumpLog.Location = new System.Drawing.Point(270, 273);
             this.btn_DumpLog.Name = "btn_DumpLog";
-            this.btn_DumpLog.Size = new System.Drawing.Size(88, 23);
+            this.btn_DumpLog.Size = new System.Drawing.Size(62, 23);
             this.btn_DumpLog.TabIndex = 19;
             this.btn_DumpLog.Text = "DumpLog";
             this.btn_DumpLog.UseVisualStyleBackColor = true;
@@ -209,7 +202,7 @@
             // 
             // btn_DownLeft
             // 
-            this.btn_DownLeft.Location = new System.Drawing.Point(81, 361);
+            this.btn_DownLeft.Location = new System.Drawing.Point(95, 361);
             this.btn_DownLeft.Name = "btn_DownLeft";
             this.btn_DownLeft.Size = new System.Drawing.Size(75, 23);
             this.btn_DownLeft.TabIndex = 20;
@@ -219,7 +212,7 @@
             // 
             // btn_Down
             // 
-            this.btn_Down.Location = new System.Drawing.Point(162, 361);
+            this.btn_Down.Location = new System.Drawing.Point(176, 361);
             this.btn_Down.Name = "btn_Down";
             this.btn_Down.Size = new System.Drawing.Size(75, 23);
             this.btn_Down.TabIndex = 21;
@@ -229,7 +222,7 @@
             // 
             // btn_DownRight
             // 
-            this.btn_DownRight.Location = new System.Drawing.Point(243, 361);
+            this.btn_DownRight.Location = new System.Drawing.Point(257, 361);
             this.btn_DownRight.Name = "btn_DownRight";
             this.btn_DownRight.Size = new System.Drawing.Size(75, 23);
             this.btn_DownRight.TabIndex = 22;
@@ -239,7 +232,7 @@
             // 
             // btn_Left
             // 
-            this.btn_Left.Location = new System.Drawing.Point(81, 332);
+            this.btn_Left.Location = new System.Drawing.Point(95, 332);
             this.btn_Left.Name = "btn_Left";
             this.btn_Left.Size = new System.Drawing.Size(75, 23);
             this.btn_Left.TabIndex = 23;
@@ -249,7 +242,7 @@
             // 
             // btn_Neutral
             // 
-            this.btn_Neutral.Location = new System.Drawing.Point(162, 332);
+            this.btn_Neutral.Location = new System.Drawing.Point(176, 332);
             this.btn_Neutral.Name = "btn_Neutral";
             this.btn_Neutral.Size = new System.Drawing.Size(75, 23);
             this.btn_Neutral.TabIndex = 24;
@@ -259,7 +252,7 @@
             // 
             // btn_Right
             // 
-            this.btn_Right.Location = new System.Drawing.Point(243, 332);
+            this.btn_Right.Location = new System.Drawing.Point(257, 332);
             this.btn_Right.Name = "btn_Right";
             this.btn_Right.Size = new System.Drawing.Size(75, 23);
             this.btn_Right.TabIndex = 25;
@@ -269,7 +262,7 @@
             // 
             // btn_UpLeft
             // 
-            this.btn_UpLeft.Location = new System.Drawing.Point(81, 301);
+            this.btn_UpLeft.Location = new System.Drawing.Point(95, 301);
             this.btn_UpLeft.Name = "btn_UpLeft";
             this.btn_UpLeft.Size = new System.Drawing.Size(75, 23);
             this.btn_UpLeft.TabIndex = 26;
@@ -279,7 +272,7 @@
             // 
             // btn_Up
             // 
-            this.btn_Up.Location = new System.Drawing.Point(162, 303);
+            this.btn_Up.Location = new System.Drawing.Point(176, 303);
             this.btn_Up.Name = "btn_Up";
             this.btn_Up.Size = new System.Drawing.Size(75, 23);
             this.btn_Up.TabIndex = 27;
@@ -289,7 +282,7 @@
             // 
             // btn_UpRight
             // 
-            this.btn_UpRight.Location = new System.Drawing.Point(243, 303);
+            this.btn_UpRight.Location = new System.Drawing.Point(257, 303);
             this.btn_UpRight.Name = "btn_UpRight";
             this.btn_UpRight.Size = new System.Drawing.Size(75, 23);
             this.btn_UpRight.TabIndex = 28;
@@ -312,7 +305,7 @@
             // 
             this.txt_IRCManual.Location = new System.Drawing.Point(0, 249);
             this.txt_IRCManual.Name = "txt_IRCManual";
-            this.txt_IRCManual.Size = new System.Drawing.Size(414, 20);
+            this.txt_IRCManual.Size = new System.Drawing.Size(415, 20);
             this.txt_IRCManual.TabIndex = 30;
             this.txt_IRCManual.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_IRCManual_KeyDown);
             // 
@@ -321,11 +314,56 @@
             this.timer_interface_stats.Enabled = true;
             this.timer_interface_stats.Tick += new System.EventHandler(this.timer_interface_stats_Tick);
             // 
+            // btn_Save
+            // 
+            this.btn_Save.Location = new System.Drawing.Point(0, 361);
+            this.btn_Save.Name = "btn_Save";
+            this.btn_Save.Size = new System.Drawing.Size(75, 23);
+            this.btn_Save.TabIndex = 31;
+            this.btn_Save.Text = "Save";
+            this.btn_Save.UseVisualStyleBackColor = true;
+            this.btn_Save.Click += new System.EventHandler(this.btn_Save_Click);
+            // 
+            // txt_Halp
+            // 
+            this.txt_Halp.Location = new System.Drawing.Point(352, 361);
+            this.txt_Halp.Name = "txt_Halp";
+            this.txt_Halp.Size = new System.Drawing.Size(62, 23);
+            this.txt_Halp.TabIndex = 32;
+            this.txt_Halp.Text = "Halp";
+            this.txt_Halp.UseVisualStyleBackColor = true;
+            this.txt_Halp.Click += new System.EventHandler(this.txt_Halp_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(0, 303);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 52);
+            this.button1.TabIndex = 33;
+            this.button1.Text = "Manual Bias Entry";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(89, 275);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(72, 17);
+            this.checkBox1.TabIndex = 34;
+            this.checkBox1.Text = "RNGesus";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+            this.Controls.Add(this.checkBox1);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.txt_Halp);
+            this.Controls.Add(this.btn_Save);
             this.Controls.Add(this.txt_IRCManual);
             this.Controls.Add(this.txt_Parameter);
             this.Controls.Add(this.btn_UpRight);
@@ -345,7 +383,6 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btn_Decay);
             this.Controls.Add(this.btn_RestartIRC);
-            this.Controls.Add(this.btn_RNGesus);
             this.Controls.Add(this.btn_KillClients);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -364,7 +401,6 @@
 
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button btn_KillClients;
-        private System.Windows.Forms.Button btn_RNGesus;
         private System.Windows.Forms.Button btn_RestartIRC;
         private System.Windows.Forms.Button btn_Decay;
         private System.Windows.Forms.StatusStrip statusStrip1;
@@ -391,6 +427,10 @@
         private System.Windows.Forms.TextBox txt_Parameter;
         private System.Windows.Forms.TextBox txt_IRCManual;
         private System.Windows.Forms.Timer timer_interface_stats;
+        private System.Windows.Forms.Button btn_Save;
+        private System.Windows.Forms.Button txt_Halp;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

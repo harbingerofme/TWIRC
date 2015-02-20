@@ -114,6 +114,21 @@ namespace RNGBot
             return RNGEmulators.Count;
         }
 
+        public void send_to_all(string command, string param)
+        {
+            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
+            {
+                try
+                {
+                    rngclient.sendCommand(command + ":" + param); // update all clients that a decay has happened
+                }
+                catch (Exception ex)
+                {
+                    RNGLogger.WriteLine("sendCommand failed! " + ex.Message);
+                }
+            }
+        }
+
         //Class to handle each client request separatly
         public class EmuClientHandler
         {
@@ -123,14 +138,16 @@ namespace RNGBot
             Logger RNGLogger;
             int requestCount = 0;
             bool runs = true;
+            Dictionary<string, EmuClientHandler> clientTable;
 
             public EmuClientHandler()
             {
 
             }
 
-            public void startClient(TcpClient inClientSocket, string clientNumber, Dictionary<string,EmuClientHandler> clientTable, Logger thisLogger)
+            public void startClient(TcpClient inClientSocket, string clientNumber, Dictionary<string,EmuClientHandler> newClientTable, Logger thisLogger)
             {
+                clientTable = newClientTable;
                 RNGLogger = thisLogger;
                 this.clientSocket = inClientSocket;
                 this.clNo = clientNumber;
@@ -165,9 +182,9 @@ namespace RNGBot
 
                 byte[] bytesFrom = new byte[65536];
                 string dataFromClient = null;
-                Byte[] sendBytes = null;
-                string serverResponse = null;
-                string rCount = null;
+                //Byte[] sendBytes = null;
+                //string serverResponse = null;
+                //string rCount = null;
                 requestCount = 0;
 
 
@@ -189,6 +206,7 @@ namespace RNGBot
                     {
                         RNGLogger.WriteLine("Something went wrong with the socket; killing it::");
                         RNGLogger.WriteLine(ex.Message);
+                        clientTable.Remove(clNo); 
                         break;
                     }
                 }
@@ -202,7 +220,7 @@ namespace RNGBot
             public void sendCommand(String command)
             {
                 Byte[] sendBytes = null;
-                string serverResponse = null;
+                //string serverResponse = null;
                 command += "\n";
 
                 if (clientSocket.Connected == true)

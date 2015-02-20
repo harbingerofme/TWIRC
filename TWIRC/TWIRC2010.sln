@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TWIRC", "TWIRC\TWIRC.csproj", "{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2012774E-F2C7-4E51-ABB4-22B1ECCE8721}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		DEBUG_OFFLINE|x86 = DEBUG_OFFLINE|x86

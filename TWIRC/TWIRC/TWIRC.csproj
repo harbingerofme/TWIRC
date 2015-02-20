@@ -68,8 +68,13 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="ButtonMasher.cs" />
-    <Compile Include="DBHandler.cs" />
-    <Compile Include="Globals.cs" />
+    <Compile Include="Biases.cs" />
+    <Compile Include="frmBias.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmBias.Designer.cs">
+      <DependentUpon>frmBias.cs</DependentUpon>
+    </Compile>
     <Compile Include="HarbBot.cs" />
     <Compile Include="IRCClient.cs" />
     <Compile Include="IRCsubs.cs" />
@@ -82,6 +87,9 @@
     <Compile Include="RNGWindow.Designer.cs">
       <DependentUpon>RNGWindow.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="frmBias.resx">
+      <DependentUpon>frmBias.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="RNGWindow.resx">
       <DependentUpon>RNGWindow.cs</DependentUpon>
     </EmbeddedResource>
