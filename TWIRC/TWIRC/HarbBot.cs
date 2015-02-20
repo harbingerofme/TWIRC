@@ -15,30 +15,40 @@ namespace RNGBot
 {
     public class HarbBot
     {
+        //really important stuff
         public static IrcClient irc = new IrcClient();
         public bool running = true;
+        SQLiteConnection dbConn;
+        public Logger logger;
+        public ButtonMasher biasControl;
 
+        //important stuff
         public string bot_name, oauth, channels;
 
+        //commands and aliases
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
-        public List<hardCom> hardList = new List<hardCom>();
+        public List<hardCom> hardList = new List<hardCom>()
+        public int globalCooldown;
+
+        //antispam
+        public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
         public List<asUser> asUsers = new List<asUser>();
         public List<intStr> asCosts = new List<intStr>();
         public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>();
         List<List<string>> asResponses = new List<List<string>>();
 
-        public int globalCooldown;
+        //defines the output level of our connection
         public int logLevel;
-        public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60,permitTime = 300;
+        
+        //some settings
         public bool silence,isMod = false;
-        public List<intIntStr> votingList = new List<intIntStr>();
         public string progressLogPATH;
-        SQLiteConnection dbConn;
-        public Logger logger;
 
+        //voting and bias related stuff.
+        public List<intIntStr> votingList = new List<intIntStr>();
         public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
-        public ButtonMasher biasControl; public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
+        public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
         public Thread one,two;
 
@@ -117,13 +127,14 @@ namespace RNGBot
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
-                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
+                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) NOT NULL, silence TINYINT(1) NOT NULL, oauth VARCHAR(200), cooldown INT,loglevel TINYINT(1),logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) DEFAULT 1, silence TINYINT(1) DEFAULT 0, oauth VARCHAR(200), cooldown INT DEFAULT 20,loglevel TINYINT(1) DEFAULT 2,logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
@@ -135,6 +146,7 @@ namespace RNGBot
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1','There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7','Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,'Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what.');").ExecuteNonQuery();
+
             }
             else
             {
@@ -758,6 +770,7 @@ namespace RNGBot
                                         {
                                             votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
                                             addPoints(user, 2 - tempVar1, "vote");
+                                            addAllTime(user,1);
                                         }
                                         else
                                         {
@@ -978,6 +991,24 @@ namespace RNGBot
                 things = sqldr.GetInt32(0);
                 new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "', points='"+ (things+amount)+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                return things;
+            }
+            else
+            {
+
+                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
+                return 0;
+            }
+        }
+
+        public int addAllTime(string name, int amount)
+        {
+            int things;
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                things = sqldr.GetInt32(0);
+                new SQLiteCommand("UPDATE users alltime=alltime+1 WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 return things;
             }
             else
