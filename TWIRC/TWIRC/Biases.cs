@@ -20,6 +20,8 @@ namespace RNGBot
         public static double[] up =         { 1.00, 1.00, 1.28, 1.00, 0.96, 0.92, 0.82 };
         public static double[] upRight =    { 1.00, 1.00, 1.20, 1.20, 0.96, 0.92, 0.82 };
 
+        public static string[] biasNames = { "LEFTDOWN", "DOWN", "DOWNRIGHT", "LEFT", "NEUTRAL", "RIGHT", "UPLEFT", "UP", "UPRIGHT" };
+
         public static double[] getBias(string biasname)
         {
             switch (biasname.ToLower())
@@ -83,5 +85,28 @@ namespace RNGBot
 
         }
 
+        public static string getBiasName(double[] biastotest)
+        {
+            string retString = "";
+
+            if (biastotest[1] > 1) retString = "DOWN";
+            if (biastotest[2] > 1) retString = "UP";
+
+            if (biastotest[0] > 1) retString += "LEFT";
+            if (biastotest[3] > 1) retString += "RIGHT";
+
+            if (biastotest[6] > 0.82) retString = "START";
+
+            if (retString == "") retString = "Neutral";
+
+            return retString;
+        }
+        
+        public static string getBiasName(int biastotest)
+        { 
+            if (0 <= biastotest && biastotest < 7)
+                return biasNames[biastotest];
+            return "INVALID!";
+        }
     }
 }
