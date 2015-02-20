@@ -88,6 +88,7 @@ namespace RNGBot
         
         public void setDefaultBias(double[] newbias)
         {
+            RNGLogger.WriteLine("Setting default bias to:" + newbias.ToString());
             Array.Copy(newbias, defaultBias, 7 );
         }
         public double[] getDefaultBias()
@@ -101,6 +102,7 @@ namespace RNGBot
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
+            RNGLogger.WriteLine("Doing Decay!");
         }
 
 
@@ -123,165 +125,5 @@ namespace RNGBot
             return winner;
         }
 
-        private int doRNG2(int rbias)
-        {
-            //Random, rand, 1, 200 ; 100% in 0.5% steps
-            int rand = RNGesus.Next(1, 201);
-
-            // 15% a; 10% b; 5% start;
-            // -> 70% for directions -> 17.5% per direction (no directional bias)
-            // 16.5% per dir -> 66% for all -> 4% remain
-
-            int result = -1;
-
-            //enum thebias {NEUTRAL, UP, DOWN, LEFT, RIGHT, UP_LEFT, DOWN_LEFT, UP_RIGHT, DOWN_RIGHT};
-            int up = 0;
-            int down = 1;
-            int left = 2;
-            int right = 3;
-            int A = 4;
-            int B = 5;
-            int start = 6;
-
-            int UP = 7;
-            int DOWN = 8;
-            int LEFT = 9;
-            int RIGHT = 10;
-            int DOWN_LEFT = 11;
-            int DOWN_RIGHT = 12;
-            int UP_LEFT = 13;
-            int UP_RIGHT = 14;
-            int START = 16;
-            //int NEUTRAL = 20;
-
-            //int rbias = NEUTRAL;
-
-            if (rand > 170)// 15% A
-            {
-                result = A;
-            }
-            else if (rand > 150)// 10% B
-            {
-                result = B;
-            }
-            else if (rand > 140) // 5% Start
-            {
-                result = start;
-            }
-            else if (rand > 107)// 17% Left
-            {
-                result = left;
-            }
-            else if (rand > 74) // 17% Right
-            {
-                result = right;
-            }
-            else if (rand > 41)// 17% Up
-            {
-                result = up;
-            }
-            else if (rand > 8) // 17% Down
-            {
-                result = down;
-            }
-            else // Left/Right/Up/Down depending on BIAS
-            {
-                if (rbias == LEFT)
-                {
-                    result = left;
-                }
-                else if (rbias == RIGHT)
-                {
-                    result = right;
-                }
-                else if (rbias == UP)
-                {
-                    result = up;
-                }
-                else if (rbias == DOWN)
-                {
-                    result = down;
-                }
-                else if (rbias == UP_LEFT)
-                {
-                    rand = RNGesus.Next(1, 3);
-                    if (rand == 1)
-                    {
-                        result = left;
-                    }
-                    else if (rand == 2)
-                    {
-                        result = up;
-                    }
-
-                }
-                else if (rbias == UP_RIGHT)
-                {
-                    rand = RNGesus.Next(1, 3);
-
-                    if (rand == 1)
-                    {
-                        result = right;
-                    }
-                    else if (rand == 2)
-                    {
-                        result = up;
-                    }
-
-                }
-                else if (rbias == DOWN_LEFT)
-                {
-                    rand = RNGesus.Next(1, 3);
-
-                    if (rand == 1)
-                    {
-                        result = left;
-                    }
-                    else if (rand == 2)
-                    {
-                        result = down;
-                    }
-                }
-                else if (rbias == DOWN_RIGHT)
-                {
-                    rand = RNGesus.Next(1, 3);
-
-                    if (rand == 1)
-                    {
-                        result = right;
-                    }
-                    else if (rand == 2)
-                    {
-                        result = down;
-                    }
-                }
-                else if (rbias == START)
-                {
-                    result = start;
-                }
-                else // bias = NEUTRAL / undefined (initially)
-                {
-                    rand = RNGesus.Next(1, 5);
-                    if (rand == 1)
-                    {
-                        result = left;
-                    }
-                    else if (rand == 2)
-                    {
-                        result = right;
-                    }
-                    else if (rand == 3)
-                    {
-                        result = up;
-                    }
-                    else if (rand == 4)
-                    {
-                        result = down;
-                    }
-                }
-            }
-
-            return result;
-        }
     }
 }
