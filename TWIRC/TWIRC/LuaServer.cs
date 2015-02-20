@@ -182,9 +182,9 @@ namespace RNGBot
 
                 byte[] bytesFrom = new byte[65536];
                 string dataFromClient = null;
-                Byte[] sendBytes = null;
-                string serverResponse = null;
-                string rCount = null;
+                //Byte[] sendBytes = null;
+                //string serverResponse = null;
+                //string rCount = null;
                 requestCount = 0;
 
 
@@ -220,7 +220,7 @@ namespace RNGBot
             public void sendCommand(String command)
             {
                 Byte[] sendBytes = null;
-                string serverResponse = null;
+                //string serverResponse = null;
                 command += "\n";
 
                 if (clientSocket.Connected == true)

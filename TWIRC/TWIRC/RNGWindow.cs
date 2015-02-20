@@ -27,7 +27,7 @@ namespace RNGBot
         List<System.Timers.Timer> HBtimerList = new List<System.Timers.Timer>();
 
 
-        Action<string,string> sayfunc; 
+        //Action<string,string> sayfunc; 
         
         //ewww
                            // LT   DN     UP     RT
@@ -586,17 +586,7 @@ namespace RNGBot
 
         private void btn_Save_Click(object sender, EventArgs e)
         {
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
-                try
-                {
-                    rngclient.sendCommand("SAVE:0"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.WriteLine("SAVED THE GAME!");
-                }
-            }
+            RNGLuaServer.send_to_all("SAVE", "0");
         }
 
 
