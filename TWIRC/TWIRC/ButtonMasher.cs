@@ -59,23 +59,6 @@ namespace RNGBot
 
         }
 
-        public string oldRngTest(int numrolls, int biasval)
-        {
-            int[] results = new int[11];
-            Single[] percents = new Single[11];
-            for (int i = 0; i < numrolls; i++)
-            {
-                results[doRNG2(biasval)]++; //neutral bias
-            }
-
-            for (int i = 0; i < 11; i++)
-            {
-                percents[i] = 100 * (Single)results[i] / (Single)numrolls;
-            }
-
-            return String.Join("   \t", percents);
-
-        }
 
         public void setBias(double[] newbias)
         {
