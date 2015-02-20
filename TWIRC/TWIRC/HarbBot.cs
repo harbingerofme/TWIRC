@@ -28,14 +28,14 @@ namespace RNGBot
         //commands and aliases
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
-        public List<hardCom> hardList = new List<hardCom>()
+        public List<hardCom> hardList = new List<hardCom>();
         public int globalCooldown;
 
         //antispam
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
         public List<asUser> asUsers = new List<asUser>();
         public List<intStr> asCosts = new List<intStr>();
-        public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>();
+        public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>(),asWhitelist2 = new List<string>();
         List<List<string>> asResponses = new List<List<string>>();
 
         //defines the output level of our connection
@@ -63,17 +63,6 @@ namespace RNGBot
             biasControl = buttMuncher;
 
             //antispam initialisation
-            asCosts.Add(new intStr("link", 5));//0
-            asCosts.Add(new intStr("emote spam", 3));//1
-            asCosts.Add(new intStr("letter spam", 1));//2
-            asCosts.Add(new intStr("ASCII", 5));//3
-            asCosts.Add(new intStr("tpp", 2));//4
-            asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>()); asResponses.Add(new List<string>());
-            asResponses[0].Add("Google those nudes!"); asResponses[0].Add("We are not buying your shoes!"); asResponses[0].Add("The stuff people would have to put up with...");
-            asResponses[1].Add("Images say more than a thousand words, so stop writing essays!"); asResponses[1].Add("How is a timeout for a twitch chat feature?"); asResponses[1].Add("I dislike emotes, they are all text to me.");
-            asResponses[2].Add("There's no need to type that way."); asResponses[2].Add("I do not take kindly upon that."); asResponses[2].Add("Stop behaving like a spoiled little RNG!");
-            asResponses[3].Add("Whatever that was, it's gone now."); asResponses[3].Add("This is not the place to use that!"); asResponses[3].Add("Woah, you typed all of that? Who am I kidding, get out!");
-            asResponses[4].Add("This is not TwitchPlaysPokemon, this is a computer playing pokémon, quite the reverse actually."); asResponses[4].Add("Can you read? There's plenty of stuff that says THIS ISN'T TPP"); asResponses[4].Add("You think you know better than the RNGesus? Download the save and play it without annoying us.");
             asWhitelist.Add(@"imgur\.com"); asWhitelist.Add(@"xkcd\.com"); asWhitelist.Add(@"rngpp\.booru\.org"); asWhitelist.Add(@"youtube\.com"); asWhitelist.Add(@"imgur\.com");
 
             newBias.Add(new double[7] { 0,0,0,0,0,0,10 });//0 (start)
@@ -141,17 +130,20 @@ namespace RNGBot
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
 
+                SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('emote spam','3','Images say more than a thousand words, so stop writing essays.\nHow is a timeout for a twitch feature?\nI dislike emotes, they are all text to me.');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1','There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7','Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,'Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what.');").ExecuteNonQuery();
+                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1',@par1);", dbConn);
+                cmd.Parameters.AddWithValue("@par1", "There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!");cmd.ExecuteNonQuery();
+                cmd =new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7',@par1);", dbConn);
+                cmd.Parameters.AddWithValue("@par1", "Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!"); cmd.ExecuteNonQuery();
+                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,@par1);",dbConn);
+                cmd.Parameters.AddWithValue("@par1", "Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what."); cmd.ExecuteNonQuery();
 
+                //I'll leave adding the whitelist to manual typing
             }
             else
             {
-                try
-                {
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                     dbConn.Open();
                     SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM settings;", dbConn).ExecuteReader();
@@ -164,17 +156,6 @@ namespace RNGBot
                     globalCooldown = sqldr.GetInt32(5);
                     logLevel = sqldr.GetInt32(6);
                     progressLogPATH = sqldr.GetString(7);
-
-                    sqldr = new SQLiteCommand("SELECT * FROM biassettings;", dbConn).ExecuteReader();
-                    sqldr.Read();
-                    string[] temp = sqldr.GetString(0).Split(':'); double[] b = new double[7];
-                    for (int a = 0; a < 7;a++ )
-                    {
-                        b[a] = double.Parse(temp[a]);
-                    }
-                    biasControl.setDefaultBias(b);
-                }
-                catch { logger.WriteLine("FATAL DATABASE ERROR, salvage what you can, and delete it.\nIRC will likely crash and burn in a second."); }
             }
 
             if(!File.Exists("TLDs.twirc"))
@@ -194,7 +175,7 @@ namespace RNGBot
             }
             if (logLevel != 0)
             {
-                logger.WriteLine("Loaded " + comlist.Count() + " commands!");
+                logger.WriteLine("IRC: Loaded " + comlist.Count() + " commands!");
             }
 
             rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
@@ -206,9 +187,39 @@ namespace RNGBot
             }
             if (logLevel != 0)
             {
-                logger.WriteLine("Loaded " + aliList.Count() + " aliases!");
+                logger.WriteLine("IRC: Loaded " + aliList.Count() + " aliases!");
             }
 
+            rdr =  new SQLiteCommand("SELECT * FROM biassettings;",dbConn).ExecuteReader();
+            while(rdr.Read())
+            {
+                timeBetweenVotes = rdr.GetInt32(0);
+                timeToVote = rdr.GetInt32(1);
+                List<double> tempDoubleArray = new List<double>();
+                string[] tempStringArray = rdr.GetString(2).Split(':');
+                foreach(string s in tempStringArray)
+                {
+                    tempDoubleArray.Add(double.Parse(s));
+                }
+                biasControl.setDefaultBias(tempDoubleArray.ToArray());
+                maxBiasDiff = rdr.GetDouble(3);
+            }
+
+            rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
+            while(rdr.Read())
+            {
+                asResponses.Add(new List<string>());
+                asCosts.Add(new intStr(rdr.GetString(0), rdr.GetInt32(1)));
+                asResponses[tempInt] = rdr.GetString(2).Split(new string[] { "\n" },StringSplitOptions.None).ToList();
+                tempInt++;
+            }
+
+            rdr = new SQLiteCommand("SELECT * FROM aswhitelist", dbConn).ExecuteReader();
+            while(rdr.Read())
+            {
+                asWhitelist2.Add(rdr.GetString(0));
+                asWhitelist.Add(rdr.GetString(1));
+            }
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
             hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
@@ -221,8 +232,9 @@ namespace RNGBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
-            hardList.Add(new hardCom("!rank", 0, 0,600));
+            hardList.Add(new hardCom("!rank", 0, 0,60));
             hardList.Add(new hardCom("!permit", 2, 1));
+            hardList.Add(new hardCom("!whitelist", 0, 0));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",4,7));
@@ -230,7 +242,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!setbiasmaxdiff", 4, 1));
             hardList.Add(new hardCom("!resetbias", 4, 0));
             hardList.Add(new hardCom("!bias",0,1));
-            hardList.Add(new hardCom("!balance", 0, 0,600));
+            hardList.Add(new hardCom("!balance", 0, 0,60));
             hardList.Add(new hardCom("!addlog", 0, 1,5));
             hardList.Add(new hardCom("!setpoints",4,2));
             hardList.Add(new hardCom("!voting", 3, 1));
@@ -657,6 +669,13 @@ namespace RNGBot
                             {
                                 permits.Add(new intStr(str[1], getNow()));
                                 sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User+". This permit expires in "+permitTime+" seconds.");
+                            }
+                            break;
+
+                        case "!whitelist":
+                            if (auth == 3 && message.Split(' ').Count()>=3)
+                            {
+
                             }
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////

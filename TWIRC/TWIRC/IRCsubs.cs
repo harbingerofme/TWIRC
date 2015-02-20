@@ -422,7 +422,7 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
     public class asUser
     {
         public string name;
-        public int points,lastUpdate,maxpoints;
+        public int points,lastUpdate,maxpoints,strikes;
 
         public asUser(string user,int level)
         {
@@ -430,8 +430,15 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
             points = 5 * level+3;
             maxpoints = points;
             lastUpdate = getNow();
+            strikes = 0;
         }
 
+        public int addStrike()
+        {
+            strikes++;
+            points = 2;
+            return strikes;
+        }
 
         public int update(int amount)
         {
