@@ -10,7 +10,7 @@ namespace RNGBot
 
         //ewww
                                     // LT    DN    UP    RT
-        public static double[] leftDown =   { 1.20, 1.20, 1.00, 1.00, 0.96, 0.92, 0.82 };
+        public static double[] downLeft =   { 1.20, 1.20, 1.00, 1.00, 0.96, 0.92, 0.82 };
         public static double[] down =       { 1.00, 1.28, 1.00, 1.00, 0.96, 0.92, 0.82 };
         public static double[] downRight =  { 1.00, 1.20, 1.00, 1.20, 0.96, 0.92, 0.82 };
         public static double[] left =       { 1.28, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
@@ -28,7 +28,7 @@ namespace RNGBot
             {
                 case "leftdown":
                 case "left-down":
-                    return leftDown;
+                    return downLeft;
                 case "down":
                      return down;
                 case "downright":
@@ -60,7 +60,7 @@ namespace RNGBot
             switch (biasname)
             {
                 case 1:
-                    return leftDown;
+                    return downLeft;
                 case 2:
                     return down;
                 case 3:
@@ -107,6 +107,21 @@ namespace RNGBot
             if (0 <= biastotest && biastotest < 7)
                 return biasNames[biastotest];
             return "INVALID!";
+        }
+
+        public static string printBias(double[] tehbias)
+        {
+            int maxval = 10;
+            string retString = "";
+            for (int i = 0; i < 7; i++)
+            {
+                string nextappend = tehbias[i].ToString();
+                if (nextappend.Length >= maxval)
+                    nextappend = nextappend.Substring(0,maxval);
+                retString += nextappend;
+                if (i < 6) retString += ", ";
+            }
+            return retString;
         }
     }
 }
