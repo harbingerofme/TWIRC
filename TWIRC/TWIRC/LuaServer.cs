@@ -114,6 +114,21 @@ namespace RNGBot
             return RNGEmulators.Count;
         }
 
+        public void send_to_all(string command, string param)
+        {
+            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
+            {
+                try
+                {
+                    rngclient.sendCommand(command + ":" + param); // update all clients that a decay has happened
+                }
+                catch (Exception ex)
+                {
+                    RNGLogger.WriteLine("sendCommand failed! " + ex.Message);
+                }
+            }
+        }
+
         //Class to handle each client request separatly
         public class EmuClientHandler
         {
