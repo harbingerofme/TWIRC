@@ -477,7 +477,10 @@ namespace RNGBot
                                     else { tempVar2 = str[2] + " " + str[3]; }
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                    new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('" + str[1] + "','" + tempVar1 + "','" + 0 + "','" + MySqlEscape(tempVar2) + "');",dbConn).ExecuteNonQuery();
+                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('@par1','" + tempVar1 + "','" + 0 + "','@par2');",dbConn);
+                                    cmd.Parameters.Add(new SQLiteParameter("@par1")); cmd.Parameters["@par1"].Value = str[1].ToLower();
+                                    cmd.Parameters.Add(new SQLiteParameter("@par2")); cmd.Parameters["@par2"].Value = tempVar2;
+                                    cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
                             break;
@@ -493,7 +496,9 @@ namespace RNGBot
                                         tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                         comlist[a].setResponse(tempVar3);
                                         comlist[a].setAuth(tempVar1);
-                                        new SQLiteCommand("UPDATE commands SET response = '" + MySqlEscape(tempVar2) + "' WHERE keyword='" + str[1] + "';",dbConn).ExecuteNonQuery();
+                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1 authlevel=@par3 WHERE keyword=@par2;", dbConn);
+                                        cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
+                                        cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
                                         safe();
                                         fail = false;
@@ -511,7 +516,9 @@ namespace RNGBot
                                     if (comlist[a].doesMatch(str[1])) { 
                                         comlist.RemoveAt(a);
                                         fail = false;
-                                        new SQLiteCommand("DELETE FROM commands WHERE keyword='"+str[1]+"';",dbConn).ExecuteNonQuery();
+                                        SQLiteCommand cmd = new SQLiteCommand("DELETE FROM commands WHERE keyword=@par1;", dbConn);
+                                        cmd.Parameters.AddWithValue("@par1", str[1]);
+                                        cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
                                         safe();
                                         break; }
@@ -536,7 +543,9 @@ namespace RNGBot
                                         if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
                                     }
                                     if (fail) { aliList.Add(new ali(str[1], str[2])); }
-                                    new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES ('"+str[1]+"','"+str[2]+"');", dbConn).ExecuteNonQuery();
+                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
+                                    cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
+                                    cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
@@ -547,7 +556,8 @@ namespace RNGBot
                                 {
                                     if (c.delFrom(str[1]))
                                     {
-                                        new SQLiteCommand("DELETE FROM aliases WHERE keyword='" + str[1] + "';", dbConn).ExecuteNonQuery();
+                                        SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
+                                        cmd.Parameters.AddWithValue("@par1", str[1]);cmd.ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
                                         if (c.getFroms().Count() == 0) { aliList.Remove(c); }
                                         fail = false;
@@ -558,6 +568,8 @@ namespace RNGBot
                                 if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
                         case "!set"://!set <name> <level>
+                            if(Regex.Match(str[1].ToLower(),@"^[a-z0-9_]+$").Success){sendMess(channel,"I'm sorry, "+User+". That's not a valid name.");}
+                            else{
                             if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
@@ -566,7 +578,8 @@ namespace RNGBot
                             }
                             else
                             {
-                                sendMess(channel, "I'm sorry, " + User + ". You either lack the authorisation to give such levels, or that level is not a valid number.");
+                                sendMess(channel, "I'm sorry, " + User + ". You either lack the authorisation to give such levels to that person, or that level is not a valid number.");
+                            }
                             }
                             break;
                         case "!editcount":
@@ -581,7 +594,9 @@ namespace RNGBot
                                     {
                                         fail = false;
                                         c.setCount(int.Parse(str[2]));
-                                        new SQLiteCommand("UPDATE commands SET count='"+str[2]+"' WHERE keyword = '"+str[1]+"';",dbConn).ExecuteNonQuery();
+                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
+                                        cmd.Parameters.AddWithValue("@par1", str[1]);
+                                        cmd.ExecuteNonQuery();
                                         sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
                                         safe();
                                     }
@@ -833,7 +848,9 @@ namespace RNGBot
                         if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '" + c.getKey() + "';",dbConn).ExecuteNonQuery();
+                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '@par1';", dbConn);
+                        cmd.Parameters.AddWithValue("@par1",c.getKey());
+                        cmd.ExecuteNonQuery();
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
                         foreach (string b in str)
                         {
