@@ -138,14 +138,16 @@ namespace RNGBot
             Logger RNGLogger;
             int requestCount = 0;
             bool runs = true;
+            Dictionary<string, EmuClientHandler> clientTable;
 
             public EmuClientHandler()
             {
 
             }
 
-            public void startClient(TcpClient inClientSocket, string clientNumber, Dictionary<string,EmuClientHandler> clientTable, Logger thisLogger)
+            public void startClient(TcpClient inClientSocket, string clientNumber, Dictionary<string,EmuClientHandler> newClientTable, Logger thisLogger)
             {
+                clientTable = newClientTable;
                 RNGLogger = thisLogger;
                 this.clientSocket = inClientSocket;
                 this.clNo = clientNumber;
@@ -204,6 +206,7 @@ namespace RNGBot
                     {
                         RNGLogger.WriteLine("Something went wrong with the socket; killing it::");
                         RNGLogger.WriteLine(ex.Message);
+                        clientTable.Remove(clNo); 
                         break;
                     }
                 }
