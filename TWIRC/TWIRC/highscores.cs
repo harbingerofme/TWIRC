@@ -126,7 +126,7 @@ namespace RNGBot
                 {
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
@@ -138,7 +138,7 @@ namespace RNGBot
                 {
                     dbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>999 ORDER BY lines,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>999 ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
@@ -154,7 +154,7 @@ namespace RNGBot
                 {
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,points FROM users ORDER BY points,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,points FROM users ORDER BY points DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
