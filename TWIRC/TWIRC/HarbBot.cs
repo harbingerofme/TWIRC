@@ -43,7 +43,7 @@ namespace RNGBot
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds"; int backgrounds;
+        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
@@ -61,9 +61,6 @@ namespace RNGBot
             irc.ActiveChannelSyncing = true;
 
             biasControl = buttMuncher;
-
-            //antispam initialisation
-            asWhitelist.Add(@"imgur\.com"); asWhitelist.Add(@"xkcd\.com"); asWhitelist.Add(@"rngpp\.booru\.org"); asWhitelist.Add(@"youtube\.com"); asWhitelist.Add(@"imgur\.com");
 
             newBias.Add(new double[7] { 0,0,0,0,0,0,10 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
