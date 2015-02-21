@@ -44,7 +44,7 @@ namespace RNGBot
         //some settings
         public bool silence,isMod = false;
         public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
-        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"D:\Documents\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
+        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
