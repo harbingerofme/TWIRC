@@ -77,12 +77,16 @@ namespace RNGBot
         }
         public double[] getDefaultBias()
         {
-            return defaultBias;
+            double [] tempbias = new double[7];
+            Array.Copy(defaultBias, tempbias,7);
+            return tempbias;
         }
 
         public double[] getCurrentBias()
         {
-            return thisBias;
+            double[] tempbias = new double[7];
+            Array.Copy(thisBias, tempbias, 7);
+            return tempbias;
         }
 
 
