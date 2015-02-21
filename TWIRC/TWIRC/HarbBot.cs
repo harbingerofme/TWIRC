@@ -43,14 +43,14 @@ namespace RNGBot
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH;
+        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds"; int backgrounds;
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
         public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
         public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
-        public Thread one,two;
+        public Thread one;
 
         public HarbBot(Logger logLogger, ButtonMasher buttMuncher)
         {
@@ -98,13 +98,11 @@ namespace RNGBot
             {
                 if (logLevel != 0)
                 {
-                    logger.WriteLine("First time setup detected, making database");
+                    logger.WriteLine("IRC: First time setup detected, making database");
                 }
                 bot_name = "harbbot";
                 channels = "#harbbot";
                 
-                
-
                 globalCooldown = 20; 
                 antispam = true;
                 oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
@@ -247,7 +245,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!setpoints",4,2));
             hardList.Add(new hardCom("!voting", 3, 1));
             //hardList.Add(new hardCom("!maintenance", 3, 1));
-            //hardList.Add(new hardCom("!background",0,1));
+            hardList.Add(new hardCom("!background",0,1));
             //hardList.Add(new hardCom("!song",0,1));
             //hardList.Add(new hardCom("!seriousmode",3,1);
             hardList.Add(new hardCom("!save", 3, 0));
@@ -266,13 +264,6 @@ namespace RNGBot
             one = new Thread(connection);
             one.Name = "RNGPPBOT IRC CONNECTION";
             one.IsBackground = true;
-
-            /*
-            two = new Thread(run_2);//manages saving of commandlists, etc.
-            two.Name = "RNGPPBOT background irc thread.";
-            two.IsBackground = true;
-            two.Start();
-            */
               
             voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
             voteTimer.Elapsed += voteTimer_Elapsed;
@@ -282,6 +273,8 @@ namespace RNGBot
             voteTimer2 = new System.Timers.Timer(timeToVote*1000);
             voteTimer2.AutoReset = false;
             voteTimer2.Elapsed += voteTimer_Elapsed;
+
+            checkBackgrounds();
 
             try
             {
@@ -303,8 +296,20 @@ namespace RNGBot
             checkCommand(channels, channels.Substring(1), filter(message));//I guess?
         }
 
+        void checkBackgrounds()
+        {
+            bool fail = false; int a =0;
+            while (!fail)
+            {
+                a++;
+                fail = !File.Exists(backgroundPATH + "background_" + a + ".png");
+            }
+            backgrounds = a;
+        }
+
         void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            checkBackgrounds();
             if (voteStatus != -1)
             {
                 if (sender == voteTimer)
@@ -382,10 +387,6 @@ namespace RNGBot
 
         }
 
-        public void run_2()
-        {
-        }
-
         public bool checkSpam(string channel, string user, string message)
         {
             List<asUser> temp = new List<asUser>();List<intStr> temp2 = new List<intStr>();
@@ -436,7 +437,7 @@ namespace RNGBot
                         }
                         foreach (Match c in me)
                         {
-                            if (Regex.Match(message, @"twitch\.tv\/" + channel + @"\/c\/").Success) { d--; continue; }
+                            if (Regex.Match(message, @"twitch\.tv\/" + channel.Substring(1) + @"\/c\/").Success) { d--; continue; }
                             foreach(string e in asWhitelist)
                             {
                                 if (Regex.Match(c.Value, e).Success) { d--; continue; }
@@ -675,7 +676,13 @@ namespace RNGBot
                         case "!whitelist":
                             if (auth == 3 && message.Split(' ').Count()>=3)
                             {
-
+                                SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aswhitelist (name,regex) VALUES (@par1,@par2) VALUES",dbConn);
+                                cmd.Parameters.AddWithValue("@par1", message.Split(' ')[1]);
+                                cmd.Parameters.AddWithValue("@par2", message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
+                                cmd.ExecuteNonQuery();
+                                asWhitelist.Add(message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
+                                asWhitelist2.Add(message.Split(' ')[1]);
+                                sendMess(channel, User + "-> I've added it to the whitelist, I can't guarantee any results.");
                             }
                             else
                             {
@@ -801,7 +808,7 @@ namespace RNGBot
                                             logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
                                         }
                                     }
-                                    if (tempVar1 - 1 <= getPoints(user) && tempVar1 != 0)
+                                    if (tempVar1 - 1 <= getPoints(user)/100 && tempVar1 != 0)
                                     {
                                         fail = false;
                                         foreach (intIntStr IS in votingList)
@@ -811,15 +818,15 @@ namespace RNGBot
                                         if (!fail)
                                         {
                                             votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
-                                            addPoints(user, 2 - tempVar1, "vote");
-                                            addAllTime(user,1);
+                                            addPoints(user, (2 - tempVar1)*100, "vote");
+                                            addAllTime(user,100);
                                         }
                                         else
                                         {
                                             int a = votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1;
                                             votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1 = tempVar1;
                                             a -= tempVar1;
-                                            if (a != 0) { addPoints(user, a, "changevote"); }
+                                            if (a != 0) { addPoints(user, a*100, "changevote"); }
                                             votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int2 = int.Parse(tempVar2);
                                         }
                                     }
@@ -833,7 +840,7 @@ namespace RNGBot
                                         }
                                         if (!fail)
                                         {
-                                            addPoints(user, votingList[a].Int1 + 2, "refundvote");
+                                            addPoints(user, (votingList[a].Int1 + 2)*100, "refundvote");
                                             votingList.RemoveAt(a);
                                         }
                                     }
@@ -885,7 +892,40 @@ namespace RNGBot
 
                         case "!save":
                             //code to save here, if done, uncomment next line
-                            //sendMess(channel, user + "-> Saved game to oldest slot.");
+                            //sendMess(channel, User + "-> Saved game to oldest slot.");
+                            break;
+
+                        case "!background":
+                            if (backgrounds != 0)
+                            {
+                                if (Regex.Match(str[1], @"^[0-9]{1,9}$").Success)
+                                {
+                                    if (int.Parse(str[1]) <= backgrounds && int.Parse(str[1]) > 0)
+                                    {
+                                        if (getPoints(user) >= 500)
+                                        {
+                                            addPoints(user, -500, "background");
+                                            File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.png",true);
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel,"You have insufficient funds for this. Please round up some more.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, "I do not have any backgrounds with that number, please try a different one.");
+                                    }
+                                }
+                                else
+                                {
+                                    sendMess(channel, "That's not a valid number, sweetie. Try using (positive) integers?");
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "There are no backgrounds, WINSANE PLS!");
+                            }
                             break;
                     }
                     break;
@@ -921,7 +961,6 @@ namespace RNGBot
             try
             {
                 one.Abort();
-                two.Abort();
                 irc.RfcQuit();
             }
             catch { }
