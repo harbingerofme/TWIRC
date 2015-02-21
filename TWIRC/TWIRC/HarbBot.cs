@@ -18,7 +18,7 @@ namespace RNGBot
         //really important stuff
         public static IrcClient irc = new IrcClient();
         public bool running = true;
-        SQLiteConnection dbConn;
+        SQLiteConnection dbConn,chatDbConn;
         public Logger logger;
         public ButtonMasher biasControl;
 
@@ -151,6 +151,13 @@ namespace RNGBot
                     globalCooldown = sqldr.GetInt32(5);
                     logLevel = sqldr.GetInt32(6);
                     progressLogPATH = sqldr.GetString(7);
+            }
+            if(!File.Exists("chat.sqlite")){
+                SQLiteConnection.CreateFile("chat.sqlite");
+                chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
+                chatDbConn.Open();
+                new SQLiteCommand("CREATE TABLE messages (name VARCHAR(25) NOT NULL, message VARCHAR(1024) NOT NULL, time INT(13) NOT NULL);",chatDbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, lines INT DEFAULT 1);",chatDbConn).ExecuteNonQuery();
             }
 
             if(!File.Exists("TLDs.twirc"))
@@ -1067,13 +1074,12 @@ namespace RNGBot
             if (sqldr.Read())
             {
                 things = sqldr.GetInt32(0);
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "', points='"+ (things+amount)+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET points='"+ (things+amount)+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 return things;
             }
             else
             {
-
                 new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
                 return 0;
             }
@@ -1086,14 +1092,26 @@ namespace RNGBot
             if (sqldr.Read())
             {
                 things = sqldr.GetInt32(0);
-                new SQLiteCommand("UPDATE users alltime=alltime+1 WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET alltime=alltime+"+amount+" WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 return things;
             }
             else
             {
-
                 new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
                 return 0;
+            }
+        }
+        public void storeMessage(string user, string message) {
+            SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
+            cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM users WHERE name= '"+user+"';",chatDbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                new SQLiteCommand("UPDATE users SET lines = lines+1 WHERE name = '" + user + "';", chatDbConn).ExecuteNonQuery();
+            }
+            else
+            {
+                new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
             }
         }
 

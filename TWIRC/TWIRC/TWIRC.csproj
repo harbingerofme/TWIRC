@@ -76,6 +76,9 @@
       <DependentUpon>frmBias.cs</DependentUpon>
     </Compile>
     <Compile Include="HarbBot.cs" />
+    <Compile Include="highscores.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="IRCClient.cs" />
     <Compile Include="IRCsubs.cs" />
     <Compile Include="Logger.cs" />

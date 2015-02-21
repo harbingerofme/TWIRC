@@ -20,6 +20,7 @@ namespace RNGBot
         Random randy = new Random();
 
         frmBias biasWindow;
+        highscores highWindow;
 
         bool ishold = false;
         String lasthold = "";
@@ -54,6 +55,8 @@ namespace RNGBot
             RNGesus = rngmasher;
 
             biasWindow = newbiaswindow;
+            highWindow = new highscores();
+            highWindow.Show();
 #if !OFFLINE            
             HB = bot;
             HBtimerList.Add(HB.voteTimer);
