@@ -502,6 +502,12 @@ namespace RNGBot
             RNGLogger.WriteLine("Current:" + Biases.printBias(RNGesus.getCurrentBias()));
         }
 
+        private void timer_save_Tick(object sender, EventArgs e)
+        {
+            RNGLogger.WriteLine("Autosaving...");
+            RNGLuaServer.send_to_all("SAVE","0");
+        }
+
 
         
     }

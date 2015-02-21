@@ -61,6 +61,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.btn_dumpBiases = new System.Windows.Forms.Button();
+            this.timer_save = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -360,6 +361,12 @@
             this.btn_dumpBiases.UseVisualStyleBackColor = true;
             this.btn_dumpBiases.Click += new System.EventHandler(this.btn_dumpBiases_Click);
             // 
+            // timer_save
+            // 
+            this.timer_save.Enabled = true;
+            this.timer_save.Interval = 3600000;
+            this.timer_save.Tick += new System.EventHandler(this.timer_save_Tick);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -437,6 +444,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Button btn_dumpBiases;
+        private System.Windows.Forms.Timer timer_save;
     }
 }
 
