@@ -44,10 +44,11 @@ namespace RNGBot
         //some settings
         public bool silence,isMod = false;
         public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
+        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"D:\Documents\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
-        public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null;
+        public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null;
         public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
         public Thread one;
@@ -103,7 +104,7 @@ namespace RNGBot
                 globalCooldown = 20; 
                 antispam = true;
                 oauth = "oauth:773yvysvxvdqwxlobr0rk17ce4fi4d";
-                logLevel = 1;
+                logLevel = 2;
                 progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
                 maxBiasDiff = 0.05;
 
@@ -158,6 +159,11 @@ namespace RNGBot
                 chatDbConn.Open();
                 new SQLiteCommand("CREATE TABLE messages (name VARCHAR(25) NOT NULL, message VARCHAR(1024) NOT NULL, time INT(13) NOT NULL);",chatDbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, lines INT DEFAULT 1);",chatDbConn).ExecuteNonQuery();
+            }
+            else
+            {
+                chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
+                chatDbConn.Open();
             }
 
             if(!File.Exists("TLDs.twirc"))
@@ -237,6 +243,7 @@ namespace RNGBot
             hardList.Add(new hardCom("!rank", 0, 0,60));
             hardList.Add(new hardCom("!permit", 2, 1));
             hardList.Add(new hardCom("!whitelist", 0, 0));
+            hardList.Add(new hardCom("!commands", 0, 0, 120));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",4,7));
@@ -278,6 +285,14 @@ namespace RNGBot
             voteTimer2.AutoReset = false;
             voteTimer2.Elapsed += voteTimer_Elapsed;
 
+            saveTimer_Elapsed(null, null);
+
+            saveTimer = new System.Timers.Timer(30 * 60 * 1000);
+            saveTimer.AutoReset = true;
+            saveTimer.Elapsed += saveTimer_Elapsed;
+            saveTimer.Start();
+            
+
             checkBackgrounds();
 
             try
@@ -285,6 +300,16 @@ namespace RNGBot
                 irc.Connect("irc.twitch.tv", 6667);
             }
             catch { }
+        }
+
+        void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            writeFile(commandsPATH, "<DOCTYPE html><head><title>RNGPPBot commands</title><h1>RNGPPBot commands</h1></head>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.<table border='1px' cellspacing='0px'><tr><td><b>keyword</b></td><td><b>level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td><td><b>output<b></td></tr>");
+            foreach (command c in comlist)
+            {
+                appendFile(commandsPATH, "<tr><td>" + c.getKey() + "</td><td>" + c.getAuth() + "</td><td>" + c.getResponse() + "</td></tr>");
+            }
+            appendFile(commandsPATH, "</table>\nBOOTIFUL!");
         }
 
         void connection()
@@ -897,6 +922,9 @@ namespace RNGBot
                         case "!save":
                             //code to save here, if done, uncomment next line
                             //sendMess(channel, User + "-> Saved game to oldest slot.");
+                            break;
+                        case "!commands":
+                            sendMess(channel, User + "-> commands are located at "+commandsURL+" . If a command doesn't appear, it's because it's hardcoded, or newly added. This list is updated every 30 minutes.");
                             break;
 
                         case "!background":

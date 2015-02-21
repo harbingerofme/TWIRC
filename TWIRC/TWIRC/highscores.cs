@@ -165,9 +165,16 @@ namespace RNGBot
                 {
                     data.Add(new intStr("undefined", -1));
                 }
+                string name;
                 for (int a = 0; a < 7; a++)
                 {
-                    nameList[a].Text = data[a].Str;
+                    name = data[a].Str;
+                    name = name.Substring(0,1).ToUpper()+name.Substring(1);
+                    nameList[a].Text = name;
+                    if (name.Length > 15)
+                    {
+                        name = name.Substring(0, 12) + "...";
+                    }
                     dataList[a].Text = "";
                     if (type == 0 || type == 2) { dataList[a].Text += "$"; }
                     dataList[a].Text += data[a].Int;
