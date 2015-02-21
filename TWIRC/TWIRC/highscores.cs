@@ -146,6 +146,7 @@ namespace RNGBot
                     if (data.Count < 7)
                     {
                         type = 2;
+                        data = new List<intStr>();
                     }
                     dbConn.Close();
                 }
@@ -159,6 +160,10 @@ namespace RNGBot
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
                     }
                     dbConn.Close();
+                }
+                while (data.Count < 7)
+                {
+                    data.Add(new intStr("undefined", -1));
                 }
                 for (int a = 0; a < 7; a++)
                 {
@@ -181,7 +186,7 @@ namespace RNGBot
             leaderboardsType.Height = h / 12;
             leaderboardsType.Location = new Point(0, h / 30 + h / 10);
 
-            int x1 = (int)((double)(w - 8) / 10);
+            int x1 = (int)((double)(w - 8) / 20);
             int x2 = (int)(double)((w - 8) / 10) * 6;
             int y = (int)((h / 30 + h / 10+ h/12));
 
@@ -201,7 +206,7 @@ namespace RNGBot
                 {
                     nameList[a].Location = new Point(x1, y + (a * (h / 13)));
                     dataList[a].Location = new Point(x2, y + (a * (h / 13)));
-                    nameList[a].Size = new Size((w - 8) / 2, h / 12);
+                    nameList[a].Size = new Size((w - 8) / 2+(w-8)/20, h / 12);
                     dataList[a].Size = new Size(((w - 8) / 10)*3, h / 12);
                     nameList[a].Font = labelFont;
                     dataList[a].Font = labelFont;

@@ -43,7 +43,7 @@ namespace RNGBot
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Administrator\Desktop\RNGPP\Graphics\Backgrounds\"; int backgrounds;
+        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
@@ -98,7 +98,7 @@ namespace RNGBot
                     logger.WriteLine("IRC: First time setup detected, making database");
                 }
                 bot_name = "rngppbot";
-                channels = "#f00barbob";
+                channels = "#rngplayspokemon";
                 
                 globalCooldown = 20; 
                 antispam = true;
