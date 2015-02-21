@@ -80,6 +80,12 @@ namespace RNGBot
             return defaultBias;
         }
 
+        public double[] getCurrentBias()
+        {
+            return thisBias;
+        }
+
+
         public void doDecay()
         {
             for (int i = 0; i < numvals; i++)

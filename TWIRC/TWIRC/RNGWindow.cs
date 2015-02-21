@@ -496,6 +496,12 @@ namespace RNGBot
             biasWindow.Show();
         }
 
+        private void btn_dumpBiases_Click(object sender, EventArgs e)
+        {
+            RNGLogger.WriteLine("Default:" + Biases.printBias(RNGesus.getDefaultBias()));
+            RNGLogger.WriteLine("Current:" + Biases.printBias(RNGesus.getCurrentBias()));
+        }
+
 
         
     }

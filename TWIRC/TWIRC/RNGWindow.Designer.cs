@@ -60,6 +60,7 @@
             this.txt_Halp = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.btn_dumpBiases = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -330,9 +331,9 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(0, 303);
+            this.button1.Location = new System.Drawing.Point(0, 325);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 52);
+            this.button1.Size = new System.Drawing.Size(75, 37);
             this.button1.TabIndex = 33;
             this.button1.Text = "Manual Bias Entry";
             this.button1.UseVisualStyleBackColor = true;
@@ -349,11 +350,22 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
+            // btn_dumpBiases
+            // 
+            this.btn_dumpBiases.Location = new System.Drawing.Point(0, 296);
+            this.btn_dumpBiases.Name = "btn_dumpBiases";
+            this.btn_dumpBiases.Size = new System.Drawing.Size(77, 23);
+            this.btn_dumpBiases.TabIndex = 35;
+            this.btn_dumpBiases.Text = "Dump Biases";
+            this.btn_dumpBiases.UseVisualStyleBackColor = true;
+            this.btn_dumpBiases.Click += new System.EventHandler(this.btn_dumpBiases_Click);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+            this.Controls.Add(this.btn_dumpBiases);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.txt_Halp);
@@ -424,6 +436,7 @@
         private System.Windows.Forms.Button txt_Halp;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Button btn_dumpBiases;
     }
 }
 
