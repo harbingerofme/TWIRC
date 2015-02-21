@@ -43,7 +43,7 @@ namespace RNGBot
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
+        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Administrator\Desktop\RNGPP\Graphics\Backgrounds\"; int backgrounds;
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
@@ -97,12 +97,12 @@ namespace RNGBot
                 {
                     logger.WriteLine("IRC: First time setup detected, making database");
                 }
-                bot_name = "harbbot";
-                channels = "#harbbot";
+                bot_name = "rngppbot";
+                channels = "#f00barbob";
                 
                 globalCooldown = 20; 
                 antispam = true;
-                oauth = "oauth:l3jjnxjgfvkjuqa7q9yabgcezm5qpsr";
+                oauth = "oauth:773yvysvxvdqwxlobr0rk17ce4fi4d";
                 logLevel = 1;
                 progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
                 maxBiasDiff = 0.05;
