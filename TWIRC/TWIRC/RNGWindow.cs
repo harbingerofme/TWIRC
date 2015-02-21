@@ -238,26 +238,7 @@ namespace RNGBot
             RNGesus.doDecay();
         }
 
-        private void timer_decay_Tick(object sender, EventArgs e)
-        {
-            RNGesus.doDecay();
-            RNGLogger.WriteLine("Doing decay");
-            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
-            {
 
-                //RNGLogger.addLog("RNG-manually", 0, "rngagege");
-                try
-                {
-                    rngclient.sendCommand("DODECAY:0"); // update all clients that a decay has happened
-                }
-                catch (Exception ex)
-                {
-                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
-                }
-
-
-            }
-        }
 
         private void timer_RNG_bias_Tick(object sender, EventArgs e)
         {
@@ -489,12 +470,8 @@ namespace RNGBot
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            //timer_RNG.Enabled = !timer_RNG.Enabled;
-            //timer_RNG_bias.Enabled = !timer_RNG_bias.Enabled;
-            //timer_decay.Enabled = !timer_decay.Enabled;
-            
+
             timer_RNG.Enabled = checkBox1.Checked;
-            timer_decay.Enabled = checkBox1.Checked;
 
             int newinterval;
             if (int.TryParse(txt_RNGInterval.Text, out newinterval))

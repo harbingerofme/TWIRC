@@ -43,7 +43,6 @@
             this.txt_RNGInterval = new System.Windows.Forms.TextBox();
             this.btn_ClearLog = new System.Windows.Forms.Button();
             this.btn_DumpLog = new System.Windows.Forms.Button();
-            this.timer_decay = new System.Windows.Forms.Timer(this.components);
             this.timer_RNG_bias = new System.Windows.Forms.Timer(this.components);
             this.btn_DownLeft = new System.Windows.Forms.Button();
             this.btn_Down = new System.Windows.Forms.Button();
@@ -189,11 +188,6 @@
             this.btn_DumpLog.Text = "DumpLog";
             this.btn_DumpLog.UseVisualStyleBackColor = true;
             this.btn_DumpLog.Click += new System.EventHandler(this.btn_DumpLog_Click);
-            // 
-            // timer_decay
-            // 
-            this.timer_decay.Interval = 60000;
-            this.timer_decay.Tick += new System.EventHandler(this.timer_decay_Tick);
             // 
             // timer_RNG_bias
             // 
@@ -413,7 +407,6 @@
         private System.Windows.Forms.ToolStripStatusLabel ts_rngesus;
         private System.Windows.Forms.Button btn_ClearLog;
         private System.Windows.Forms.Button btn_DumpLog;
-        private System.Windows.Forms.Timer timer_decay;
         private System.Windows.Forms.Timer timer_RNG_bias;
         private System.Windows.Forms.Button btn_DownLeft;
         private System.Windows.Forms.Button btn_Down;
