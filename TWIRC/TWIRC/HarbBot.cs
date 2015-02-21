@@ -863,11 +863,11 @@ namespace RNGBot
                             }
                             else if (tempVar1 == 1||tempVar1 == -1)
                             {
-                                tempVar2 = tempVar1+" pokéDollar";
+                                tempVar2 = tempVar1+" PokéDollar";
                             }
                             else
                             {
-                                tempVar2 = tempVar1+ "PokéDollars";
+                                tempVar2 = tempVar1+ " PokéDollars";
                             }
                             sendMess(channel, User+", your balance is "+tempVar2+".");
                             break;
@@ -1157,6 +1157,7 @@ namespace RNGBot
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
+            storeMessage(nick, message);
             if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
             message = message.TrimEnd();
             if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
