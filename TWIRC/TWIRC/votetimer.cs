@@ -127,7 +127,7 @@ namespace RNGBot
              {
                 tit = "NEW VOTE IN:";
                 s = (tbv - cntr);
-                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, 205 * (cntr / tbv), 10);
+                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int) (205 * ((double) cntr / (double) tbv)), 10);
 
              }
              m = (int)Math.Floor((double)(s) / 60);
