@@ -90,6 +90,9 @@
     <Compile Include="RNGWindow.Designer.cs">
       <DependentUpon>RNGWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="votetimer.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <EmbeddedResource Include="frmBias.resx">
       <DependentUpon>frmBias.cs</DependentUpon>
     </EmbeddedResource>
