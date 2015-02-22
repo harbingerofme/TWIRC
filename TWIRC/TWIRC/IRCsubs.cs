@@ -32,6 +32,30 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         }
         
     }
+    public class luaCom : com
+    {
+        public string def;
+        public string command;
+        public string resp;
+        public luaCom(string kw, string cm,string response)
+        {
+            authLevel = 3;
+            keyword = kw;
+            def = "";
+            resp = response;
+            command = cm;
+        }
+        public luaCom(string kw, string cm, string defult, string response)
+        {
+            authLevel = 3;
+            keyword = kw;
+            def = defult;
+            resp = response;
+            command = cm;
+        }
+
+        
+    }
 
     public class hardCom : com
     {
@@ -41,13 +65,13 @@ namespace RNGBot//contains the com (, sub :  com) and ali classes
         public hardCom(string kw, int al, int pars)
         {
             keyword = kw;
-            al = authLevel;
+            authLevel =al;
             parameters = pars;
         }
         public hardCom(string kw, int al, int pars,int personalCooldown)
         {
             keyword = kw;
-            al = authLevel;
+            authLevel = al;
             parameters = pars;
             persCooldown = personalCooldown;
         }
