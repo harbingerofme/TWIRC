@@ -56,7 +56,7 @@ namespace RNGBot
             RNGesus.setBias(bias5);
 
 #if !OFFLINE
-            HarbBot = new HarbBot(RNGLogger, RNGesus);
+            HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer);
 #endif
 
             //RNGDB = new DBHandler("rngppbot.sqlite", RNGLogger);

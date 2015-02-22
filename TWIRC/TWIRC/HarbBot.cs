@@ -21,6 +21,7 @@ namespace RNGBot
         SQLiteConnection dbConn,chatDbConn;
         public Logger logger;
         public ButtonMasher biasControl;
+        public LuaServer luaServer;
 
         //important stuff
         public string bot_name, oauth, channels;
@@ -29,6 +30,7 @@ namespace RNGBot
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
+        public List<luaCom> luaList = new List<luaCom>();
         public int globalCooldown;
 
         //antispam
@@ -53,7 +55,7 @@ namespace RNGBot
 
         public Thread one;
 
-        public HarbBot(Logger logLogger, ButtonMasher buttMuncher)
+        public HarbBot(Logger logLogger, ButtonMasher buttMuncher,LuaServer luaSurfer)
         {
             lastVoteTime = getNow();
             logger = logLogger;
@@ -62,6 +64,7 @@ namespace RNGBot
             irc.ActiveChannelSyncing = true;
 
             biasControl = buttMuncher;
+            luaServer = luaSurfer;
 
             newBias.Add(new double[7] { 0,0,0,0,0,0,10 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
@@ -120,6 +123,7 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
@@ -230,19 +234,24 @@ namespace RNGBot
             }
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
+           
             hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!delcom", 3, 1));//delcom
             hardList.Add(new hardCom("!editcom", 3, 2));//editcom
             hardList.Add(new hardCom("!addalias", 3, 2));//addalias
             hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
+            
             hardList.Add(new hardCom("!set", 2, 2));//elevate another user
             hardList.Add(new hardCom("!editcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
             hardList.Add(new hardCom("!rank", 0, 0,60));
-            hardList.Add(new hardCom("!permit", 2, 1));
-            hardList.Add(new hardCom("!whitelist", 0, 0));
+            if (antispam)
+            {
+                hardList.Add(new hardCom("!permit", 2, 1));
+                hardList.Add(new hardCom("!whitelist", 0, 0));
+            }
             hardList.Add(new hardCom("!commands", 0, 0, 120));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
@@ -327,7 +336,7 @@ namespace RNGBot
 
         void checkBackgrounds()
         {
-            bool fail = false; int a =0;
+            bool fail = false; int a = -1;
             while (!fail)
             {
                 a++;
@@ -352,6 +361,7 @@ namespace RNGBot
                     string str = "Voting is over.";
                     double[] tobebias = biasControl.getDefaultBias();
                     double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
+                    string serverput = "";
                     if (votingList.Count > 0)
                     {
                         int a = 0;
@@ -370,9 +380,11 @@ namespace RNGBot
                         {
                             values[i] = (values[i] * maxBiasDiff) / (a * 10);
                             tobebias[i] += values[i];
+                            serverput += " "+values[i].ToString();
                         }
                         str += " Processed " + a + " votes from " + votingList.Count + " users.";
                         biasControl.setBias(tobebias);
+                        luaServer.send_to_all("SETBIAS",serverput.Substring(1));
                     }
                     else
                     {
@@ -531,9 +543,9 @@ namespace RNGBot
                                     else { tempVar2 = str[2] + " " + str[3]; }
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES ('@par1','" + tempVar1 + "','" + 0 + "','@par2');",dbConn);
-                                    cmd.Parameters.Add(new SQLiteParameter("@par1")); cmd.Parameters["@par1"].Value = str[1].ToLower();
-                                    cmd.Parameters.Add(new SQLiteParameter("@par2")); cmd.Parameters["@par2"].Value = tempVar2;
+                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);",dbConn);
+                                    cmd.Parameters.AddWithValue("@par1", str[1].ToLower());
+                                    cmd.Parameters.AddWithValue("@par2",tempVar2);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
@@ -622,7 +634,7 @@ namespace RNGBot
                                 if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
                         case "!set"://!set <name> <level>
-                            if(Regex.Match(str[1].ToLower(),@"^[a-z0-9_]+$").Success){sendMess(channel,"I'm sorry, "+User+". That's not a valid name.");}
+                            if(!Regex.Match(str[1].ToLower(),@"^[a-z0-9_]+$").Success){sendMess(channel,"I'm sorry, "+User+". That's not a valid name.");}
                             else{
                             if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
                             {
@@ -737,9 +749,16 @@ namespace RNGBot
                                 sendMess(channel, tempVar2);
                             }
                             break;
+
+                        case "!addlua"://<keyword> <command> [default (if parameter is omitted)]
+
+                            break;
+                        case "!dellua"://<keyword>
+
+                            break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
-                            double[] tobebias = new double[7];fail = false;
+                            double[] tobebias = new double[7];fail = false;tempVar2 ="";
                             for (int a = 1; a < 8;a++ )
                             {
                                 str[a] = str[a].Replace(',','.');//So people for who 0,1 == 0.1 also can do stuff (like me)
@@ -751,11 +770,13 @@ namespace RNGBot
                                 else
                                 {
                                     tobebias[a-1]= double.Parse(str[a]);
+                                    tempVar2 += " " + str[a];
                                 }
                             }
                                 if (!fail)
                                 {
                                     biasControl.setBias(tobebias);
+                                    luaServer.send_to_all("SETBIAS", "" + tempVar2);
                                     sendMess(channel,User + "-> Bias set!");
                                 }
                                 else
@@ -896,6 +917,9 @@ namespace RNGBot
                             }
                             sendMess(channel, User+", your balance is "+tempVar2+".");
                             break;
+                        case "!setpoints":
+                            sendMess(channel, "BUT " + user.ToUpper() + ", THAT'D BE CHEATING!");
+                            break;
 
                         case "!addlog":
                             appendFile(progressLogPATH,"\n" + getNowExtended() + " " + User + " " + str[1] + " " + str[2]);
@@ -908,7 +932,7 @@ namespace RNGBot
                             break;
 
                         case "!voting":
-                            if (Regex.Match(str[1], @"(1)|(on)|(true)|(yes)").Success)
+                            if (Regex.Match(str[1], @"^(1)|(on)|(true)|(yes)|(positive)$").Success)
                             {
                                 if (voteStatus == -1)
                                 {
@@ -917,11 +941,29 @@ namespace RNGBot
                                     voteTimer2.Start();
                                 }
                             }
+                            else
+                            {
+                                if(Regex.Match(str[1],@"^(0)|(off)|(false)|(no)|(negative)$").Success)
+                                {
+                                    if(voteStatus != -1)
+                                    {
+                                        voteStatus = -1;
+                                        sendMess(channel, "Voting disabled until bot or chat restart.");
+                                        try{voteTimer.Stop(); voteTimer2.Stop();}
+                                        catch{}
+                                    }
+                                }
+                            }
                             break;
 
                         case "!save":
-                            //code to save here, if done, uncomment next line
-                            //sendMess(channel, User + "-> Saved game to oldest slot.");
+                            tempVar2 = "0";
+                            if (str.Count() > 1)
+                            {
+                                tempVar2 = str[1];
+                            }
+                            luaServer.send_to_all("SAVE", tempVar2);
+                            sendMess(channel, User + "-> Saved game with parameter '"+tempVar2+"'.");
                             break;
                         case "!commands":
                             sendMess(channel, User + "-> commands are located at "+commandsURL+" . If a command doesn't appear, it's because it's hardcoded, or newly added. This list is updated every 30 minutes.");
@@ -930,14 +972,22 @@ namespace RNGBot
                         case "!background":
                             if (backgrounds != 0)
                             {
-                                if (Regex.Match(str[1], @"^[0-9]{1,9}$").Success)
+                                if (Regex.Match(str[1], @"^[1-9]([0-9]{1,9})?$").Success)
                                 {
                                     if (int.Parse(str[1]) <= backgrounds && int.Parse(str[1]) > 0)
                                     {
                                         if (getPoints(user) >= 500)
                                         {
-                                            addPoints(user, -500, "background");
-                                            File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.png",true);
+                                            try
+                                            {
+                                                File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.png", true);
+                                                addPoints(user, -500, "background");
+                                                sendMess(channel, "Background changed! 500 PokéDollars have been subtracted from your account.");
+                                            }
+                                            catch
+                                            {
+                                                sendMess(channel, "Something went wrong, no PokéDollars deducted.");
+                                            }
                                         }
                                         else
                                         {
@@ -975,7 +1025,7 @@ namespace RNGBot
                         if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = '@par1';", dbConn);
+                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
                         cmd.Parameters.AddWithValue("@par1",c.getKey());
                         cmd.ExecuteNonQuery();
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
@@ -1007,6 +1057,7 @@ namespace RNGBot
             if (!silence)
             {
                 irc.SendMessage(SendType.Message, channel, message);
+                storeMessage(bot_name, message);
             }
         }
 
