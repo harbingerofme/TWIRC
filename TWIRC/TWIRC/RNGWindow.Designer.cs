@@ -198,79 +198,79 @@
             // 
             // btn_DownLeft
             // 
-            this.btn_DownLeft.Location = new System.Drawing.Point(95, 361);
+            this.btn_DownLeft.Location = new System.Drawing.Point(88, 361);
             this.btn_DownLeft.Name = "btn_DownLeft";
-            this.btn_DownLeft.Size = new System.Drawing.Size(75, 23);
+            this.btn_DownLeft.Size = new System.Drawing.Size(36, 23);
             this.btn_DownLeft.TabIndex = 20;
-            this.btn_DownLeft.Text = "DN-LEFT";
+            this.btn_DownLeft.Text = "D-L";
             this.btn_DownLeft.UseVisualStyleBackColor = true;
             this.btn_DownLeft.Click += new System.EventHandler(this.btn_DownLeft_Click);
             // 
             // btn_Down
             // 
-            this.btn_Down.Location = new System.Drawing.Point(176, 361);
+            this.btn_Down.Location = new System.Drawing.Point(130, 361);
             this.btn_Down.Name = "btn_Down";
-            this.btn_Down.Size = new System.Drawing.Size(75, 23);
+            this.btn_Down.Size = new System.Drawing.Size(35, 23);
             this.btn_Down.TabIndex = 21;
-            this.btn_Down.Text = "DOWN";
+            this.btn_Down.Text = "DN";
             this.btn_Down.UseVisualStyleBackColor = true;
             this.btn_Down.Click += new System.EventHandler(this.btn_Down_Click);
             // 
             // btn_DownRight
             // 
-            this.btn_DownRight.Location = new System.Drawing.Point(257, 361);
+            this.btn_DownRight.Location = new System.Drawing.Point(171, 361);
             this.btn_DownRight.Name = "btn_DownRight";
-            this.btn_DownRight.Size = new System.Drawing.Size(75, 23);
+            this.btn_DownRight.Size = new System.Drawing.Size(40, 23);
             this.btn_DownRight.TabIndex = 22;
-            this.btn_DownRight.Text = "DN-RIGHT";
+            this.btn_DownRight.Text = "D-R";
             this.btn_DownRight.UseVisualStyleBackColor = true;
             this.btn_DownRight.Click += new System.EventHandler(this.btn_DownRight_Click);
             // 
             // btn_Left
             // 
-            this.btn_Left.Location = new System.Drawing.Point(95, 332);
+            this.btn_Left.Location = new System.Drawing.Point(88, 332);
             this.btn_Left.Name = "btn_Left";
-            this.btn_Left.Size = new System.Drawing.Size(75, 23);
+            this.btn_Left.Size = new System.Drawing.Size(36, 23);
             this.btn_Left.TabIndex = 23;
-            this.btn_Left.Text = "LEFT";
+            this.btn_Left.Text = "LFT";
             this.btn_Left.UseVisualStyleBackColor = true;
             this.btn_Left.Click += new System.EventHandler(this.btn_Left_Click);
             // 
             // btn_Neutral
             // 
-            this.btn_Neutral.Location = new System.Drawing.Point(176, 332);
+            this.btn_Neutral.Location = new System.Drawing.Point(130, 332);
             this.btn_Neutral.Name = "btn_Neutral";
-            this.btn_Neutral.Size = new System.Drawing.Size(75, 23);
+            this.btn_Neutral.Size = new System.Drawing.Size(35, 23);
             this.btn_Neutral.TabIndex = 24;
-            this.btn_Neutral.Text = "NEUTRAL";
+            this.btn_Neutral.Text = "5";
             this.btn_Neutral.UseVisualStyleBackColor = true;
             this.btn_Neutral.Click += new System.EventHandler(this.btn_Neutral_Click);
             // 
             // btn_Right
             // 
-            this.btn_Right.Location = new System.Drawing.Point(257, 332);
+            this.btn_Right.Location = new System.Drawing.Point(171, 332);
             this.btn_Right.Name = "btn_Right";
-            this.btn_Right.Size = new System.Drawing.Size(75, 23);
+            this.btn_Right.Size = new System.Drawing.Size(40, 23);
             this.btn_Right.TabIndex = 25;
-            this.btn_Right.Text = "RIGHT";
+            this.btn_Right.Text = "RGT";
             this.btn_Right.UseVisualStyleBackColor = true;
             this.btn_Right.Click += new System.EventHandler(this.btn_Right_Click);
             // 
             // btn_UpLeft
             // 
-            this.btn_UpLeft.Location = new System.Drawing.Point(95, 301);
+            this.btn_UpLeft.Location = new System.Drawing.Point(88, 303);
             this.btn_UpLeft.Name = "btn_UpLeft";
-            this.btn_UpLeft.Size = new System.Drawing.Size(75, 23);
+            this.btn_UpLeft.Size = new System.Drawing.Size(36, 23);
             this.btn_UpLeft.TabIndex = 26;
-            this.btn_UpLeft.Text = "UP-LEFT";
+            this.btn_UpLeft.Text = "U-L";
             this.btn_UpLeft.UseVisualStyleBackColor = true;
             this.btn_UpLeft.Click += new System.EventHandler(this.btn_UpLeft_Click);
             // 
             // btn_Up
             // 
-            this.btn_Up.Location = new System.Drawing.Point(176, 303);
+            this.btn_Up.Location = new System.Drawing.Point(130, 303);
             this.btn_Up.Name = "btn_Up";
-            this.btn_Up.Size = new System.Drawing.Size(75, 23);
+            this.btn_Up.Size = new System.Drawing.Size(35, 23);
             this.btn_Up.TabIndex = 27;
             this.btn_Up.Text = "UP";
             this.btn_Up.UseVisualStyleBackColor = true;
@@ -278,11 +278,11 @@
             // 
             // btn_UpRight
             // 
-            this.btn_UpRight.Location = new System.Drawing.Point(257, 303);
+            this.btn_UpRight.Location = new System.Drawing.Point(171, 303);
             this.btn_UpRight.Name = "btn_UpRight";
-            this.btn_UpRight.Size = new System.Drawing.Size(75, 23);
+            this.btn_UpRight.Size = new System.Drawing.Size(40, 23);
             this.btn_UpRight.TabIndex = 28;
-            this.btn_UpRight.Text = "UP-RIGHT";
+            this.btn_UpRight.Text = "U-R";
             this.btn_UpRight.UseVisualStyleBackColor = true;
             this.btn_UpRight.Click += new System.EventHandler(this.btn_UpRight_Click);
             // 
@@ -314,7 +314,7 @@
             // 
             this.btn_Save.Location = new System.Drawing.Point(0, 361);
             this.btn_Save.Name = "btn_Save";
-            this.btn_Save.Size = new System.Drawing.Size(75, 23);
+            this.btn_Save.Size = new System.Drawing.Size(77, 23);
             this.btn_Save.TabIndex = 31;
             this.btn_Save.Text = "Save";
             this.btn_Save.UseVisualStyleBackColor = true;
@@ -334,7 +334,7 @@
             // 
             this.button1.Location = new System.Drawing.Point(0, 325);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 37);
+            this.button1.Size = new System.Drawing.Size(77, 37);
             this.button1.TabIndex = 33;
             this.button1.Text = "Manual Bias Entry";
             this.button1.UseVisualStyleBackColor = true;

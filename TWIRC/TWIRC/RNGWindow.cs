@@ -459,7 +459,7 @@ namespace RNGBot
 
         private void txt_Halp_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Click buttons, get errors.");
+            MessageBox.Show("Sometimes, it is not so much knowing what to click as it is what not to click.");
         }
 
         private void btn_Save_Click(object sender, EventArgs e)
