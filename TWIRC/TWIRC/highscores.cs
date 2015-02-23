@@ -20,14 +20,14 @@ namespace RNGBot
         public List<intStr> data = new List<intStr>();
         System.Timers.Timer timer;
         double res;
-        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:" };
+        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most points spend:" };
         int defaultWidth, defaultHeight;
         Font labelFont;
         SQLiteConnection dbConn;
 
         public highscores()
         {
-            Height = 280;//slightly larger since c# also counts the edges
+            Height = 240;//slightly larger since c# also counts the edges
             Width = 330;//see above
             defaultWidth = 330; defaultHeight = 280;
             ResizeBegin +=highscores_ResizeBegin;
@@ -114,11 +114,8 @@ namespace RNGBot
             else
             {
                 SQLiteDataReader sqldr; data = new List<intStr>();
-                if (type != 2)
-                {
-                    type++;
-                }
-                else
+                type++;
+                if (type == typeText.Count())
                 {
                     type = 0;
                 }
@@ -161,6 +158,17 @@ namespace RNGBot
                     }
                     dbConn.Close();
                 }
+                if (type == 3)
+                {
+                    dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
+                    dbConn.Open();
+                    sqldr = new SQLiteCommand("SELECT name,(alltime-points) FROM users ORDER BY (alltime-points) DESC,name LIMIT 7;",dbConn).ExecuteReader();
+                    while (sqldr.Read())
+                    {
+                        data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
+                    }
+                    dbConn.Close();
+                }
                 while (data.Count < 7)
                 {
                     data.Add(new intStr("undefined", -1));
@@ -176,7 +184,7 @@ namespace RNGBot
                         name = name.Substring(0, 12) + "...";
                     }
                     dataList[a].Text = "";
-                    if (type == 0 || type == 2) { dataList[a].Text += "$"; }
+                    if (type == 0 || type == 2 || type == 3) { dataList[a].Text += "$"; }
                     dataList[a].Text += data[a].Int;
                 }
                 leaderboardsType.Text = typeText[type];

@@ -18,7 +18,7 @@ namespace RNGBot
         double[] defaultBias;
         int numvals;
         RNGWindow MainWindow;
-
+        public int[] stats;
 
 
 
@@ -27,6 +27,7 @@ namespace RNGBot
             numvals = this_numvals;
             defaultBias = new double[] { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
             thisBias = new double[] { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
+            stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
             Array.Copy(defaultBias,thisBias,7);
             //RNGEmulators = clienttable;
             RNGLogger = thelogger;
@@ -116,6 +117,7 @@ namespace RNGBot
                     losers[winner] = nextval;
                 }
             }
+            stats[winner]++;
             return winner;
         }
 

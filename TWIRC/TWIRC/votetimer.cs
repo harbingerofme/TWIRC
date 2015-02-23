@@ -37,6 +37,8 @@ namespace RNGBot
                 Width = w;
                 BackColor = Color.Black;
                 DoubleBuffered = true;
+                Name = "votetimer";
+                Text = "VoteTimer";
 
                 title = new Label();
                 title.Location = new Point(11, 6);
@@ -121,7 +123,7 @@ namespace RNGBot
             {
                 tit = "VOTE NOW!";
                 s = (ttv - cntr);
-                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, 205 * (cntr / ttv), 10);
+                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int) (205 * ((double)cntr / (double)ttv)), 10);
             }
              if (voting == 0)
              {

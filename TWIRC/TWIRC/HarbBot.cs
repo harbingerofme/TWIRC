@@ -18,7 +18,7 @@ namespace RNGBot
         //really important stuff
         public static IrcClient irc = new IrcClient();
         public bool running = true;
-        SQLiteConnection dbConn,chatDbConn;
+        SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
         public ButtonMasher biasControl;
         public LuaServer luaServer;
@@ -66,7 +66,7 @@ namespace RNGBot
             biasControl = buttMuncher;
             luaServer = luaSurfer;
 
-            newBias.Add(new double[7] { 0,0,0,0,0,0,10 });//0 (start)
+            newBias.Add(new double[7] { 0,0,0,0,0,0,5 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
             newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
             newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
@@ -76,8 +76,9 @@ namespace RNGBot
             newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
             newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
             newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
-            newBias.Add(new double[7] { 0,0,0,0,10,0,0 });//10 (a)
-            newBias.Add(new double[7] { 0,0,0,0,0,10,0 });//11 (b)
+            newBias.Add(new double[7] { 0,0,0,0,9,0,0 });//10 (a)
+            newBias.Add(new double[7] { 0,0,0,0,0,8,0 });//11 (b)
+            newBias.Add(new double[7] { 2.5, 2.5, 2.5, 2.5, 0, 0, 0 });//12 (movement)
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -168,6 +169,18 @@ namespace RNGBot
             {
                 chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                 chatDbConn.Open();
+            }
+            if (!File.Exists("buttons.sqlite"))
+            {
+                SQLiteConnection.CreateFile("buttons.sqlite");
+                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
+                butDbConn.Open();
+                new SQLiteCommand("CREATE TABLE buttons (id INT, left INT, down INT, up INT, right INT, a INT, b INT, start INT);", butDbConn).ExecuteNonQuery();
+            }
+            else
+            {
+                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
+                butDbConn.Open();
             }
 
             if(!File.Exists("TLDs.twirc"))
@@ -319,6 +332,16 @@ namespace RNGBot
                 appendFile(commandsPATH, "<tr><td>" + c.getKey() + "</td><td>" + c.getAuth() + "</td><td>" + c.getResponse() + "</td></tr>");
             }
             appendFile(commandsPATH, "</table>\nBOOTIFUL!");
+
+            string s = "INSERT INTO buttons (left,down,up,right,a,b,start) VALUES (";
+            foreach (int a in biasControl.stats)
+            {
+                s += a + ",";
+            }
+            s = s.Substring(0, s.Length - 1);
+            s += ");";
+            new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
+            biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
         }
 
         void connection()
@@ -898,7 +921,7 @@ namespace RNGBot
                             }
                             else
                             {
-                                sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes)- getNow())/60 )+" minutes.");
+                                sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes)- getNow())/60 +1)+" minutes.");
                             }
                             break;
                         case "!balance":
