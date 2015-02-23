@@ -129,6 +129,7 @@ namespace RNGBot
                 }
                 if (type == 3)
                 {
+#if !OFFLINE
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                     dbConn.Open();
                     sqldr = new SQLiteCommand("SELECT name, COUNT(*) FROM (SELECT name FROM transactions WHERE item = 'background') GROUP BY name ORDER BY COUNT(*) DESC LIMIT 7;", dbConn).ExecuteReader();
@@ -138,6 +139,7 @@ namespace RNGBot
                     }
                     if (data.Count < 7) { type = 4; data = new List<intStr>(); }
                     dbConn.Close();
+#endif
                 }
                 if (type == 4)
                 {
