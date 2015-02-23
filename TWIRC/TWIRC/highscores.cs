@@ -87,6 +87,11 @@ namespace RNGBot
             Controls.Add(leaderboardsType);
             Controls.AddRange(nameList.ToArray());
             Controls.AddRange(dataList.ToArray());
+
+            StartPosition = FormStartPosition.Manual;
+            Location = Properties.Settings.Default.leaderboard_pos;
+            Size = Properties.Settings.Default.leaderboard_size;
+            resize(Size.Width, Size.Height);
         }
 
         void timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -103,6 +108,9 @@ namespace RNGBot
         {
             leaderboardsType.Text = typeText[type];
             resize(Width, Height);
+            Properties.Settings.Default.leaderboard_pos = this.Location;
+            Properties.Settings.Default.leaderboard_size = this.Size;
+            Properties.Settings.Default.Save();
         }
 
         public void assignData()

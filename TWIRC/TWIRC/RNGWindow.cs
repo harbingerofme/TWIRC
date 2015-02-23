@@ -76,6 +76,8 @@ namespace RNGBot
            RNGLogger.addLog("RNGWindow_Load", 0, "Success, i guess");
            RNGLogger.setLogControl(text_log); // as this calls the log dumper, best not to add immediately afterwards, lest an unfortunate game of digital chicken occur.
            RNGLogger.setStatusControl(ts_counter0);
+           this.StartPosition = FormStartPosition.Manual;
+           this.Location = Properties.Settings.Default.mainwindow_pos;
         }
 
         private void RNGWindow_clososos(object sender, System.ComponentModel.CancelEventArgs e)
@@ -540,6 +542,12 @@ namespace RNGBot
             timerWindow.StartPosition = FormStartPosition.Manual;
             timerWindow.Location = oldwin;
             timerWindow.Show();
+        }
+
+        private void RNGWindow_LocationChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.mainwindow_pos = this.Location;
+            Properties.Settings.Default.Save();
         }
 
 

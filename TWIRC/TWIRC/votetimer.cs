@@ -83,8 +83,11 @@ namespace RNGBot
                 one.Priority = ThreadPriority.Lowest;
                 one.Start();
 
-                
+
+                StartPosition = FormStartPosition.Manual;
+                Location = Properties.Settings.Default.votetimer_pos;
                 MouseDown += votetimer_mouseDown;
+                LocationChanged += votetimer_LocationChanged;
                 Paint += votetimer_Paint;
                 FormClosing += closing;
             }
@@ -115,6 +118,12 @@ namespace RNGBot
                 ReleaseCapture();
                 SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
+        }
+
+        private void votetimer_LocationChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.votetimer_pos = this.Location;
+            Properties.Settings.Default.Save();
         }
 
         void closing(object sender, EventArgs e)
