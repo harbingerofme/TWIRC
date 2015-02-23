@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Timers;
+using System.Reflection;
+
 
 namespace RNGBot
 {
@@ -78,13 +80,10 @@ namespace RNGBot
            RNGLogger.setStatusControl(ts_counter0);
            this.StartPosition = FormStartPosition.Manual;
            this.Location = Properties.Settings.Default.mainwindow_pos;
+           ts_isconnected.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 
-        private void RNGWindow_clososos(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-        }
-
-        private void RNGWindow_FormClosed(object sender, FormClosedEventArgs e)
+         private void RNGWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
 
             foreach (LuaServer.EmuClientHandler dyingclient in RNGEmulators.Values.ToList())
