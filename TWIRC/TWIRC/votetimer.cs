@@ -5,11 +5,21 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace RNGBot
 {
     class votetimer : Form
     {
+        public const int WM_NCLBUTTONDOWN = 0xA1;
+        public const int HT_CAPTION = 0x2;
+
+        [DllImportAttribute("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        [DllImportAttribute("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+
         HarbBot HB = null;
         int w = 217;
         int h = 71;
@@ -48,7 +58,7 @@ namespace RNGBot
                 title.BackColor = Color.Black;
                 title.ForeColor = Color.White;
                 title.Text = "title";
-                title.MouseClick += votetimer_MouseClick;
+                title.MouseDown += votetimer_mouseDown;
                 
 
                 time = new Label();
@@ -59,7 +69,7 @@ namespace RNGBot
                 time.BackColor = Color.Black;
                 time.ForeColor = Color.White;
                 time.Text = "time";
-                time.MouseClick += votetimer_MouseClick;
+                time.MouseDown += votetimer_mouseDown;
                 Controls.Add(time); Controls.Add(title);
 
                 lvt = HB.lastVoteTime;
@@ -73,7 +83,8 @@ namespace RNGBot
                 one.Priority = ThreadPriority.Lowest;
                 one.Start();
 
-                MouseClick += votetimer_MouseClick;
+                
+                MouseDown += votetimer_mouseDown;
                 Paint += votetimer_Paint;
                 FormClosing += closing;
             }
@@ -97,21 +108,15 @@ namespace RNGBot
             }
         }
 
-        void votetimer_MouseClick(object sender, MouseEventArgs e)
+        private void votetimer_mouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (clicked)
+            if (e.Button == MouseButtons.Left)
             {
-                me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-                clicked = false;
-            }
-            else
-            {
-                me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-                me.MinimizeBox = false;
-                me.MaximizeBox = false;
-                clicked = true;
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
         }
+
         void closing(object sender, EventArgs e)
         {
             running = false;
