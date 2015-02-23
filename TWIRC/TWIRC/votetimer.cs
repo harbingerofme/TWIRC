@@ -107,6 +107,8 @@ namespace RNGBot
             else
             {
                 me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+                me.MinimizeBox = false;
+                me.MaximizeBox = false;
                 clicked = true;
             }
         }
