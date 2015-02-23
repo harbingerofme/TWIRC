@@ -8,7 +8,7 @@ using System.Data.SQLite;
 using System.Drawing;
 using System.Timers;
 
-namespace RNGBot
+namespace TWIRC
 {
     class highscores : Form
     {

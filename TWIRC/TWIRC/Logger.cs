@@ -9,7 +9,7 @@ using System.Threading;
 using System.Diagnostics;
 #endif
 
-namespace RNGBot
+namespace TWIRC
 {
     public class Logger
     {

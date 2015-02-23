@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace RNGBot
+namespace TWIRC
 
 {
     public partial class frmBias : Form

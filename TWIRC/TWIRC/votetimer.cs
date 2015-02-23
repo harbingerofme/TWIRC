@@ -7,7 +7,7 @@ using System.Drawing;
 using System.Threading;
 using System.Runtime.InteropServices;
 
-namespace RNGBot
+namespace TWIRC
 {
     class votetimer : Form
     {

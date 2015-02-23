@@ -1,4 +1,4 @@
-﻿namespace RNGBot
+﻿namespace TWIRC
 {
     partial class frmBias
     {

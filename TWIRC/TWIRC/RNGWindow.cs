@@ -10,7 +10,7 @@ using System.Timers;
 using System.Reflection;
 
 
-namespace RNGBot
+namespace TWIRC
 {
     public partial class RNGWindow : Form
     {

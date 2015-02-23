@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>RNGBot</RootNamespace>
+    <RootNamespace>TWIRC</RootNamespace>
     <AssemblyName>TWIRC</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <PublishUrl>publish\</PublishUrl>

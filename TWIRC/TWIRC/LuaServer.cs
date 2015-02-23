@@ -9,7 +9,7 @@ using System.Threading;
 
 using System.Windows.Forms;
 
-namespace RNGBot
+namespace TWIRC
 {
     public class LuaServer
     {
