@@ -1267,13 +1267,20 @@ namespace RNGBot
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             storeMessage(nick, message);
-            if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
-            message = message.TrimEnd();
-            if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
-            if (!a)
+            try
             {
-                message = filter(message);
-                this.checkCommand(channel, nick, message);
+                if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
+                message = message.TrimEnd();
+                if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
+                if (!a)
+                {
+                    message = filter(message);
+                    this.checkCommand(channel, nick, message);
+                }
+            }
+            catch
+            {
+                logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
             }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
