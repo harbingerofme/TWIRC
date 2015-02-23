@@ -517,12 +517,16 @@ namespace RNGBot
         private void btn_Leaderboard_Click(object sender, EventArgs e)
         {
             Point oldwin = new Point();
+            Size oldwins = new Size();
+            oldwins = highWindow.Size;
             oldwin.X = highWindow.Location.X;
             oldwin.Y = highWindow.Location.Y;
             highWindow.Close();
             highWindow = new highscores();
             highWindow.StartPosition = FormStartPosition.Manual;
             highWindow.Location = oldwin;
+            highWindow.Size = oldwins;
+            highWindow.resize(oldwins.Width, oldwins.Height);
             highWindow.Show();
         }
 
