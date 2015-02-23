@@ -516,13 +516,25 @@ namespace RNGBot
 
         private void btn_Leaderboard_Click(object sender, EventArgs e)
         {
+            Point oldwin = new Point();
+            oldwin.X = highWindow.Location.X;
+            oldwin.Y = highWindow.Location.Y;
+            highWindow.Close();
             highWindow = new highscores();
+            highWindow.StartPosition = FormStartPosition.Manual;
+            highWindow.Location = oldwin;
             highWindow.Show();
         }
 
         private void btn_voteTimer_Click(object sender, EventArgs e)
         {
+            Point oldwin = new Point();
+            oldwin.X = timerWindow.Location.X;
+            oldwin.Y = timerWindow.Location.Y;
+            timerWindow.Close();
             timerWindow = new votetimer(HB);
+            timerWindow.StartPosition = FormStartPosition.Manual;
+            timerWindow.Location = oldwin;
             timerWindow.Show();
         }
 
