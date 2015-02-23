@@ -861,6 +861,7 @@ namespace RNGBot
                                 tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
                                 tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
                                 tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
+                                tempVar2 = tempVar2.ToLower().Replace("down", "2");
                                 tempVar2 = tempVar2.ToLower().Replace("left", "4");
                                 tempVar2 = tempVar2.ToLower().Replace("right", "6");
                                 tempVar2 = tempVar2.ToLower().Replace("start", "0");//f00?
