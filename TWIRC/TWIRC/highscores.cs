@@ -20,7 +20,7 @@ namespace RNGBot
         public List<intStr> data = new List<intStr>();
         System.Timers.Timer timer;
         double res;
-        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most points spend:" };
+        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
         int defaultWidth, defaultHeight;
         Font labelFont;
         SQLiteConnection dbConn;
@@ -127,6 +127,61 @@ namespace RNGBot
                 {
                     type = 0;
                 }
+                if (type == 3)
+                {
+                    dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
+                    dbConn.Open();
+                    sqldr = new SQLiteCommand("SELECT name, COUNT(*) FROM (SELECT name FROM transactions WHERE item = 'background') GROUP BY name ORDER BY COUNT(*) DESC LIMIT 7;", dbConn).ExecuteReader();
+                    while (sqldr.Read())
+                    {
+                        data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
+                    }
+                    if (data.Count < 7) { type = 4; data = new List<intStr>(); }
+                    dbConn.Close();
+                }
+                if (type == 4)
+                {
+                    dbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
+                    dbConn.Open();
+                    sqldr = new SQLiteCommand("SELECT * FROM buttons ORDER BY id DESC LIMIT 48;", dbConn).ExecuteReader();
+                    int a = 0; List<intStr> temp = new intStr[7].ToList();
+                    for (int b = 0; b < 7; b++)
+                    {
+                        temp[b] = new intStr();
+                        temp[b].Int = 0;
+                    }
+                    temp[0].Str = "left"; temp[1].Str = "down"; temp[2].Str = "up"; temp[3].Str = "right"; temp[4].Str = "A"; temp[5].Str = "B"; temp[6].Str = "start";
+                        while (sqldr.Read())
+                        {
+                            a++;
+                            for(int b = 0;b<7;b++)
+                            {
+                                temp[b].Int += sqldr.GetInt32(b + 1);
+                            }
+                        }
+                    if (a < 48)
+                    {
+                        type = 0;
+                        data = new List<intStr>();
+                    }
+                    else
+                    {
+                        int highest; int id = -1;
+                        while(temp.Count>0)
+                        {
+                            highest = -1; 
+                            for (int b = 0; b < temp.Count; b++)
+                            {
+                                if (temp[b].Int > highest)
+                                {
+                                    id = b;
+                                }
+                            }
+                            data.Add(temp[id]);
+                            temp.RemoveAt(id);
+                        }
+                    }
+                }
                 if (type == 0)
                 {
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
@@ -143,7 +198,7 @@ namespace RNGBot
                 {
                     dbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>999 ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>749 AND not name like '%bot ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
@@ -166,17 +221,6 @@ namespace RNGBot
                     }
                     dbConn.Close();
                 }
-                if (type == 3)
-                {
-                    dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
-                    dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,(alltime-points) FROM users ORDER BY (alltime-points) DESC,name LIMIT 7;",dbConn).ExecuteReader();
-                    while (sqldr.Read())
-                    {
-                        data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
-                    }
-                    dbConn.Close();
-                }
                 while (data.Count < 7)
                 {
                     data.Add(new intStr("undefined", -1));
@@ -185,7 +229,14 @@ namespace RNGBot
                 for (int a = 0; a < 7; a++)
                 {
                     name = data[a].Str;
-                    name = name.Substring(0,1).ToUpper()+name.Substring(1);
+                    if (name.Length > 1)
+                    {
+                        name = name.Substring(0, 1).ToUpper()+ name.Substring(1);
+                    }
+                    else
+                    {
+                        name = name.ToUpper();
+                    }
                     nameList[a].Text = name;
                     if (name.Length > 15)
                     {

@@ -50,8 +50,10 @@ namespace RNGBot
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
-        public int timeBetweenVotes = 180, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null;
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null;
         public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
+
+        int moneyPerVote = 50;
 
         public Thread one;
 
@@ -120,7 +122,7 @@ namespace RNGBot
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) DEFAULT 1, silence TINYINT(1) DEFAULT 0, oauth VARCHAR(200), cooldown INT DEFAULT 20,loglevel TINYINT(1) DEFAULT 2,logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL);",dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL,moneypervote INT DEFAULT 100);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
@@ -228,6 +230,7 @@ namespace RNGBot
                 }
                 biasControl.setDefaultBias(tempDoubleArray.ToArray());
                 maxBiasDiff = rdr.GetDouble(3);
+                moneyPerVote = rdr.GetInt32(4);
             }
 
             rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
@@ -864,11 +867,14 @@ namespace RNGBot
                                 tempVar2 = tempVar2.ToLower().Replace("down", "2");
                                 tempVar2 = tempVar2.ToLower().Replace("left", "4");
                                 tempVar2 = tempVar2.ToLower().Replace("right", "6");
-                                tempVar2 = tempVar2.ToLower().Replace("start", "0");//f00?
-                                if (Regex.Match(tempVar2, @"^([0-9ab])|(10)|(11)$").Success)
+                                tempVar2 = tempVar2.ToLower().Replace("start", "0");
+                                tempVar2 = tempVar2.ToLower().Replace("a", "10");
+                                tempVar2 = tempVar2.ToLower().Replace("b", "11");
+                                tempVar2 = tempVar2.ToLower().Replace("movement", "12");
+
+                                if (Regex.Match(tempVar2, @"^([0-9ab])|(1[0-2])$").Success)
                                 {
-                                    tempVar2 = tempVar2.Replace("a","10");
-                                    tempVar2 = tempVar2.Replace("b", "11");
+                                    
                                     tempVar1 = 1;
                                     if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
                                     {
@@ -892,7 +898,7 @@ namespace RNGBot
                                         if (!fail)
                                         {
                                             votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
-                                            addPoints(user, (2 - tempVar1)*100, "vote");
+                                            addPoints(user, (2 - tempVar1)*moneyPerVote, "vote");
                                             addAllTime(user,100);
                                         }
                                         else
@@ -900,7 +906,7 @@ namespace RNGBot
                                             int a = votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1;
                                             votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1 = tempVar1;
                                             a -= tempVar1;
-                                            if (a != 0) { addPoints(user, a*100, "changevote"); }
+                                            if (a != 0) { addPoints(user, a * moneyPerVote, "changevote"); }
                                             votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int2 = int.Parse(tempVar2);
                                         }
                                     }
@@ -914,7 +920,7 @@ namespace RNGBot
                                         }
                                         if (!fail)
                                         {
-                                            addPoints(user, (votingList[a].Int1 + 2)*100, "refundvote");
+                                            addPoints(user, (votingList[a].Int1 + 2) * moneyPerVote, "refundvote");
                                             votingList.RemoveAt(a);
                                         }
                                     }
