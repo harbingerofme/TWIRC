@@ -514,6 +514,18 @@ namespace RNGBot
             RNGLuaServer.send_to_all("SAVE","0");
         }
 
+        private void btn_Leaderboard_Click(object sender, EventArgs e)
+        {
+            highWindow = new highscores();
+            highWindow.Show();
+        }
+
+        private void btn_voteTimer_Click(object sender, EventArgs e)
+        {
+            timerWindow = new votetimer(HB);
+            timerWindow.Show();
+        }
+
 
         
     }
