@@ -899,7 +899,7 @@ namespace RNGBot
                                         {
                                             votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
                                             addPoints(user, (2 - tempVar1)*moneyPerVote, "vote");
-                                            addAllTime(user,100);
+                                            addAllTime(user,moneyPerVote);
                                         }
                                         else
                                         {
