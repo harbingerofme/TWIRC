@@ -95,6 +95,7 @@
     <Compile Include="RNGWindow.Designer.cs">
       <DependentUpon>RNGWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="votetimer.cs">
       <SubType>Form</SubType>
     </Compile>
