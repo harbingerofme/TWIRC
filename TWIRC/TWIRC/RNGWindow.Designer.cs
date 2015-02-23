@@ -41,8 +41,6 @@
             this.text_log = new System.Windows.Forms.TextBox();
             this.timer_RNG = new System.Windows.Forms.Timer(this.components);
             this.txt_RNGInterval = new System.Windows.Forms.TextBox();
-            this.btn_ClearLog = new System.Windows.Forms.Button();
-            this.btn_DumpLog = new System.Windows.Forms.Button();
             this.timer_RNG_bias = new System.Windows.Forms.Timer(this.components);
             this.btn_DownLeft = new System.Windows.Forms.Button();
             this.btn_Down = new System.Windows.Forms.Button();
@@ -62,6 +60,8 @@
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.btn_dumpBiases = new System.Windows.Forms.Button();
             this.timer_save = new System.Windows.Forms.Timer(this.components);
+            this.btn_Leaderboard = new System.Windows.Forms.Button();
+            this.btn_voteTimer = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -69,7 +69,7 @@
             // 
             this.btn_KillClients.Location = new System.Drawing.Point(0, 271);
             this.btn_KillClients.Name = "btn_KillClients";
-            this.btn_KillClients.Size = new System.Drawing.Size(75, 24);
+            this.btn_KillClients.Size = new System.Drawing.Size(77, 24);
             this.btn_KillClients.TabIndex = 0;
             this.btn_KillClients.Text = "Kill Clients";
             this.btn_KillClients.UseVisualStyleBackColor = true;
@@ -77,9 +77,10 @@
             // 
             // btn_RestartIRC
             // 
-            this.btn_RestartIRC.Location = new System.Drawing.Point(338, 273);
+            this.btn_RestartIRC.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_RestartIRC.Location = new System.Drawing.Point(255, 361);
             this.btn_RestartIRC.Name = "btn_RestartIRC";
-            this.btn_RestartIRC.Size = new System.Drawing.Size(77, 24);
+            this.btn_RestartIRC.Size = new System.Drawing.Size(62, 22);
             this.btn_RestartIRC.TabIndex = 2;
             this.btn_RestartIRC.Text = "Restart IRC";
             this.btn_RestartIRC.UseVisualStyleBackColor = true;
@@ -87,9 +88,9 @@
             // 
             // btn_Decay
             // 
-            this.btn_Decay.Location = new System.Drawing.Point(217, 273);
+            this.btn_Decay.Location = new System.Drawing.Point(196, 272);
             this.btn_Decay.Name = "btn_Decay";
-            this.btn_Decay.Size = new System.Drawing.Size(47, 23);
+            this.btn_Decay.Size = new System.Drawing.Size(49, 23);
             this.btn_Decay.TabIndex = 3;
             this.btn_Decay.Text = "Decay";
             this.btn_Decay.UseVisualStyleBackColor = true;
@@ -164,32 +165,12 @@
             // 
             // txt_RNGInterval
             // 
-            this.txt_RNGInterval.Location = new System.Drawing.Point(171, 274);
+            this.txt_RNGInterval.Location = new System.Drawing.Point(166, 273);
             this.txt_RNGInterval.Name = "txt_RNGInterval";
-            this.txt_RNGInterval.Size = new System.Drawing.Size(40, 20);
+            this.txt_RNGInterval.Size = new System.Drawing.Size(24, 20);
             this.txt_RNGInterval.TabIndex = 17;
             this.txt_RNGInterval.Text = "40";
             this.txt_RNGInterval.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_RNGInterval_KeyDown);
-            // 
-            // btn_ClearLog
-            // 
-            this.btn_ClearLog.Location = new System.Drawing.Point(352, 303);
-            this.btn_ClearLog.Name = "btn_ClearLog";
-            this.btn_ClearLog.Size = new System.Drawing.Size(62, 24);
-            this.btn_ClearLog.TabIndex = 18;
-            this.btn_ClearLog.Text = "Clear Log";
-            this.btn_ClearLog.UseVisualStyleBackColor = true;
-            this.btn_ClearLog.Click += new System.EventHandler(this.btn_ClearLog_Click);
-            // 
-            // btn_DumpLog
-            // 
-            this.btn_DumpLog.Location = new System.Drawing.Point(270, 273);
-            this.btn_DumpLog.Name = "btn_DumpLog";
-            this.btn_DumpLog.Size = new System.Drawing.Size(62, 23);
-            this.btn_DumpLog.TabIndex = 19;
-            this.btn_DumpLog.Text = "DumpLog";
-            this.btn_DumpLog.UseVisualStyleBackColor = true;
-            this.btn_DumpLog.Click += new System.EventHandler(this.btn_DumpLog_Click);
             // 
             // timer_RNG_bias
             // 
@@ -322,9 +303,9 @@
             // 
             // txt_Halp
             // 
-            this.txt_Halp.Location = new System.Drawing.Point(352, 361);
+            this.txt_Halp.Location = new System.Drawing.Point(339, 362);
             this.txt_Halp.Name = "txt_Halp";
-            this.txt_Halp.Size = new System.Drawing.Size(62, 23);
+            this.txt_Halp.Size = new System.Drawing.Size(76, 22);
             this.txt_Halp.TabIndex = 32;
             this.txt_Halp.Text = "Halp";
             this.txt_Halp.UseVisualStyleBackColor = true;
@@ -343,7 +324,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(89, 275);
+            this.checkBox1.Location = new System.Drawing.Point(88, 275);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(72, 17);
             this.checkBox1.TabIndex = 34;
@@ -367,11 +348,33 @@
             this.timer_save.Interval = 3600000;
             this.timer_save.Tick += new System.EventHandler(this.timer_save_Tick);
             // 
+            // btn_Leaderboard
+            // 
+            this.btn_Leaderboard.Location = new System.Drawing.Point(339, 271);
+            this.btn_Leaderboard.Name = "btn_Leaderboard";
+            this.btn_Leaderboard.Size = new System.Drawing.Size(76, 35);
+            this.btn_Leaderboard.TabIndex = 36;
+            this.btn_Leaderboard.Text = "Show Leaderboard";
+            this.btn_Leaderboard.UseVisualStyleBackColor = true;
+            this.btn_Leaderboard.Click += new System.EventHandler(this.btn_Leaderboard_Click);
+            // 
+            // btn_voteTimer
+            // 
+            this.btn_voteTimer.Location = new System.Drawing.Point(339, 312);
+            this.btn_voteTimer.Name = "btn_voteTimer";
+            this.btn_voteTimer.Size = new System.Drawing.Size(76, 35);
+            this.btn_voteTimer.TabIndex = 37;
+            this.btn_voteTimer.Text = "Show Vote Timer";
+            this.btn_voteTimer.UseVisualStyleBackColor = true;
+            this.btn_voteTimer.Click += new System.EventHandler(this.btn_voteTimer_Click);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+            this.Controls.Add(this.btn_voteTimer);
+            this.Controls.Add(this.btn_Leaderboard);
             this.Controls.Add(this.btn_dumpBiases);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.button1);
@@ -388,8 +391,6 @@
             this.Controls.Add(this.btn_DownRight);
             this.Controls.Add(this.btn_Down);
             this.Controls.Add(this.btn_DownLeft);
-            this.Controls.Add(this.btn_DumpLog);
-            this.Controls.Add(this.btn_ClearLog);
             this.Controls.Add(this.txt_RNGInterval);
             this.Controls.Add(this.txt_Command);
             this.Controls.Add(this.text_log);
@@ -424,8 +425,6 @@
         private System.Windows.Forms.Timer timer_RNG;
         private System.Windows.Forms.TextBox txt_RNGInterval;
         private System.Windows.Forms.ToolStripStatusLabel ts_rngesus;
-        private System.Windows.Forms.Button btn_ClearLog;
-        private System.Windows.Forms.Button btn_DumpLog;
         private System.Windows.Forms.Timer timer_RNG_bias;
         private System.Windows.Forms.Button btn_DownLeft;
         private System.Windows.Forms.Button btn_Down;
@@ -445,6 +444,8 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Button btn_dumpBiases;
         private System.Windows.Forms.Timer timer_save;
+        private System.Windows.Forms.Button btn_Leaderboard;
+        private System.Windows.Forms.Button btn_voteTimer;
     }
 }
 
