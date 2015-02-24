@@ -58,14 +58,12 @@ namespace TWIRC
             RNGesus = rngmasher;
 
             biasWindow = newbiaswindow;
-
+#if !OFFLINE
             highWindow = new highscores();
             highWindow.Show();
             timerWindow = new votetimer(bot);
             timerWindow.Show();
-
-
-#if !OFFLINE            
+            
             HB = bot;
             HBtimerList.Add(HB.voteTimer);
             HBtimerList.Add(HB.voteTimer2);

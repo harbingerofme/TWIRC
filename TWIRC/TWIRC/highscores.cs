@@ -68,16 +68,17 @@ namespace TWIRC
                 nameList.Add(l1);
                 dataList.Add(l2);
             }
-            nameList[0].ForeColor = Color.Red;
-            nameList[1].ForeColor = Color.Orange;
-            nameList[2].ForeColor = Color.Yellow;
-            nameList[3].ForeColor = Color.Green;
-            nameList[4].ForeColor = Color.Green;
-            dataList[0].ForeColor = Color.Red;
-            dataList[1].ForeColor = Color.Orange;
-            dataList[2].ForeColor = Color.Yellow;
-            dataList[3].ForeColor = Color.Green;
-            dataList[4].ForeColor = Color.Green;
+            //FF9900 -> FFFF00 -> 61FF00 -> 00FF21 -> 00FFBB‏
+            nameList[0].ForeColor = Color.FromArgb(255,153,0);
+            nameList[1].ForeColor = Color.FromArgb(255, 255, 0);
+            nameList[2].ForeColor = Color.FromArgb(97, 255, 0);
+            nameList[3].ForeColor = Color.FromArgb(0, 255, 33);
+            nameList[4].ForeColor = Color.FromArgb(0,255,187);
+            dataList[0].ForeColor = Color.FromArgb(255, 153, 0);
+            dataList[1].ForeColor = Color.FromArgb(255, 255, 0);
+            dataList[2].ForeColor = Color.FromArgb(97, 255, 0);
+            dataList[3].ForeColor = Color.FromArgb(0, 255, 33);
+            dataList[4].ForeColor = Color.FromArgb(0, 255, 187);
 
             assignData();
             
@@ -129,7 +130,6 @@ namespace TWIRC
                 }
                 if (type == 3)
                 {
-#if !OFFLINE
                     dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                     dbConn.Open();
                     sqldr = new SQLiteCommand("SELECT name, COUNT(*) FROM (SELECT name FROM transactions WHERE item = 'background') GROUP BY name ORDER BY COUNT(*) DESC LIMIT 7;", dbConn).ExecuteReader();
@@ -139,7 +139,7 @@ namespace TWIRC
                     }
                     if (data.Count < 7) { type = 4; data = new List<intStr>(); }
                     dbConn.Close();
-#endif
+
                 }
                 if (type == 4)
                 {
