@@ -252,7 +252,7 @@ namespace TWIRC
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
            
             hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
-            hardList.Add(new hardCom("!delcom", 3, 1));//delcom
+            hardList.Add(new hardCom("!dc", 3, 1));//delcom
             hardList.Add(new hardCom("!editcom", 3, 2));//editcom
             hardList.Add(new hardCom("!addalias", 3, 2));//addalias
             hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
@@ -601,7 +601,7 @@ namespace TWIRC
                                     sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
-                        case "!delcom"://delete command
+                        case "!dc"://delete command
                             fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
