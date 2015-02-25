@@ -366,7 +366,7 @@ namespace TWIRC
             while (!fail)
             {
                 a++;
-                if (!File.Exists(backgroundPATH + "background_" + a + ".png") && !File.Exists(backgroundPATH + "background_" + a + ".gif"))
+                if (!File.Exists(backgroundPATH + "background_" + a + ".png") && !File.Exists(backgroundPATH + "background_" + a + ".gif") && !File.Exists(backgroundPATH + "background_" + a + ".jpg"))
                 {
                     fail = true;
                 }
@@ -1011,15 +1011,32 @@ namespace TWIRC
                                     {
                                         if (getPoints(user) >= 500)
                                         {
+                                            bool succeeded = false;
                                             try
                                             {
                                                 File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.gif", true);
+                                                succeeded = true;
+                                            } catch{}
+                                            try
+                                            {
+                                                File.Copy(backgroundPATH + "background_" + str[1] + ".gif", backgroundPATH + "background.gif", true);
+                                                succeeded = true;
+                                            }      catch { }
+                                            try
+                                            {
+                                                File.Copy(backgroundPATH + "background_" + str[1] + ".jpg", backgroundPATH + "background.gif", true);
+                                                succeeded = true;
+                                            }
+                                            catch { }
+                                            if(!succeeded)
+                                            {
+
+                                                sendMess(channel, "Something went wrong, no PokéDollars deducted.");
+                                            }
+                                            else
+                                            {
                                                 addPoints(user, -500, "background");
                                                 sendMess(channel, "Background changed! 500 PokéDollars have been subtracted from your account.");
-                                            }
-                                            catch
-                                            {
-                                                sendMess(channel, "Something went wrong, no PokéDollars deducted.");
                                             }
                                         }
                                         else
