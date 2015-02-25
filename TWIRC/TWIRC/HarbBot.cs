@@ -366,7 +366,10 @@ namespace TWIRC
             while (!fail)
             {
                 a++;
-                fail = !File.Exists(backgroundPATH + "background_" + a + ".png");
+                if (!File.Exists(backgroundPATH + "background_" + a + ".png") && !File.Exists(backgroundPATH + "background_" + a + ".gif"))
+                {
+                    fail = true;
+                }
             }
             backgrounds = a;
         }
@@ -1010,7 +1013,7 @@ namespace TWIRC
                                         {
                                             try
                                             {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.png", true);
+                                                File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.gif", true);
                                                 addPoints(user, -500, "background");
                                                 sendMess(channel, "Background changed! 500 PokéDollars have been subtracted from your account.");
                                             }
