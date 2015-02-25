@@ -888,7 +888,7 @@ namespace TWIRC
                                             logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
                                         }
                                     }
-                                    if (tempVar1 - 1 <= getPoints(user)/100 && tempVar1 != 0)
+                                    if (tempVar1 - 1 <= getPoints(user)/moneyPerVote && tempVar1 != 0)
                                     {
                                         fail = false;
                                         foreach (intIntStr IS in votingList)
