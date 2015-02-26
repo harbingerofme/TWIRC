@@ -286,6 +286,8 @@ namespace TWIRC
             //hardList.Add(new hardCom("!seriousmode",3,1);
             hardList.Add(new hardCom("!save", 3, 0));
             hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
+            hardList.Add(new hardCom("!givemoney", 0, 1,3600));
+            hardList.Add(new hardCom("!giveball", 0, 1,3600));
             
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -390,7 +392,7 @@ namespace TWIRC
                     string str = "Voting is over.";
                     double[] tobebias = biasControl.getDefaultBias();
                     double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
-                    string serverput = "";
+                    string serverput = ""; int highest = 0, id = 0;
                     if (votingList.Count > 0)
                     {
                         int a = 0;
@@ -407,19 +409,24 @@ namespace TWIRC
                         }
                         for (int i = 0; i < 7; i++)
                         {
+                            if (values[i] > highest)
+                            {
+                                id = i;
+                            }
+                            serverput += values[i] + " ";
                             values[i] = (values[i] * maxBiasDiff) / (a * 10);
                             tobebias[i] += values[i];
-                            serverput += " "+values[i].ToString();
+                            
                         }
-                        str += " Processed " + a + " votes from " + votingList.Count + " users.";
+                        str += " Processed " + a + " votes from " + votingList.Count + " users. ";
                         biasControl.setBias(tobebias);
-                        luaServer.send_to_all("SETBIAS",serverput.Substring(1));
+                        luaServer.send_to_all("SETBIAS","MOSTLY "+id);
                     }
                     else
                     {
                         biasControl.doDecay();
                     }
-                    str += " Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes.";
+                    str += " Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes. ("+serverput+")";
                     votingList.Clear();
                     lastVoteTime = getNow();
                     voteStatus = 0;
@@ -787,7 +794,7 @@ namespace TWIRC
                             break;
 ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
                         case "!setbias":
-                            double[] tobebias = new double[7];fail = false;tempVar2 ="";
+                            double[] tobebias = new double[7];fail = false;
                             for (int a = 1; a < 8;a++ )
                             {
                                 str[a] = str[a].Replace(',','.');//So people for who 0,1 == 0.1 also can do stuff (like me)
@@ -799,13 +806,12 @@ namespace TWIRC
                                 else
                                 {
                                     tobebias[a-1]= double.Parse(str[a]);
-                                    tempVar2 += " " + str[a];
                                 }
                             }
                                 if (!fail)
                                 {
                                     biasControl.setBias(tobebias);
-                                    luaServer.send_to_all("SETBIAS", "" + tempVar2);
+                                    luaServer.send_to_all("SETBIAS", "MANUAL");
                                     sendMess(channel,User + "-> Bias set!");
                                 }
                                 else
@@ -875,7 +881,7 @@ namespace TWIRC
                                 tempVar2 = tempVar2.ToLower().Replace("b", "11");
                                 tempVar2 = tempVar2.ToLower().Replace("movement", "12");
 
-                                if (Regex.Match(tempVar2, @"^([0-9ab])|(1[0-2])$").Success)
+                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-2])$").Success)
                                 {
                                     
                                     tempVar1 = 1;
@@ -999,9 +1005,58 @@ namespace TWIRC
                             sendMess(channel, User + "-> Saved game with parameter '"+tempVar2+"'.");
                             break;
                         case "!commands":
-                            sendMess(channel, User + "-> commands are located at "+commandsURL+" . If a command doesn't appear, it's because it's hardcoded, or newly added. This list is updated every 30 minutes.");
+                            sendMess(channel, User + "-> commands are located at "+commandsURL+" .");
+                            break;                     
+                        case "!givemoney":
+                            bool givemoneysucces = false;
+                            if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
+                            {
+                                if (int.Parse(str[1])*2 <= getPoints(user))
+                                {
+                                    addPoints(user, int.Parse(str[1]) * -2, "Money to game");
+                                    luaServer.send_to_all("ADDMONEY",str[1]);
+                                    sendMess(channel, User+" converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokéDollar for ?birja.");
+                                    givemoneysucces = true;
+                                }
+                                else
+                                {
+                                    sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "Not a (valid) number.");
+                            }
+                            if (!givemoneysucces)
+                            {
+                                h.removeFromCD(user);
+                            }
                             break;
-
+                        case "!giveball":
+                            bool giveballsucces = false;
+                            if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
+                            {
+                                if (int.Parse(str[1])*1500 <= getPoints(user))
+                                {
+                                    addPoints(user, int.Parse(str[1]) * -1500, "ball to game");
+                                    luaServer.send_to_all("ADDBALLS", str[1]);
+                                    sendMess(channel, User+" gave ?birja some pokéballs.");
+                                    giveballsucces = true;
+                                }
+                                else
+                                {
+                                    sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "Not a (valid) number.");
+                            }
+                            if (!giveballsucces)
+                            {
+                                h.removeFromCD(user);
+                            }
+                            break;
                         case "!background":
                             if (backgrounds != 0)
                             {
@@ -1036,17 +1091,17 @@ namespace TWIRC
                                             else
                                             {
                                                 addPoints(user, -500, "background");
-                                                sendMess(channel, "Background changed! 500 PokéDollars have been subtracted from your account.");
+                                                sendMess(channel, User + " changed the background of the stream for 500 PokéDollars!");
                                             }
                                         }
                                         else
                                         {
-                                            sendMess(channel,"You have insufficient funds for this. Please round up some more.");
+                                            sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
                                         }
                                     }
                                     else
                                     {
-                                        sendMess(channel, "I do not have any backgrounds with that number, please try a different one.");
+                                        sendMess(channel, User + "-> I do not have any backgrounds with that number, please try a different one.");
                                     }
                                 }
                                 else

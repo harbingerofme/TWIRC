@@ -37,17 +37,17 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         public string def;
         public string command;
         public string resp;
-        public luaCom(string kw, string cm,string response)
+        public luaCom(string kw, int al,string cm,string response)
         {
-            authLevel = 3;
+            authLevel = al;
             keyword = kw;
             def = "";
             resp = response;
             command = cm;
         }
-        public luaCom(string kw, string cm, string defult, string response)
+        public luaCom(string kw, int al ,string cm, string defult, string response)
         {
-            authLevel = 3;
+            authLevel = al;
             keyword = kw;
             def = defult;
             resp = response;
@@ -118,6 +118,13 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         public string returnKeyword()
         {
             return keyword;
+        }
+        public void removeFromCD(string name)
+        {
+            foreach (intStr IS in cdlist)
+            {
+                if (IS.s() == name) { cdlist.Remove(IS); break; }
+            }
         }
     }
 

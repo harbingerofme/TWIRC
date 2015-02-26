@@ -177,6 +177,7 @@ namespace TWIRC
                                 if (temp[b].Int > highest)
                                 {
                                     id = b;
+                                    highest = temp[b].Int;
                                 }
                             }
                             data.Add(temp[id]);
