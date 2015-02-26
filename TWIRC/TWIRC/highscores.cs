@@ -245,7 +245,7 @@ namespace TWIRC
                         name = name.Substring(0, 12) + "...";
                     }
                     dataList[a].Text = "";
-                    if (type == 0 || type == 2 || type == 3) { dataList[a].Text += "$"; }
+                    if (type == 0 || type == 2) { dataList[a].Text += "$"; }
                     dataList[a].Text += data[a].Int;
                 }
                 leaderboardsType.Text = typeText[type];
