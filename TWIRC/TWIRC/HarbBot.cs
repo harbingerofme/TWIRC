@@ -420,7 +420,7 @@ namespace TWIRC
                         }
                         str += " Processed " + a + " votes from " + votingList.Count + " users. ";
                         biasControl.setBias(tobebias);
-                        luaServer.send_to_all("SETBIAS","MOSTLY "+id);
+                        luaServer.send_to_all("SETBIAS",tobebias[0]+" "+tobebias[1]+" "+tobebias[2]+" "+tobebias[3]+" "+tobebias[4]+" "+tobebias[5]+" "+tobebias[6]);
                     }
                     else
                     {
