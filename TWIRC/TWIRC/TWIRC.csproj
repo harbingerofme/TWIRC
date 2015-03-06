@@ -120,7 +120,6 @@
     <Compile Include="SmartIrc4net\IrcConnection\IrcProperties.cs" />
     <Compile Include="SmartIrc4net\IrcConnection\IrcTcpClient.cs" />
     <Compile Include="SmartIrc4net\Logger.cs" />
-    <Compile Include="VoteHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
