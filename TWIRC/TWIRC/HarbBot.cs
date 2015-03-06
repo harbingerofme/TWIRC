@@ -20,8 +20,6 @@ namespace TWIRC
         public bool running = true;
         SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
-        public ButtonMasher biasControl;
-        public LuaServer luaServer;
 
         //important stuff
         public string bot_name, oauth, channels;
@@ -57,16 +55,13 @@ namespace TWIRC
 
         public Thread one;
 
-        public HarbBot(Logger logLogger, ButtonMasher buttMuncher,LuaServer luaSurfer)
+        public HarbBot(Logger logLogger)
         {
             lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
-
-            biasControl = buttMuncher;
-            luaServer = luaSurfer;
 
             newBias.Add(new double[7] { 0,0,0,0,0,0,5 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
@@ -108,7 +103,7 @@ namespace TWIRC
                 channels = "#rngplayspokemon";
                 
                 globalCooldown = 20; 
-                antispam = true;
+                antispam = false;
                 oauth = "oauth:773yvysvxvdqwxlobr0rk17ce4fi4d";
                 logLevel = 2;
                 progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
@@ -131,7 +126,6 @@ namespace TWIRC
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
@@ -172,18 +166,6 @@ namespace TWIRC
                 chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                 chatDbConn.Open();
             }
-            if (!File.Exists("buttons.sqlite"))
-            {
-                SQLiteConnection.CreateFile("buttons.sqlite");
-                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
-                butDbConn.Open();
-                new SQLiteCommand("CREATE TABLE buttons (id INT, left INT, down INT, up INT, right INT, a INT, b INT, start INT);", butDbConn).ExecuteNonQuery();
-            }
-            else
-            {
-                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
-                butDbConn.Open();
-            }
 
             if(!File.Exists("TLDs.twirc"))
             {
@@ -217,22 +199,6 @@ namespace TWIRC
                 logger.WriteLine("IRC: Loaded " + aliList.Count() + " aliases!");
             }
 
-            rdr =  new SQLiteCommand("SELECT * FROM biassettings;",dbConn).ExecuteReader();
-            while(rdr.Read())
-            {
-                timeBetweenVotes = rdr.GetInt32(0);
-                timeToVote = rdr.GetInt32(1);
-                List<double> tempDoubleArray = new List<double>();
-                string[] tempStringArray = rdr.GetString(2).Split(':');
-                foreach(string s in tempStringArray)
-                {
-                    tempDoubleArray.Add(double.Parse(s));
-                }
-                biasControl.setDefaultBias(tempDoubleArray.ToArray());
-                maxBiasDiff = rdr.GetDouble(3);
-                moneyPerVote = rdr.GetInt32(4);
-            }
-
             rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
             while(rdr.Read())
             {
@@ -251,6 +217,8 @@ namespace TWIRC
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
            
+            //You'll want to change these.
+
             hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!dc", 3, 1));//delcom
             hardList.Add(new hardCom("!editcom", 3, 2));//editcom
@@ -263,54 +231,19 @@ namespace TWIRC
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
             hardList.Add(new hardCom("!rank", 0, 0,60));
-            if (antispam)
-            {
-                hardList.Add(new hardCom("!permit", 2, 1));
-                hardList.Add(new hardCom("!whitelist", 0, 0));
-            }
             hardList.Add(new hardCom("!commands", 0, 0, 120));
 
-            //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
-            hardList.Add(new hardCom("!setbias",4,7));
-            hardList.Add(new hardCom("!setdefaultbias",4,7));
-            hardList.Add(new hardCom("!setbiasmaxdiff", 4, 1));
-            hardList.Add(new hardCom("!resetbias", 4, 0));
-            hardList.Add(new hardCom("!bias",0,1));
-            hardList.Add(new hardCom("!balance", 0, 0,60));
-            hardList.Add(new hardCom("!addlog", 0, 1,5));
-            hardList.Add(new hardCom("!setpoints",4,2));
-            hardList.Add(new hardCom("!voting", 3, 1));
-            //hardList.Add(new hardCom("!maintenance", 3, 1));
-            hardList.Add(new hardCom("!background",0,1));
-            //hardList.Add(new hardCom("!song",0,1));
-            //hardList.Add(new hardCom("!seriousmode",3,1);
-            hardList.Add(new hardCom("!save", 3, 0));
-            hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
-            hardList.Add(new hardCom("!givemoney", 0, 1,3600));
-            hardList.Add(new hardCom("!giveball", 0, 1,3600));
-            
-            /*
-            //sayingsbot overrides, we might add these eventually            
+            //sayingsbot things, we might add these eventually            
             hardList.Add(new hardCom("!whois",0,1,20));
             hardList.Add(new hardCom("!editme",1,1));
             hardList.Add(new hardCom("!edituser",3,2));
             hardList.Add(new hardCom("!classic",0,1,20));
             hardList.Add(new hardCom("!addclassic",2,2));
             hardList.Add(new hardCom("!delclassic",2,2));
-            */
 
             one = new Thread(connection);
             one.Name = "RNGPPBOT IRC CONNECTION";
             one.IsBackground = true;
-              
-            voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
-            voteTimer.Elapsed += voteTimer_Elapsed;
-            voteTimer.AutoReset = false;
-            voteTimer.Start();
-
-            voteTimer2 = new System.Timers.Timer(timeToVote*1000);
-            voteTimer2.AutoReset = false;
-            voteTimer2.Elapsed += voteTimer_Elapsed;
 
             saveTimer_Elapsed(null, null);
 
@@ -319,8 +252,8 @@ namespace TWIRC
             saveTimer.Elapsed += saveTimer_Elapsed;
             saveTimer.Start();
             
-
-            checkBackgrounds();
+            //decrepated
+            //checkBackgrounds();
 
             try
             {
@@ -331,6 +264,8 @@ namespace TWIRC
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            /*write here what you want to save, I've left the previous one here.
+             * 
             writeFile(commandsPATH, "<DOCTYPE html><head><title>RNGPPBot commands</title><h1>RNGPPBot commands</h1></head>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.<table border='1px' cellspacing='0px'><tr><td><b>keyword</b></td><td><b>level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td><td><b>output<b></td></tr>");
             foreach (command c in comlist)
             {
@@ -347,6 +282,7 @@ namespace TWIRC
             s += ");";
             new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
             biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+             */
         }
 
         void connection()
@@ -362,6 +298,7 @@ namespace TWIRC
             checkCommand(channels, channels.Substring(1), filter(message));//I guess?
         }
 
+        /*
         void checkBackgrounds()
         {
             bool fail = false; int a = -1;
@@ -435,6 +372,7 @@ namespace TWIRC
                 }
             }
         }
+         */
 
         public void reconnect()
         {
@@ -792,335 +730,20 @@ namespace TWIRC
                         case "!dellua"://<keyword>
 
                             break;
-///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
-                        case "!setbias":
-                            double[] tobebias = new double[7];fail = false;
-                            for (int a = 1; a < 8;a++ )
-                            {
-                                str[a] = str[a].Replace(',','.');//So people for who 0,1 == 0.1 also can do stuff (like me)
-                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
-                                {
-                                    fail = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    tobebias[a-1]= double.Parse(str[a]);
-                                }
-                            }
-                                if (!fail)
-                                {
-                                    biasControl.setBias(tobebias);
-                                    luaServer.send_to_all("SETBIAS", "MANUAL");
-                                    sendMess(channel,User + "-> Bias set!");
-                                }
-                                else
-                                {
-                                    sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
-                                }
-                            break;
-                        case "!setdefaultbias":
-                            double[] tobedefaultbias = new double[7]; fail = false;
-                            for (int a = 1; a < 8; a++)
-                            {
-                                str[a] = str[a].Replace(',', '.');//So people for who 0,1 == 0.1 also can do stuff (like me)
-                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
-                                {
-                                    fail = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    tobedefaultbias[a - 1] = double.Parse(str[a]);
-                                }
-                            }
-                            if (!fail)
-                            {
-                                biasControl.setDefaultBias(tobedefaultbias);
-                                string sqlStr = "UPDATE biassettings SET def='";
-                                for (int a = 0; a < 7; a++)
-                                {
-                                    sqlStr += tobedefaultbias[a].ToString();
-                                    if (a != 6) { sqlStr += ":"; }
-                                }
-                                sqlStr += "';";
-                                new SQLiteCommand(sqlStr, dbConn).ExecuteNonQuery();
-                                sendMess(channel, User + "-> Default bias set! I really hope you know what you are doing.");
-                            }
-                            else
-                            {
-                                sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
-                            }
-                            break;
-                        case "!setbiasmaxdiff":
-                            str[1] = str[1].Replace(",",".");//make it accessible for dutchies ( we use commas to define floating points here (and dots for thousands).)
-                            if (Regex.Match(str[1], @"^([01]\.[0-9]{1,9})|(1)").Success)
-                            {
-                                maxBiasDiff = double.Parse(str[1]);
-                                new SQLiteCommand("UPDATE biassettings SET maxdiff='"+ maxBiasDiff+"';", dbConn).ExecuteNonQuery();
-                                sendMess(channel, User + "-> Max bias difference updated, this will take effect after the next vote.");
-                            }else{
-                                sendMess(channel, User + "-> Value in incorrect format, no changes made.");
-                            }
-                            break;
-                        case "!bias":
-                            if (voteStatus == 1)
-                            {
-                                tempVar2 = str[1];
-                                tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
-                                tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
-                                tempVar2 = tempVar2.ToLower().Replace("up", "8");
-                                tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
-                                tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
-                                tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
-                                tempVar2 = tempVar2.ToLower().Replace("down", "2");
-                                tempVar2 = tempVar2.ToLower().Replace("left", "4");
-                                tempVar2 = tempVar2.ToLower().Replace("right", "6");
-                                tempVar2 = tempVar2.ToLower().Replace("start", "0");
-                                tempVar2 = tempVar2.ToLower().Replace("a", "10");
-                                tempVar2 = tempVar2.ToLower().Replace("b", "11");
-                                tempVar2 = tempVar2.ToLower().Replace("movement", "12");
+                        case "!commands": //You'll want to change this.
+                            sendMess(channel, "");
+                            break;                    
+ 
 
-                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-2])$").Success)
-                                {
-                                    
-                                    tempVar1 = 1;
-                                    if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
-                                    {
-                                        try//don't trust this one bit.
-                                        {
-                                            tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
-                                        }
-                                        catch
-                                        {
-                                            fail = true;
-                                            logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
-                                        }
-                                    }
-                                    if (tempVar1 - 1 <= getPoints(user)/moneyPerVote && tempVar1 != 0)
-                                    {
-                                        fail = false;
-                                        foreach (intIntStr IS in votingList)
-                                        {
-                                            if (IS.Str == user) { fail = true; break; }
-                                        }
-                                        if (!fail)
-                                        {
-                                            votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
-                                            addPoints(user, (2 - tempVar1)*moneyPerVote, "vote");
-                                            addAllTime(user,moneyPerVote);
-                                        }
-                                        else
-                                        {
-                                            int a = votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1;
-                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1 = tempVar1;
-                                            a -= tempVar1;
-                                            if (a != 0) { addPoints(user, a * moneyPerVote, "changevote"); }
-                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int2 = int.Parse(tempVar2);
-                                        }
-                                    }
-                                    if (tempVar1 == 0)
-                                    {
-                                        fail = true; int a = 0;
-                                        foreach (intIntStr IS in votingList)
-                                        {
-                                            if (IS.Str == user) { fail = false; break; }
-                                            a++;
-                                        }
-                                        if (!fail)
-                                        {
-                                            addPoints(user, (votingList[a].Int1 + 2) * moneyPerVote, "refundvote");
-                                            votingList.RemoveAt(a);
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes)- getNow())/60 +1)+" minutes.");
-                            }
-                            break;
-                        case "!balance":
-                            tempVar1 = getPoints(user);tempVar2 = "";
-                            if (tempVar1 == 0)
-                            {
-                                tempVar2 = "zero";
-                            }
-                            else if (tempVar1 == 1||tempVar1 == -1)
-                            {
-                                tempVar2 = tempVar1+" PokéDollar";
-                            }
-                            else
-                            {
-                                tempVar2 = tempVar1+ " PokéDollars";
-                            }
-                            sendMess(channel, User+", your balance is "+tempVar2+".");
-                            break;
-                        case "!setpoints":
-                            sendMess(channel, "BUT " + user.ToUpper() + ", THAT'D BE CHEATING!");
-                            break;
 
-                        case "!addlog":
-                            appendFile(progressLogPATH,"\n" + getNowExtended() + " " + User + " " + str[1] + " " + str[2]);
-                            sendMess(channel,"Affirmative, " + User+"!");
-                            break;
-
-                        case "!resetbias":
-                            biasControl.setBias(biasControl.getDefaultBias());
-                            sendMess(channel, User + "-> Bias reset.");
-                            break;
-
-                        case "!voting":
-                            if (Regex.Match(str[1], @"^(1)|(on)|(true)|(yes)|(positive)$").Success)
-                            {
-                                if (voteStatus == -1)
-                                {
-                                    voteStatus = 1;
-                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
-                                    voteTimer2.Start();
-                                }
-                            }
-                            else
-                            {
-                                if(Regex.Match(str[1],@"^(0)|(off)|(false)|(no)|(negative)$").Success)
-                                {
-                                    if(voteStatus != -1)
-                                    {
-                                        voteStatus = -1;
-                                        sendMess(channel, "Voting disabled until bot or chat restart.");
-                                        try{voteTimer.Stop(); voteTimer2.Stop();}
-                                        catch{}
-                                    }
-                                }
-                            }
-                            break;
-
-                        case "!save":
-                            tempVar2 = "0";
-                            if (str.Count() > 1)
-                            {
-                                tempVar2 = str[1];
-                            }
-                            luaServer.send_to_all("SAVE", tempVar2);
-                            sendMess(channel, User + "-> Saved game with parameter '"+tempVar2+"'.");
-                            break;
-                        case "!commands":
-                            sendMess(channel, User + "-> commands are located at "+commandsURL+" .");
-                            break;                     
-                        case "!givemoney":
-                            bool givemoneysucces = false;
-                            if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
-                            {
-                                if (int.Parse(str[1])*2 <= getPoints(user))
-                                {
-                                    addPoints(user, int.Parse(str[1]) * -2, "Money to game");
-                                    luaServer.send_to_all("ADDMONEY",str[1]);
-                                    sendMess(channel, User+" converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokéDollar for ?birja.");
-                                    givemoneysucces = true;
-                                }
-                                else
-                                {
-                                    sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "Not a (valid) number.");
-                            }
-                            if (!givemoneysucces)
-                            {
-                                h.removeFromCD(user);
-                            }
-                            break;
-                        case "!giveball":
-                            bool giveballsucces = false;
-                            if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
-                            {
-                                if (int.Parse(str[1])*1500 <= getPoints(user))
-                                {
-                                    addPoints(user, int.Parse(str[1]) * -1500, "ball to game");
-                                    luaServer.send_to_all("ADDBALLS", str[1]);
-                                    sendMess(channel, User+" gave ?birja some pokéballs.");
-                                    giveballsucces = true;
-                                }
-                                else
-                                {
-                                    sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "Not a (valid) number.");
-                            }
-                            if (!giveballsucces)
-                            {
-                                h.removeFromCD(user);
-                            }
-                            break;
-                        case "!background":
-                            if (backgrounds != 0)
-                            {
-                                if (Regex.Match(str[1], @"^[1-9]([0-9]{1,9})?$").Success)
-                                {
-                                    if (int.Parse(str[1]) <= backgrounds && int.Parse(str[1]) > 0)
-                                    {
-                                        if (getPoints(user) >= 500)
-                                        {
-                                            bool succeeded = false;
-                                            try
-                                            {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            } catch{}
-                                            try
-                                            {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".gif", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            }      catch { }
-                                            try
-                                            {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".jpg", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            }
-                                            catch { }
-                                            if(!succeeded)
-                                            {
-
-                                                sendMess(channel, "Something went wrong, no PokéDollars deducted.");
-                                            }
-                                            else
-                                            {
-                                                addPoints(user, -500, "background");
-                                                sendMess(channel, User + " changed the background of the stream for 500 PokéDollars!");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        sendMess(channel, User + "-> I do not have any backgrounds with that number, please try a different one.");
-                                    }
-                                }
-                                else
-                                {
-                                    sendMess(channel, "That's not a valid number, sweetie. Try using (positive) integers?");
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "There are no backgrounds, WINSANE PLS!");
-                            }
-                            break;
+                            //insert your commands here.
                     }
                     break;
 
 
                 }
             }
-
+            //I guess you'd want to put something like this for classics, so I left it.
             if (!done)
             {
                 foreach (command c in comlist)//flexible commands
@@ -1373,6 +996,7 @@ namespace TWIRC
         }
         public void safe()//saves all data
         {
+            /* No clue what this is, should have been gone ages ago.
             string temp;
             temp = "";
             foreach (command c in comlist)
@@ -1393,7 +1017,7 @@ namespace TWIRC
                 string str = "UPDATE commands SET authlevel='" + c.getAuth() + "',count='" + c.getCount() + "',response='" + MySqlEscape(c.getResponse()) + "' WHERE keyword='" + c.getKey() + "'; ";
                 new SQLiteCommand(str , dbConn).ExecuteNonQuery();
             }
-
+            */
         }
 
         public static string MySqlEscape(string usString)
