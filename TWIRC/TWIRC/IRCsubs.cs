@@ -443,7 +443,7 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             foreach(string str1 in from){
                 if (input.StartsWith(str1 + " ") || input == str1)
                 {
-                    result = Regex.Replace(input, "^" + str1, to);
+                    result = to + input.Substring(str1.Length);
                 }
             }
             return result;
