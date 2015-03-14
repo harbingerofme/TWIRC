@@ -46,7 +46,7 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>TWIRC.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG_OFFLINE|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -67,6 +67,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="IniFile.cs" />
     <Compile Include="HarbBot.cs" />
     <Compile Include="IRCsubs.cs" />
     <Compile Include="Logger.cs" />

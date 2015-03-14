@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Timers;
 using System.Reflection;
+using System.Data.SQLite;
 
 
 namespace TWIRC
@@ -44,6 +45,14 @@ namespace TWIRC
            this.StartPosition = FormStartPosition.Manual;
            this.Location = Properties.Settings.Default.mainwindow_pos;
            ts_isconnected.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+           if (HB.silence)
+           {
+               this.ts_MatinenceLevel.Text = "On";
+           }
+           else
+           {
+               this.ts_MatinenceLevel.Text = "Off";
+           }
         }
 
          private void RNGWindow_FormClosed(object sender, FormClosedEventArgs e)
@@ -74,28 +83,9 @@ namespace TWIRC
 
         }
 
-        private void btn_KillClients_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_RNGesus_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void btn_RestartIRC_Click(object sender, EventArgs e)
         {
             HB.reconnect();
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-        }
-
-        private void ts_votestatus_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void btn_ClearLog_Click(object sender, EventArgs e)
@@ -106,116 +96,6 @@ namespace TWIRC
         private void btn_DumpLog_Click(object sender, EventArgs e)
         {
             RNGLogger.dumpLogger();
-        }
-
-        private void txt_RNGInterval_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Return)
-            {
-                int newinterval;
-                if (int.TryParse(txt_RNGInterval.Text, out newinterval))
-                {
-                    timer_RNG.Interval = newinterval;
-                }
-                else
-                {
-                    RNGLogger.WriteLine("Bad interval: " + txt_RNGInterval.Text + ", leaving unchanged at " + timer_RNG.Interval.ToString());
-                    txt_RNGInterval.Text = timer_RNG.Interval.ToString();
-                }
-
-
-                ts_rngesus.Text = "RNG=" + timer_RNG.Enabled.ToString();
-                RNGLogger.addLog("RNGTimer", 0, "enabled=" + timer_RNG.Enabled.ToString() + ", interval=" + timer_RNG.Interval.ToString());
-
-            }
-        }
-
-        private void btn_Decay_Click(object sender, EventArgs e)
-        {
-            
-        }
-
-
-
-        private void timer_RNG_bias_Tick(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void btn_DownLeft_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_Down_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_DownRight_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_Left_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_Neutral_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_Right_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_UpLeft_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_Up_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_UpRight_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txt_Command_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txt_Command_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Return)
-            {
-                do_manual_command();
-            }
-        }
-
-        private void txt_Parameter_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Return)
-            {
-                do_manual_command();
-            }
-        }
-
-
-        private void do_manual_command()
-        { 
-        }
-
-        private void txt_Parameter_TextChanged(object sender, EventArgs e)
-        {
-
         }
 
 
@@ -258,47 +138,9 @@ namespace TWIRC
             }
         }
 
-        private void ts_counter0_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void timer_interface_stats_Tick(object sender, EventArgs e)
-        {
-        }
-
         private void txt_Halp_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Most buttons don't do anything anymore, yay!");
-        }
-
-        private void btn_Save_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void btn_dumpBiases_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void timer_save_Tick(object sender, EventArgs e)
-        {
-        }
-
-        private void btn_Leaderboard_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void btn_voteTimer_Click(object sender, EventArgs e)
-        {
         }
 
         private void RNGWindow_LocationChanged(object sender, EventArgs e)
@@ -307,7 +149,29 @@ namespace TWIRC
             Properties.Settings.Default.Save();
         }
 
+        public void setColourText(string txt)
+        {
+            this.ts_botColour.Text = txt;
+        }
 
-        
+        private void ts_Matinence_on_Click(object sender, EventArgs e)
+        {
+            HarbBot hb = Program.HarbBot;
+            hb.sendMess(hb.channels, "/me is going down for matinence, be back soon!");
+            Program.RNGLogger.WriteLine("Silence has been set to: On");
+            ts_MatinenceLevel.Text = "On";
+            hb.silence = true; 
+            new SQLiteCommand("UPDATE settings SET silence=1;", hb.dbConn).ExecuteNonQuery();
+        }
+
+        private void ts_Matinence_off_Click(object sender, EventArgs e)
+        {
+            HarbBot hb = Program.HarbBot;
+            hb.silence = false;
+            new SQLiteCommand("UPDATE settings SET silence=0;", hb.dbConn).ExecuteNonQuery();
+            Program.RNGLogger.WriteLine("Silence has been set to: Off");
+            ts_MatinenceLevel.Text = "Off";
+            hb.sendMess(hb.channels, "/me is back! Enjoy the cake!");
+        }
     }
 }

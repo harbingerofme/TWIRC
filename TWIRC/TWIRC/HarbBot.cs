@@ -10,6 +10,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Data;
 using System.Data.SQLite;
+using System.Windows.Forms;
 
 namespace TWIRC
 {
@@ -18,8 +19,8 @@ namespace TWIRC
         //really important stuff
         public static IrcClient irc = new IrcClient();
         public bool running = true;
-        SQLiteConnection dbConn,chatDbConn,butDbConn;
-        public Logger logger;
+        public SQLiteConnection dbConn,chatDbConn;
+        public static Logger logger;
 
         //important stuff
         public string bot_name, oauth, channels;
@@ -46,36 +47,19 @@ namespace TWIRC
         public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
         public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
-        //voting and bias related stuff.
-        public List<intIntStr> votingList = new List<intIntStr>();
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null;
-        public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
-
-        int moneyPerVote = 50;
+        private static Ini.IniFile configini = new Ini.IniFile(sysPath() + "\\config.ini");
+        private Ini.IniFile usersini = new Ini.IniFile(configini.IniReadValue("Paths","userini"));
+        private Ini.IniFile classini = new Ini.IniFile(configini.IniReadValue("Paths", "classicini"));
+        private Ini.IniFile quotesini = new Ini.IniFile(configini.IniReadValue("Paths", "quotesini"));
 
         public Thread one;
 
         public HarbBot(Logger logLogger)
         {
-            lastVoteTime = getNow();
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
-
-            newBias.Add(new double[7] { 0,0,0,0,0,0,5 });//0 (start)
-            newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
-            newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
-            newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
-            newBias.Add(new double[7] { 10,0,0,0,0,0,0 });//4
-            newBias.Add(new double[7] { 0,0,0,0,0,0,0 });//5
-            newBias.Add(new double[7] { 0,0,0,10,0,0,0 });//6
-            newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
-            newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
-            newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
-            newBias.Add(new double[7] { 0,0,0,0,9,0,0 });//10 (a)
-            newBias.Add(new double[7] { 0,0,0,0,0,8,0 });//11 (b)
-            newBias.Add(new double[7] { 2.5, 2.5, 2.5, 2.5, 0, 0, 0 });//12 (movement)
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -99,15 +83,14 @@ namespace TWIRC
                 {
                     logger.WriteLine("IRC: First time setup detected, making database");
                 }
-                bot_name = "rngppbot";
+                bot_name = "sayingsbot";
                 channels = "#rngplayspokemon";
                 
                 globalCooldown = 20; 
                 antispam = false;
-                oauth = "oauth:773yvysvxvdqwxlobr0rk17ce4fi4d";
+                oauth = "oauth:tpjq7tyuevo3nyre0ywdlklznmkh0r";
                 logLevel = 2;
-                progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
-                maxBiasDiff = 0.05;
+                progressLogPATH = @"C:\rnglog.txt";
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -219,39 +202,58 @@ namespace TWIRC
            
             //You'll want to change these.
 
-            hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
-            hardList.Add(new hardCom("!dc", 3, 1));//delcom
-            hardList.Add(new hardCom("!editcom", 3, 2));//editcom
-            hardList.Add(new hardCom("!addalias", 3, 2));//addalias
-            hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
+            hardList.Add(new hardCom("!sbaddcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
+            hardList.Add(new hardCom("!sbdelcom", 3, 1));//delcom
+            hardList.Add(new hardCom("!sbeditcom", 3, 2));//editcom
+            hardList.Add(new hardCom("!sbaddalias", 3, 2));//addalias
+            hardList.Add(new hardCom("!sbdelalias", 3, 1));//delete alias
             
-            hardList.Add(new hardCom("!set", 2, 2));//elevate another user
-            hardList.Add(new hardCom("!editcount", 3, 2));
+            hardList.Add(new hardCom("!sbset", 2, 2));//elevate another user
+            hardList.Add(new hardCom("!sbeditcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
-            hardList.Add(new hardCom("!silence",3,1));
-            hardList.Add(new hardCom("!rank", 0, 0,60));
+            hardList.Add(new hardCom("!sbsilence",3,1));
+            hardList.Add(new hardCom("!sbrank", 0, 0,60));
             hardList.Add(new hardCom("!commands", 0, 0, 120));
 
             //sayingsbot things, we might add these eventually            
-            hardList.Add(new hardCom("!whois",0,1,20));
-            hardList.Add(new hardCom("!editme",1,1));
-            hardList.Add(new hardCom("!edituser",3,2));
+            hardList.Add(new hardCom("!whoisuser",0,1,20));
+            hardList.Add(new hardCom("!editme",0,0));
+            hardList.Add(new hardCom("!edituser",3,1));
             hardList.Add(new hardCom("!classic",0,1,20));
-            hardList.Add(new hardCom("!addclassic",2,2));
-            hardList.Add(new hardCom("!delclassic",2,2));
+            hardList.Add(new hardCom("!addclassic",2,1));
+            hardList.Add(new hardCom("!delclassic",2,1));
+            hardList.Add(new hardCom("!givecake",0,1,20));
+            hardList.Add(new hardCom("!givepie", 0,1,20));
+            hardList.Add(new hardCom("!givea", 0, 1, 20));
+            hardList.Add(new hardCom("!givesome", 0, 1, 20));
+            hardList.Add(new hardCom("!kill", 0, 0, 20));
+            hardList.Add(new hardCom("!calluser", 0, 1, 20));
+            hardList.Add(new hardCom("!quotes",0,2,20));
+            hardList.Add(new hardCom("!count",3,0));
+            hardList.Add(new hardCom("!newcount",3,0));
+            hardList.Add(new hardCom("!points",0,0));
+            hardList.Add(new hardCom("!seepoints", 0, 1));
+            hardList.Add(new hardCom("!setpoints", 5, 2));
+            hardList.Add(new hardCom("!addpoints", 3, 2));
+            hardList.Add(new hardCom("!nc", 0, 1));
+            hardList.Add(new hardCom("!sbversion",0,0));
+            hardList.Add(new hardCom("!sbleaderboard",0,0));
 
             one = new Thread(connection);
-            one.Name = "RNGPPBOT IRC CONNECTION";
+            one.Name = "SAYINGSBOT IRC CONNECTION";
             one.IsBackground = true;
 
             saveTimer_Elapsed(null, null);
 
-            saveTimer = new System.Timers.Timer(30 * 60 * 1000);
-            saveTimer.AutoReset = true;
-            saveTimer.Elapsed += saveTimer_Elapsed;
-            saveTimer.Start();
-            
+            //saveTimer = new System.Timers.Timer(30 * 60 * 1000);
+            //saveTimer.AutoReset = true;
+            //saveTimer.Elapsed += saveTimer_Elapsed;
+            //saveTimer.Start();
+            System.Timers.Timer colourTimer = new System.Timers.Timer(10000);
+            colourTimer.AutoReset = true;
+            colourTimer.Elapsed += colourTimer_Elapsed;
+            colourTimer.Start();
             //decrepated
             //checkBackgrounds();
 
@@ -260,6 +262,33 @@ namespace TWIRC
                 irc.Connect("irc.twitch.tv", 6667);
             }
             catch { }
+        }
+
+        void colourTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Random rnd = new Random();
+            RNGWindow rngwin = Program.mainWindow;
+            int I;
+            I = rnd.Next(11);
+            if (I == 1)
+            {
+                I = rnd.Next(11);
+                switch (I)
+                {
+                    case 1: irc.RfcPrivmsg(channels, ".color blue"); rngwin.setColourText("Blue"); break;
+                    case 2: irc.RfcPrivmsg(channels, ".color green"); rngwin.setColourText("Green"); break;
+                    case 3: irc.RfcPrivmsg(channels, ".color orangered"); rngwin.setColourText("OrangeRed"); break;
+                    case 4: irc.RfcPrivmsg(channels, ".color red"); rngwin.setColourText("Red"); break;
+                    case 5: irc.RfcPrivmsg(channels, ".color GoldenRod"); rngwin.setColourText("GoldenRod"); break;
+                    case 6: irc.RfcPrivmsg(channels, ".color HotPink"); rngwin.setColourText("HotPink"); break;
+                    case 7: irc.RfcPrivmsg(channels, ".color SeaGreen"); rngwin.setColourText("SeaGreen"); break;
+                    case 8: irc.RfcPrivmsg(channels, ".color Chocolate"); rngwin.setColourText("Chocolate"); break;
+                    case 9: irc.RfcPrivmsg(channels, ".color FireBrick"); rngwin.setColourText("FireBrick"); break;
+                    case 10: irc.RfcPrivmsg(channels, ".color Coral"); rngwin.setColourText("Coral"); break;
+                }
+            }
+            
+            
         }
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -379,16 +408,12 @@ namespace TWIRC
             try
             {
                 one.Abort();
-                voteTimer.Stop();
-                voteTimer2.Stop();
                 irc.Disconnect();
             }
             catch { };
             try
             {
                 irc.Connect("irc.twitch.tv", 6667);
-                voteTimer2.Start();
-                voteTimer.Start();
             }
             catch (ConnectionException e)
             {
@@ -503,7 +528,7 @@ namespace TWIRC
                     if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
                     switch (h.returnKeyword())
                     {
-                        case "!addcom":
+                        case "!sbaddcom":
                                 fail = false;
 
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -524,7 +549,7 @@ namespace TWIRC
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
                             break;
-                        case "!editcom":
+                        case "!sbeditcom":
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -549,7 +574,7 @@ namespace TWIRC
                                     sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
-                        case "!dc"://delete command
+                        case "!sbdelcom"://delete command
                             fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -569,7 +594,7 @@ namespace TWIRC
                                     sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
                             break;
-                        case "!addalias": //add alias
+                        case "!sbaddalias": //add alias
                                 fail = false;
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
                                 foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
@@ -590,7 +615,7 @@ namespace TWIRC
                                     safe();
                                 }
                             break;
-                        case "!delalias":
+                        case "!sbdelalias":
                                 fail = true;
                                 foreach (ali c in aliList)
                                 {
@@ -607,7 +632,7 @@ namespace TWIRC
                                 }
                                 if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
-                        case "!set"://!set <name> <level>
+                        case "!sbset"://!set <name> <level>
                             if(!Regex.Match(str[1].ToLower(),@"^[a-z0-9_]+$").Success){sendMess(channel,"I'm sorry, "+User+". That's not a valid name.");}
                             else{
                             if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
@@ -622,7 +647,7 @@ namespace TWIRC
                             }
                             }
                             break;
-                        case "!editcount":
+                        case "!sbeditcount":
                                 fail = true;
                                 if (!Regex.Match(str[2], @"^\d+$").Success)
                                 {
@@ -658,14 +683,14 @@ namespace TWIRC
                                 }
 
                             break;
-                        case "!silence":
+                        case "!sbsilence":
                             if (Regex.Match(str[1], "(on)|(off)|1|0|(true)|(false)|(yes)|(no)", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
                             if (Regex.Match(str[1], "(on)|1|(true)|(yes)", RegexOptions.IgnoreCase).Success) { silence = true; new SQLiteCommand("UPDATE settings SET silence=1;", dbConn).ExecuteNonQuery(); }
                             if (Regex.Match(str[1], "(off)|0|(false)|(no)",RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
                             
                             break;
 
-                        case "!rank":
+                        case "!sbrank":
                             string text ="";
                             switch (auth)
                             {
@@ -679,7 +704,7 @@ namespace TWIRC
                             }
                             sendMess(channel, User + ", you are "+text+".");
                             break;
-
+                        /*
                         case "!permit":
                             if (antispam)
                             {
@@ -722,20 +747,210 @@ namespace TWIRC
                                 }
                                 sendMess(channel, tempVar2);
                             }
+                            break;*/
+                        case "!commands":
+                            sendMess(channel, User + " --> SayingsBot Commands at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#Commands");
                             break;
-
-                        case "!addlua"://<keyword> <command> [default (if parameter is omitted)]
-
+                        case "!givecake":
+                            sendMess(channel, User + " gives " + str[1] + " some cake!");
                             break;
-                        case "!dellua"://<keyword>
-
+                        case "!givepie":
+                            sendMess(channel, User + " gives " + str[1] + " some pie!");
                             break;
-                        case "!commands": //You'll want to change this.
-                            sendMess(channel, "");
-                            break;                    
- 
+                        case "!givea":
+                            sendMess(channel, User + " gives " + str[1] + " a " + str[2] + "!");
+                            break;
+                        case "!givesome":
+                            sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
+                            break;
+                        case "!whoisuser":
+                            sendMess(channel, usersini.IniReadValue(str[1], "Message"));
+                            break;
+                        case "!editme":
+                            string newText = str[1];
+                            usersini.IniWriteValue(User, "Message", newText);
+                            sendMess(channel, User + " your !whoisuser now reads as: " + usersini.IniReadValue(User, "Message"));
+                            break;
+                        case "!edituser":
+                            string newUser = str[1];
+                            string newTextEU = str[2];
+                            usersini.IniWriteValue(newUser, "Message", newTextEU);
+                            sendMess(channel, newUser + "'s !whoisuser now reads: " + usersini.IniReadValue(newUser, "Message"));
+                            break;
+                        case "!classic":
+                            sendMess(channel, classini.IniReadValue("Classic", str[1]));
+                            break;
+                        case "!addclassic":
+                            string classicAdd = str[1];
+                            string classicMessage = str[2];
+                            classini.IniWriteValue("Classic", classicAdd, classicMessage);
+                            sendMess(channel, "Classic command " + classicAdd + " appears as " + classini.IniReadValue("Classic", classicAdd));
+                            break;
+                        case "!kill":
+                            sendMess(channel, User + " politley murders " + str[1]);
+                            break;
+                        case "!calluser":
+                            sendMess(channel, "CALLING " + str[1] + "! WOULD " + str[1] + " PLEASE REPORT TO THE CHAT!");
+                            break;
+                        case "!count":
+                            SQLiteDataReader getCountCmd = new SQLiteCommand("SELECT DATA FROM misc WHERE ID = 'CountGame';", dbConn).ExecuteReader(); //needs to be put into int count
+                            int count;
+                            if (getCountCmd.Read())
+                            {
+                                count = int.Parse(getCountCmd.GetString(0));
+                                count++;
+                                new SQLiteCommand("UPDATE misc SET DATA = '" + count + "' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
+                            }
+                            else//countgame doesn't exist?
+                            {
+                                count = 1;
+                                new SQLiteCommand("INSERT INTO misc (ID,DATA) VALUES ('CountGame','1');", dbConn).ExecuteNonQuery();
+                            }
+                            sendMess(channel, Convert.ToString(count));
+                            break;
+                        case "!newcount":
+                            new SQLiteCommand("UPDATE misc SET DATA = '0' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
+                            sendMess(channel, "Counting Game Reset");
+                            break;
+                        case "!points":
+                            sendMess(channel, user + " you have " + getPoints(user) + " points.");
+                            break;
+                        case "!seepoints":
+                            sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points.");
+                            break;
+                        case "!setpoints":
+                            setPoints(str[1], Convert.ToInt32(str[2]));
+                            break;
+                        case "!addpoints":
+                            addPoints(str[1], Convert.ToInt32(str[2]), "Manual Add");
+                            addAllTime(str[1], Convert.ToInt32(str[2]));
+                            break;
+                        case "!nc":
+                            sendMess(channel, str[1] + "! Please change the color of your name, neon colors hurt some peoples eyes! (If you don't know how type \".color\")");
+                            break;
+                        case "!sbversion":
+                            sendMess(channel, "/me is currently HB" + Application.ProductVersion + " bassed off of SB2.8.2. Changelog at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#ChangeLog");
+                            break;
+                        case "!sbleaderboard":
+                            SQLiteDataReader sqldr;
+                            string messString = "Leaderboard: ";
+                            sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC,name LIMIT 5;", dbConn).ExecuteReader();
+                            while (sqldr.Read())
+                            {
+                                messString += sqldr.GetString(0) + " with " + sqldr.GetInt32(1) + " points. ";
+                            }
+                            sendMess(channel, messString);
+                            break;
+                        case "!quotes":
+                                Random rnd = new Random();
+                                string function = str[1];
+                                string quser = str[2];
+                                string fParam = str[3];
+                                string randUBound = "1";
+                                Int32 i,tmp;
 
+                                if (function == "say")
+                                {
+                                    if (quser == "random")
+                                    {
+                                        randUBound = quotesini.IniReadValue("users", "length");
+                                        Console.WriteLine(randUBound);
+                                        tmp = Convert.ToInt32(randUBound);
+                                        Console.WriteLine(tmp);
+                                        i = rnd.Next(tmp + 1);
+                                        Console.WriteLine(i);
+                                        quser = quotesini.IniReadValue("users", Convert.ToString(i));
+                                        Console.WriteLine(quser);
 
+                                        randUBound = quotesini.IniReadValue(quser, "length");
+                                        Console.WriteLine(randUBound);
+                                        tmp = Convert.ToInt32(randUBound);
+                                        Console.WriteLine(tmp);
+                                        i = rnd.Next(tmp + 1);
+                                        Console.WriteLine(i);
+                                        if (i == 0) { i = 1; };
+                                        sendMess(channel, quser + "(" + Convert.ToString(i) + "): " + quotesini.IniReadValue(quser, Convert.ToString(i)));
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            randUBound = quotesini.IniReadValue(quser, "length");
+                                        }
+                                        catch (System.FormatException)
+                                        {
+                                            sendMess(channel, quser + " has no quotes.");
+                                            break;
+                                        }
+                                        if (fParam == "r")
+                                        {
+                                            i = rnd.Next(Convert.ToInt32(randUBound + 1));
+                                            sendMess(channel, "(" + Convert.ToString(i) + "): " + quotesini.IniReadValue(quser, Convert.ToString(i)));
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            if (Convert.ToInt32(fParam) > Convert.ToInt32(randUBound))
+                                            {
+                                                sendMess(channel, "Quote " + fParam + " does not exist for " + quser);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                sendMess(channel, quotesini.IniReadValue(quser, fParam));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (function == "add")
+                                {
+                                    string length;
+                                    try
+                                    {
+                                        length = quotesini.IniReadValue(quser, "length");
+                                    }
+                                    catch
+                                    {
+                                        sendMess(channel, "Error on length read");
+                                        break;
+                                    }
+                                    
+                                    int newLength;
+                                    if (length != null)
+                                    {
+                                        newLength = Convert.ToInt32(length) + 1;
+                                    }
+                                    else 
+                                    { 
+                                        newLength = 1; 
+                                    }
+                                    quotesini.IniWriteValue(quser, "length", Convert.ToString(newLength));
+                                    quotesini.IniWriteValue(quser, Convert.ToString(newLength), fParam);
+                                    sendMess(channel, "Quote " + Convert.ToString(newLength) + " for " + quser + " has been added as: " + quotesini.IniReadValue(quser, Convert.ToString(newLength)));
+                                    break;
+                                }
+                                else if (function == "edit")
+                                {
+                                    sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
+                                    break;
+                                }
+                                else if (function == "addusertorandom")
+                                {
+                                    int length = Convert.ToInt32(quotesini.IniReadValue("users", "length"));
+                                    int newLength = length + 1;
+                                    quotesini.IniWriteValue("users", "length", Convert.ToString(newLength));
+                                    quotesini.IniWriteValue("users", Convert.ToString(newLength), quser);
+                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + Convert.ToString(newLength) + ".");
+                                }
+                                else
+                                {
+                                    sendMess(channel, "Incorrect use of !quotes.");
+                                    break;
+                                }
+                            
+                            break;
                             //insert your commands here.
                     }
                     break;
@@ -764,6 +979,34 @@ namespace TWIRC
                     }
                 }
              }
+        }
+
+        public void checkAlias(string channel, string user, string message)
+        {
+            string[] str, tempVar3;
+            bool done = false; int auth = pullAuth(user);
+            bool fail; int tempVar1 = 0; string tempVar2 = "";
+            string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
+            if (!done)
+            {
+                foreach (ali c in aliList)//flexible commands
+                {
+                    if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
+                    {
+                        if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
+                        str = c.getResponse(message, user);
+                        c.addCount(1);
+                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
+                        cmd.Parameters.AddWithValue("@par1", c.getKey());
+                        cmd.ExecuteNonQuery();
+                        //if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
+                        foreach (string b in str)
+                        {
+                            sendMess(channel, b);
+                        }
+                    }
+                }
+            }
         }
 
         public void Close()
@@ -867,7 +1110,7 @@ namespace TWIRC
             if (sqldr.Read())
             {
                 new SQLiteCommand("UPDATE users SET points='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetString(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetInt32(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -882,7 +1125,10 @@ namespace TWIRC
             {
                 things = sqldr.GetInt32(0);
                 new SQLiteCommand("UPDATE users SET points='"+ (things+amount)+"' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','"+why+"','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                if (why != null)
+                {
+                    new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','" + why + "','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                }
                 return things;
             }
             else
@@ -965,15 +1211,24 @@ namespace TWIRC
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             storeMessage(nick, message);
+            if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
             try
             {
-                if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
+                if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
                 if (!a)
                 {
                     message = filter(message);
-                    this.checkCommand(channel, nick, message);
+                    if (Regex.Match(message, "^wh?at'?s?( is)? the point", RegexOptions.IgnoreCase).Success)
+                    {
+                        sendMess(channel, "No point, only play.");
+                    }
+                    else
+                    {
+                        this.checkCommand(channel, nick, message);
+                        this.checkAlias(channel, nick, message);
+                    }
                 }
             }
             catch
@@ -986,6 +1241,7 @@ namespace TWIRC
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
+            addPoints(nick, 2, null); addAllTime(nick, 2);
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
             if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
@@ -1070,6 +1326,10 @@ namespace TWIRC
             }
         }
 
+        static string sysPath()
+        {
+            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        }
     }
 
 }

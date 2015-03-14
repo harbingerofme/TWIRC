@@ -82,6 +82,7 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             string[] pars;  int now = getNow();bool failure = false;
             if (doesMatch(input) && auth>= authLevel)
             {
+                if (auth == 5) { return true; }
                 pars = input.Split(new string[] {" "},StringSplitOptions.RemoveEmptyEntries);
                 if (pars.Count() >= parameters+1)
                 {
@@ -376,10 +377,11 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
     }
 
 
-    public class ali//these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
+    public class ali //these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
     {
         protected List<string> from = new List<string>();//since multiple paths can lead to rome, we allow that
         protected string to;//there's only 1 Rome (right?)
+        protected string keyword { get; set; }
         public ali(string fromString, string toString)
         {
             from.Add(fromString);
@@ -389,6 +391,43 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         {
             from.AddRange(fromStrings);
             to = toString;
+        }
+        public bool doesMatch(string input)
+        {
+            string a = input.ToLower();
+            //string b = keyword.ToLower();
+            //if (a.StartsWith(keyword + " ") || a == keyword) { return true; }
+            return false;
+        }
+        public string[] getResponse(string input, string user)
+        {
+            command c = new command();
+            return c.getResponse(input, user);
+        }
+        public bool canTrigger()
+        {
+            command c = new command();
+            return c.canTrigger();
+        }
+        public int getAuth()
+        {
+            command c = new command();
+            return c.getAuth();
+        }
+        public int addCount(int amount)
+        {
+            command c = new command();
+            return c.addCount(amount);
+        }
+        public string getKey()
+        {
+            command c = new command();
+            return c.getKey();
+        }
+        public int getCount()
+        {
+            command c = new command();
+            return c.getCount();
         }
         public string getTo()
         {

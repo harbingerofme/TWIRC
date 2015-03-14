@@ -13,9 +13,9 @@ namespace TWIRC
         /// </summary>
 
 
-        static Logger RNGLogger;
-        static RNGWindow mainWindow;
-        static HarbBot HarbBot;
+        public static Logger RNGLogger;
+        public static RNGWindow mainWindow;
+        public static HarbBot HarbBot;
         //static DBHandler RNGDB;
         
 
@@ -40,10 +40,8 @@ namespace TWIRC
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             mainWindow = new RNGWindow(RNGLogger, HarbBot);
-            
+
             Application.Run(mainWindow);
-
-
         }
     }
 }
