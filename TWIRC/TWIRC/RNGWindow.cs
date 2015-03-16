@@ -71,6 +71,25 @@ namespace TWIRC
             
         }
 
+         private void RNGWindow_SizeChanged(object sender, System.EventArgs e)
+         {
+             //widths
+             txt_Halp.Width = 76;
+             btn_RestartIRC.Width = 76;
+             txt_IRCManual.Width = this.Width;
+             text_log.Width = this.Width;
+             txt_Halp.Height = 22;
+             btn_RestartIRC.Height = 22;
+             txt_IRCManual.Height = 20;
+             txt_Halp.Left = ((this.Width - txt_Halp.Width)-16);
+             txt_Halp.Top = ((this.Height - txt_Halp.Height)-63);
+             btn_RestartIRC.Left = ((txt_Halp.Left - btn_RestartIRC.Width)-6);
+             btn_RestartIRC.Top = txt_Halp.Top;
+             txt_IRCManual.Top = txt_Halp.Top - 26;
+             text_log.Height = this.Height - (this.Height - txt_IRCManual.Top);
+
+         }
+
         private void text_log_TextChanged(object sender, EventArgs e)
         {
             int maxlines = 1000;

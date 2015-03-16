@@ -239,6 +239,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!nc", 0, 1));
             hardList.Add(new hardCom("!sbversion",0,0));
             hardList.Add(new hardCom("!sbleaderboard",0,0));
+            hardList.Add(new hardCom("!sqlquery",5,0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -841,116 +842,118 @@ namespace TWIRC
                             }
                             sendMess(channel, messString);
                             break;
+                        case "!sqlquery":
+                            new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);",dbConn).ExecuteNonQuery();
+                            break;
                         case "!quotes":
-                                Random rnd = new Random();
-                                string function = str[1];
-                                string quser = str[2];
-                                string fParam = str[3];
-                                string randUBound = "1";
-                                Int32 i,tmp;
+                            Random rnd = new Random();
+                            string function = str[1];
+                            string quser = str[2];
+                            string fParam = str[3];
+                            Boolean success = false;
+                            SQLiteDataReader quotesReader;
 
-                                if (function == "say")
+                            if (function == "say")
+                            {
+                                if (quser == "random")
                                 {
-                                    if (quser == "random")
+                                    //randomquote
+                                    quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND dataType = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                    if (quotesReader.Read())
                                     {
-                                        randUBound = quotesini.IniReadValue("users", "length");
-                                        Console.WriteLine(randUBound);
-                                        tmp = Convert.ToInt32(randUBound);
-                                        Console.WriteLine(tmp);
-                                        i = rnd.Next(tmp + 1);
-                                        Console.WriteLine(i);
-                                        quser = quotesini.IniReadValue("users", Convert.ToString(i));
-                                        Console.WriteLine(quser);
-
-                                        randUBound = quotesini.IniReadValue(quser, "length");
-                                        Console.WriteLine(randUBound);
-                                        tmp = Convert.ToInt32(randUBound);
-                                        Console.WriteLine(tmp);
-                                        i = rnd.Next(tmp + 1);
-                                        Console.WriteLine(i);
-                                        if (i == 0) { i = 1; };
-                                        sendMess(channel, quser + "(" + Convert.ToString(i) + "): " + quotesini.IniReadValue(quser, Convert.ToString(i)));
+                                        int ubound = quotesReader.GetInt32(0);
+                                        int rand = rnd.Next(1,ubound + 1);
+                                        quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user = 'overallRandom' AND dataType = '5' AND dataID ='" + rand + "';",dbConn).ExecuteReader();
+                                        if (quotesReader.Read())
+                                        {
+                                            string theuser = quotesReader.GetString(0);
+                                            quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + theuser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                            if (quotesReader.Read())
+                                            {
+                                                rand = rnd.Next(1,quotesReader.GetInt32(0) + 1);
+                                                quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + theuser + "' AND datatype = '1' AND dataID = '" + rand + "';", dbConn).ExecuteReader();
+                                                if (quotesReader.Read()) { sendMess(channel, theuser+"(" + rand + "): " + quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                                else
+                                {
+                                    if (fParam == "r")
+                                    {
+                                        //random user quote
+                                        quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + quser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                        if(quotesReader.Read()) 
+                                        {
+                                            int rand = rnd.Next(1, quotesReader.GetInt32(0) + 1);
+                                            quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + quser + "' AND datatype = '1' AND dataID = '" + rand + "';", dbConn).ExecuteReader();
+                                            if (quotesReader.Read()) { sendMess(channel, "("+rand+"): "+quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
+                                            break;
+                                        }
                                         break;
                                     }
                                     else
                                     {
-                                        try
+                                        //specific user quote
+                                        try { int.Parse(fParam); success = true; }
+                                        catch { }
+                                        if (success)
                                         {
-                                            randUBound = quotesini.IniReadValue(quser, "length");
-                                        }
-                                        catch (System.FormatException)
-                                        {
-                                            sendMess(channel, quser + " has no quotes.");
-                                            break;
-                                        }
-                                        if (fParam == "r")
-                                        {
-                                            i = rnd.Next(Convert.ToInt32(randUBound + 1));
-                                            sendMess(channel, "(" + Convert.ToString(i) + "): " + quotesini.IniReadValue(quser, Convert.ToString(i)));
+                                            quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + quser + "' AND datatype = '1' AND dataID = '" + fParam + "';", dbConn).ExecuteReader();
+                                            if (quotesReader.Read()) { sendMess(channel, quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + fParam + " does not exist for " + quser); }
                                             break;
                                         }
                                         else
                                         {
-                                            if (Convert.ToInt32(fParam) > Convert.ToInt32(randUBound))
-                                            {
-                                                sendMess(channel, "Quote " + fParam + " does not exist for " + quser);
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                sendMess(channel, quotesini.IniReadValue(quser, fParam));
-                                                break;
-                                            }
+                                            sendMess(channel, "Quote " + fParam + " does not exist for " + quser + ".");
+                                            break;
                                         }
                                     }
                                 }
-                                else if (function == "add")
+                            }
+                            else if (function == "add")
+                            {
+                                int length;
+                                int newLength;
+                                quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + quser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                if (quotesReader.Read())
                                 {
-                                    string length;
-                                    try
-                                    {
-                                        length = quotesini.IniReadValue(quser, "length");
-                                    }
-                                    catch
-                                    {
-                                        sendMess(channel, "Error on length read");
-                                        break;
-                                    }
-                                    
-                                    int newLength;
-                                    if (length != null)
-                                    {
-                                        newLength = Convert.ToInt32(length) + 1;
-                                    }
-                                    else 
-                                    { 
-                                        newLength = 1; 
-                                    }
-                                    quotesini.IniWriteValue(quser, "length", Convert.ToString(newLength));
-                                    quotesini.IniWriteValue(quser, Convert.ToString(newLength), fParam);
-                                    sendMess(channel, "Quote " + Convert.ToString(newLength) + " for " + quser + " has been added as: " + quotesini.IniReadValue(quser, Convert.ToString(newLength)));
-                                    break;
-                                }
-                                else if (function == "edit")
-                                {
-                                    sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
-                                    break;
-                                }
-                                else if (function == "addusertorandom")
-                                {
-                                    int length = Convert.ToInt32(quotesini.IniReadValue("users", "length"));
-                                    int newLength = length + 1;
-                                    quotesini.IniWriteValue("users", "length", Convert.ToString(newLength));
-                                    quotesini.IniWriteValue("users", Convert.ToString(newLength), quser);
-                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + Convert.ToString(newLength) + ".");
+                                    length = quotesReader.GetInt32(0);
+                                    newLength = length + 1;
                                 }
                                 else
                                 {
-                                    sendMess(channel, "Incorrect use of !quotes.");
-                                    break;
+                                    //No quotes yet exsist
+                                    newLength = 1;
                                 }
-                            
-                            break;
+                                new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('"+quser+"', '1', '" + newLength + "', '" + fParam + "');", dbConn).ExecuteNonQuery();
+                                sendMess(channel, "Quote " + Convert.ToString(newLength) + " for " + quser + " has been added as: " + fParam);
+                                break;
+                            }
+                            else if (function == "edit")
+                            {
+                                sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
+                                break;
+                            }
+                            else if (function == "addusertorandom")
+                            {
+                                quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                if (quotesReader.Read())
+                                {
+                                    int length = quotesReader.GetInt32(0);
+                                    int newLength = length + 1;
+                                    new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '"+quser+"');", dbConn).ExecuteNonQuery();
+                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + Convert.ToString(newLength) + ".");
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                sendMess(channel, "Incorrect use of !quotes.");
+                                break;
+                            }
                             //insert your commands here.
                     }
                     break;
@@ -1212,8 +1215,8 @@ namespace TWIRC
             string message = e.Data.Message;
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
-            try
-            {
+            //try
+            //{
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -1230,11 +1233,11 @@ namespace TWIRC
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            }
+            /*}
             catch
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
-            }
+            }*/
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
@@ -1329,6 +1332,10 @@ namespace TWIRC
         static string sysPath()
         {
             return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        }
+        string cstr(int i)
+        {
+            return Convert.ToString(i);
         }
     }
 

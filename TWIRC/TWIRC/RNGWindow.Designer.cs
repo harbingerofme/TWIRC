@@ -39,11 +39,11 @@
             this.ts_botColour = new System.Windows.Forms.ToolStripStatusLabel();
             this.ts_Matinence = new System.Windows.Forms.ToolStripSplitButton();
             this.ts_Matinence_on = new System.Windows.Forms.ToolStripMenuItem();
+            this.ts_Matinence_off = new System.Windows.Forms.ToolStripMenuItem();
+            this.ts_MatinenceLevel = new System.Windows.Forms.ToolStripStatusLabel();
             this.text_log = new System.Windows.Forms.TextBox();
             this.txt_IRCManual = new System.Windows.Forms.TextBox();
             this.txt_Halp = new System.Windows.Forms.Button();
-            this.ts_Matinence_off = new System.Windows.Forms.ToolStripMenuItem();
-            this.ts_MatinenceLevel = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -113,14 +113,26 @@
             // ts_Matinence_on
             // 
             this.ts_Matinence_on.Name = "ts_Matinence_on";
-            this.ts_Matinence_on.Size = new System.Drawing.Size(152, 22);
+            this.ts_Matinence_on.Size = new System.Drawing.Size(91, 22);
             this.ts_Matinence_on.Text = "On";
             this.ts_Matinence_on.Click += new System.EventHandler(this.ts_Matinence_on_Click);
+            // 
+            // ts_Matinence_off
+            // 
+            this.ts_Matinence_off.Name = "ts_Matinence_off";
+            this.ts_Matinence_off.Size = new System.Drawing.Size(91, 22);
+            this.ts_Matinence_off.Text = "Off";
+            this.ts_Matinence_off.Click += new System.EventHandler(this.ts_Matinence_off_Click);
+            // 
+            // ts_MatinenceLevel
+            // 
+            this.ts_MatinenceLevel.Name = "ts_MatinenceLevel";
+            this.ts_MatinenceLevel.Size = new System.Drawing.Size(23, 17);
+            this.ts_MatinenceLevel.Text = "On";
             // 
             // text_log
             // 
             this.text_log.BackColor = System.Drawing.Color.Gainsboro;
-            this.text_log.Dock = System.Windows.Forms.DockStyle.Top;
             this.text_log.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.text_log.ForeColor = System.Drawing.Color.Black;
             this.text_log.Location = new System.Drawing.Point(0, 0);
@@ -151,19 +163,6 @@
             this.txt_Halp.UseVisualStyleBackColor = true;
             this.txt_Halp.Click += new System.EventHandler(this.txt_Halp_Click);
             // 
-            // ts_Matinence_off
-            // 
-            this.ts_Matinence_off.Name = "ts_Matinence_off";
-            this.ts_Matinence_off.Size = new System.Drawing.Size(152, 22);
-            this.ts_Matinence_off.Text = "Off";
-            this.ts_Matinence_off.Click += new System.EventHandler(this.ts_Matinence_off_Click);
-            // 
-            // ts_MatinenceLevel
-            // 
-            this.ts_MatinenceLevel.Name = "ts_MatinenceLevel";
-            this.ts_MatinenceLevel.Size = new System.Drawing.Size(23, 17);
-            this.ts_MatinenceLevel.Text = "On";
-            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -175,14 +174,14 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btn_RestartIRC);
             this.Controls.Add(this.btn_KillClients);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(431, 448);
             this.Name = "RNGWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "SayingsBot";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.RNGWindow_FormClosed);
             this.Load += new System.EventHandler(this.RNGWindow_Load);
             this.LocationChanged += new System.EventHandler(this.RNGWindow_LocationChanged);
+            this.SizeChanged += new System.EventHandler(this.RNGWindow_SizeChanged);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
