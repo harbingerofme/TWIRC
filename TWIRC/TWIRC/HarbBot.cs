@@ -548,6 +548,7 @@ namespace TWIRC
                                     cmd.Parameters.AddWithValue("@par2",tempVar2);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
+                                    this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" added.");
                                 }
                             break;
                         case "!sbeditcom":
@@ -566,6 +567,7 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
+                                        this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" has been edited.");
                                         safe();
                                         fail = false;
                                     }
@@ -586,6 +588,7 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", str[1]);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
+                                        this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" has been deleted.");
                                         safe();
                                         break; }
 
@@ -613,6 +616,7 @@ namespace TWIRC
                                     cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                    this.writeFile(progressLogPATH, "Alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
                             break;
@@ -625,6 +629,7 @@ namespace TWIRC
                                         SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", str[1]);cmd.ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
+                                        this.writeFile(progressLogPATH, "Alias \"" + str[1] + "\" removed.");
                                         if (c.getFroms().Count() == 0) { aliList.Remove(c); }
                                         fail = false;
                                         safe();
@@ -640,6 +645,7 @@ namespace TWIRC
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
+                                this.writeFile(progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
                                 safe();
                             }
                             else
@@ -673,6 +679,7 @@ namespace TWIRC
                                 {
                                     setAuth(str[1], -1);
                                     sendMess(channel, User + "-> \"" + str[1] + "\" has been banned from using bot commands.");
+                                    this.writeFile(progressLogPATH, str[1] + " has been banned from using bot commands.");
                                 }
 
                             break;
@@ -681,6 +688,7 @@ namespace TWIRC
                                 {
                                     setAuth(str[1], 0);
                                     sendMess(channel, User + "-> \"" + str[1] + "\" has been unbanned.");
+                                    this.writeFile(progressLogPATH, str[1] + "has been unbanned.");
                                 }
 
                             break;
@@ -771,12 +779,14 @@ namespace TWIRC
                             string newText = str[1];
                             usersini.IniWriteValue(User, "Message", newText);
                             sendMess(channel, User + " your !whoisuser now reads as: " + usersini.IniReadValue(User, "Message"));
+                            this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersini.IniReadValue(User, "Message"));
                             break;
                         case "!edituser":
                             string newUser = str[1];
                             string newTextEU = str[2];
                             usersini.IniWriteValue(newUser, "Message", newTextEU);
                             sendMess(channel, newUser + "'s !whoisuser now reads: " + usersini.IniReadValue(newUser, "Message"));
+                            this.writeFile(progressLogPATH, newUser + "'s !whoisuser now reads: " + usersini.IniReadValue(newUser, "Message"));
                             break;
                         case "!classic":
                             sendMess(channel, classini.IniReadValue("Classic", str[1]));
@@ -786,6 +796,7 @@ namespace TWIRC
                             string classicMessage = str[2];
                             classini.IniWriteValue("Classic", classicAdd, classicMessage);
                             sendMess(channel, "Classic command " + classicAdd + " appears as " + classini.IniReadValue("Classic", classicAdd));
+                            this.writeFile(progressLogPATH, "Classic command " + classicAdd + " added.");
                             break;
                         case "!kill":
                             sendMess(channel, User + " politley murders " + str[1]);
@@ -807,7 +818,7 @@ namespace TWIRC
                                 count = 1;
                                 new SQLiteCommand("INSERT INTO misc (ID,DATA) VALUES ('CountGame','1');", dbConn).ExecuteNonQuery();
                             }
-                            sendMess(channel, Convert.ToString(count));
+                            sendMess(channel, cstr(count));
                             break;
                         case "!newcount":
                             new SQLiteCommand("UPDATE misc SET DATA = '0' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
@@ -820,11 +831,13 @@ namespace TWIRC
                             sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points.");
                             break;
                         case "!setpoints":
-                            setPoints(str[1], Convert.ToInt32(str[2]));
+                            setPoints(str[1], cint(str[2]));
+                            sendMess(channel, str[1]+"'s points set to "+str[2]+" points.");
                             break;
                         case "!addpoints":
-                            addPoints(str[1], Convert.ToInt32(str[2]), "Manual Add");
-                            addAllTime(str[1], Convert.ToInt32(str[2]));
+                            addPoints(str[1], cint(str[2]), "Manual Add");
+                            addAllTime(str[1], cint(str[2]));
+                            sendMess(channel, str[1] + " gained " + str[2] + " points.");
                             break;
                         case "!nc":
                             sendMess(channel, str[1] + "! Please change the color of your name, neon colors hurt some peoples eyes! (If you don't know how type \".color\")");
@@ -843,7 +856,7 @@ namespace TWIRC
                             sendMess(channel, messString);
                             break;
                         case "!sqlquery":
-                            new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);",dbConn).ExecuteNonQuery();
+                            //new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);",dbConn).ExecuteNonQuery();
                             break;
                         case "!quotes":
                             Random rnd = new Random();
@@ -929,7 +942,8 @@ namespace TWIRC
                                     newLength = 1;
                                 }
                                 new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('"+quser+"', '1', '" + newLength + "', '" + fParam + "');", dbConn).ExecuteNonQuery();
-                                sendMess(channel, "Quote " + Convert.ToString(newLength) + " for " + quser + " has been added as: " + fParam);
+                                sendMess(channel, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
+                                this.writeFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
                                 break;
                             }
                             else if (function == "edit")
@@ -945,7 +959,8 @@ namespace TWIRC
                                     int length = quotesReader.GetInt32(0);
                                     int newLength = length + 1;
                                     new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '"+quser+"');", dbConn).ExecuteNonQuery();
-                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + Convert.ToString(newLength) + ".");
+                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                    this.writeFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
                                 }
                                 break;
                             }
@@ -1175,7 +1190,7 @@ namespace TWIRC
         public void ircConnected(object sender, EventArgs e)
         {
             logger.WriteLine("IRC: Joining Twitch chat");
-            irc.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
+            irc.Login(bot_name, "SayingsBot", 0, bot_name, oauth);
             one.Start();
         }
 
@@ -1215,8 +1230,8 @@ namespace TWIRC
             string message = e.Data.Message;
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
-            //try
-            //{
+            try
+            {
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -1233,11 +1248,12 @@ namespace TWIRC
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            /*}
+            }
             catch
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
-            }*/
+                this.writeFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
+            }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
@@ -1336,6 +1352,10 @@ namespace TWIRC
         string cstr(int i)
         {
             return Convert.ToString(i);
+        }
+        Int32 cint(string i)
+        {
+            return Convert.ToInt32(i);
         }
     }
 
