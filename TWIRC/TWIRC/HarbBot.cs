@@ -44,13 +44,10 @@ namespace TWIRC
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
-        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
+        public string progressLogPATH;
 
         private static Ini.IniFile configini = new Ini.IniFile(sysPath() + "\\config.ini");
-        private Ini.IniFile usersini = new Ini.IniFile(configini.IniReadValue("Paths","userini"));
         private Ini.IniFile classini = new Ini.IniFile(configini.IniReadValue("Paths", "classicini"));
-        private Ini.IniFile quotesini = new Ini.IniFile(configini.IniReadValue("Paths", "quotesini"));
 
         public Thread one;
 
@@ -773,20 +770,27 @@ namespace TWIRC
                             sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
                             break;
                         case "!whoisuser":
-                            sendMess(channel, usersini.IniReadValue(str[1], "Message"));
+                            SQLiteDataReader userReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + str[1] + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            if (userReader.Read()) { sendMess(channel, userReader.GetString(0)); } else { sendMess(channel, str[1] + " does not have a !whoisuser."); }
                             break;
                         case "!editme":
                             string newText = str[1];
-                            usersini.IniWriteValue(User, "Message", newText);
-                            sendMess(channel, User + " your !whoisuser now reads as: " + usersini.IniReadValue(User, "Message"));
-                            this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersini.IniReadValue(User, "Message"));
+                            new SQLiteCommand("UPDATE userdata SET data='" + newText + "' WHERE user='" + user + "' AND dataType='0';",dbConn).ExecuteNonQuery();
+                            SQLiteDataReader usersReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + str[1] + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            if (usersReader.Read()) { 
+                                sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
+                                this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
+                            }
                             break;
                         case "!edituser":
                             string newUser = str[1];
                             string newTextEU = str[2];
-                            usersini.IniWriteValue(newUser, "Message", newTextEU);
-                            sendMess(channel, newUser + "'s !whoisuser now reads: " + usersini.IniReadValue(newUser, "Message"));
-                            this.writeFile(progressLogPATH, newUser + "'s !whoisuser now reads: " + usersini.IniReadValue(newUser, "Message"));
+                            new SQLiteCommand("UPDATE userdata SET data='" + newTextEU + "' WHERE user='" + newUser + "' AND dataType='0';", dbConn).ExecuteNonQuery();
+                            SQLiteDataReader userssReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + newUser + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            if (userssReader.Read()) { 
+                                sendMess(channel, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
+                                this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
+                            }
                             break;
                         case "!classic":
                             sendMess(channel, classini.IniReadValue("Classic", str[1]));
