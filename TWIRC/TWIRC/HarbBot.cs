@@ -775,8 +775,8 @@ namespace TWIRC
                             break;
                         case "!editme":
                             string newText = str[1];
-                            new SQLiteCommand("UPDATE userdata SET data='" + newText + "' WHERE user='" + user + "' AND dataType='0';",dbConn).ExecuteNonQuery();
-                            SQLiteDataReader usersReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + str[1] + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            setWhoIsUser(user, newText);
+                            SQLiteDataReader usersReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + user + "' AND datatype = '0';", dbConn).ExecuteReader();
                             if (usersReader.Read()) { 
                                 sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
                                 this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
@@ -785,10 +785,10 @@ namespace TWIRC
                         case "!edituser":
                             string newUser = str[1];
                             string newTextEU = str[2];
-                            new SQLiteCommand("UPDATE userdata SET data='" + newTextEU + "' WHERE user='" + newUser + "' AND dataType='0';", dbConn).ExecuteNonQuery();
+                            setWhoIsUser(newUser, newTextEU);
                             SQLiteDataReader userssReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + newUser + "' AND datatype = '0';", dbConn).ExecuteReader();
                             if (userssReader.Read()) { 
-                                sendMess(channel, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
+                                sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
                                 this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
                             }
                             break;
@@ -1109,6 +1109,18 @@ namespace TWIRC
             else
             {
                 new SQLiteCommand("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');", dbConn).ExecuteNonQuery();
+            }
+        }
+        public void setWhoIsUser(string user, string message)
+        {
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM userdata WHERE name='" + user + "' AND dataType='0';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                new SQLiteCommand("UPDATE userdata SET data='" + message + "' WHERE user='" + user + "' AND dataType='0';", dbConn).ExecuteNonQuery();
+            }
+            else
+            {
+                new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES ('" + user + "','0','" + message + "');", dbConn).ExecuteNonQuery();
             }
         }
         public int getPoints(string name)
