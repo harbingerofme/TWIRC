@@ -1314,16 +1314,20 @@ namespace TWIRC
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='"+user+"';",dbConn).ExecuteReader();
             if (sqldr.Read())
             {
+                int a = sqldr.GetInt32(0);
                 if (sqldr.GetInt32(0) == 1)
                 {
                     return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             else
             {
                 return true;
             }
-            return false;
         }
 
         public int addAllTime(string name, int amount)
@@ -1362,13 +1366,13 @@ namespace TWIRC
         public void newMessage(string user)
         {
             string output = "";string usr = user.Substring(0,1).ToUpper() + user.Substring(1);
-            int now = int.Parse(getNowExtended());
+            int now = getNow();
             if(now > lastWelcomeMessageTime + welcomeMessageCD){
                 lastWelcomeMessageTime = now;
                 int rgn = new Random().Next(3);
                 switch (rgn)
                 {
-                    case 0: output = "Hello " + usr + "! Welcome to RNGPlaysPokemon. If you are new, it might be worthwile to take a look at the faq, or type !what."; break;
+                    case 0: output = "Hello " + usr + "! Welcome to RNGPlaysPokemon. If you are new, it might be worthwile to take a look at the FAQ, or type !what."; break;
                     case 1: output = "All welcome " + usr + " to the chat. (also, "+usr+", try !what)";break;
                     case 2: output = "Heyo, " + usr + ". This channel is a random number generator playing pokémon, very fancy team rocket science stuff. (try !what)."; break;
                 }
