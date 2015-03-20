@@ -69,7 +69,7 @@ namespace TWIRC
             biasControl = buttMuncher;
             luaServer = luaSurfer;
 
-            newBias.Add(new double[7] { 0,0,0,0,0,0,5 });//0 (start)
+            newBias.Add(new double[7] { 0,0,0,0,0,0,6.5 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
             newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
             newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
@@ -79,9 +79,12 @@ namespace TWIRC
             newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
             newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
             newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
-            newBias.Add(new double[7] { 0,0,0,0,9,0,0 });//10 (a)
-            newBias.Add(new double[7] { 0,0,0,0,0,8,0 });//11 (b)
+            newBias.Add(new double[7] { 0,0,0,0,9.5,0,0 });//10 (a)
+            newBias.Add(new double[7] { 0,0,0,0,0,8.5,0 });//11 (b)
             newBias.Add(new double[7] { 2.5, 2.5, 2.5, 2.5, 0, 0, 0 });//12 (movement)
+            newBias.Add(new double[7] { 0, 5, 5, 0, 0, 0, 0 });//13 vertical
+            newBias.Add(new double[7] { 5, 0, 0, 5, 0, 0, 0 });//14 horizontal
+            newBias.Add(new double[7] { 0, 0, 0, 0, 4.75, 4.25, 0 });//15 buttons
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -906,11 +909,15 @@ namespace TWIRC
                                 tempVar2 = tempVar2.ToLower().Replace("left", "4");
                                 tempVar2 = tempVar2.ToLower().Replace("right", "6");
                                 tempVar2 = tempVar2.ToLower().Replace("start", "0");
+                                tempVar2 = tempVar2.ToLower().Replace("ab", "15");
                                 tempVar2 = tempVar2.ToLower().Replace("a", "10");
                                 tempVar2 = tempVar2.ToLower().Replace("b", "11");
                                 tempVar2 = tempVar2.ToLower().Replace("movement", "12");
+                                tempVar2 = tempVar2.ToLower().Replace("vertical", "13");
+                                tempVar2 = tempVar2.ToLower().Replace("horizontal", "14");
+                                
 
-                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-2])$").Success)
+                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-5])$").Success)
                                 {
                                     
                                     tempVar1 = 1;
