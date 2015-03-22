@@ -62,6 +62,8 @@
             this.timer_save = new System.Windows.Forms.Timer(this.components);
             this.btn_Leaderboard = new System.Windows.Forms.Button();
             this.btn_voteTimer = new System.Windows.Forms.Button();
+            this.btn_rngTest = new System.Windows.Forms.Button();
+            this.txt_numrolls = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -368,11 +370,34 @@
             this.btn_voteTimer.UseVisualStyleBackColor = true;
             this.btn_voteTimer.Click += new System.EventHandler(this.btn_voteTimer_Click);
             // 
+            // btn_rngTest
+            // 
+            this.btn_rngTest.Location = new System.Drawing.Point(319, 2);
+            this.btn_rngTest.Name = "btn_rngTest";
+            this.btn_rngTest.Size = new System.Drawing.Size(75, 23);
+            this.btn_rngTest.TabIndex = 38;
+            this.btn_rngTest.Text = "Test RNG";
+            this.btn_rngTest.UseVisualStyleBackColor = true;
+            this.btn_rngTest.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // txt_numrolls
+            // 
+            this.txt_numrolls.Location = new System.Drawing.Point(217, 4);
+            this.txt_numrolls.Name = "txt_numrolls";
+            this.txt_numrolls.Size = new System.Drawing.Size(100, 20);
+            this.txt_numrolls.TabIndex = 39;
+            this.txt_numrolls.Text = "1000";
+            this.txt_numrolls.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+#if OFFLINE            
+            this.Controls.Add(this.txt_numrolls);
+            this.Controls.Add(this.btn_rngTest);
+#endif
             this.Controls.Add(this.btn_voteTimer);
             this.Controls.Add(this.btn_Leaderboard);
             this.Controls.Add(this.btn_dumpBiases);
@@ -448,6 +473,8 @@
         private System.Windows.Forms.Timer timer_save;
         private System.Windows.Forms.Button btn_Leaderboard;
         private System.Windows.Forms.Button btn_voteTimer;
+        private System.Windows.Forms.Button btn_rngTest;
+        private System.Windows.Forms.TextBox txt_numrolls;
     }
 }
 

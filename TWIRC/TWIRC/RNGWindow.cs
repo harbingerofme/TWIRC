@@ -547,6 +547,11 @@ namespace TWIRC
             Properties.Settings.Default.Save();
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            RNGLogger.WriteLine(RNGesus.rngTest(Convert.ToInt32(txt_numrolls.Text)));
+        }
+
 
         
     }

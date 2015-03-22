@@ -56,7 +56,7 @@ namespace TWIRC
                 percents[i] = 100 * (Single)results[i] / (Single)numrolls;
             }
 
-            return "RNGtest " + String.Join("   \t", percents);
+            return "RNGtest " + String.Join(", ", percents);
 
         }
 
