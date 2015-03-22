@@ -376,9 +376,9 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
     }
 
 
-    public class ali//these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
+    public class ali
     {
-        protected List<string> from = new List<string>();//since multiple paths can lead to rome, we allow that
+        protected List<string> from = new List<string>();//since multiple paths can lead to Rome, we allow that
         protected string to;//there's only 1 Rome (right?)
         public ali(string fromString, string toString)
         {
@@ -441,9 +441,9 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
         {
             string result = input;
             foreach(string str1 in from){
-                if (input.StartsWith(str1 + " ") || input == str1)
+                if (result.StartsWith(str1 + " ") || result == str1)
                 {
-                    result = Regex.Replace(input, "^" + str1, to);
+                    result = to + result.Substring(str1.Length);
                 }
             }
             return result;

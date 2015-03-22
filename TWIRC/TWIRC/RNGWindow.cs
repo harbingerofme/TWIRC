@@ -141,7 +141,8 @@ namespace TWIRC
 
         private void btn_RestartIRC_Click(object sender, EventArgs e)
         {
-            HB.reconnect();
+            //one day I'll fix this.
+          //  HB.reconnect();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -464,7 +465,7 @@ namespace TWIRC
 
         private void txt_Halp_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Sometimes, it is not so much knowing what to click as it is what not to click.");
+            MessageBox.Show("We can't stress enough the importance of some of these buttons, so contact us on skype or something. -F00BarBob & Harbingerofme");
         }
 
         private void btn_Save_Click(object sender, EventArgs e)
@@ -515,6 +516,7 @@ namespace TWIRC
 
         private void btn_Leaderboard_Click(object sender, EventArgs e)
         {
+#if !OFFLINE
             Point oldwin = new Point();
             Size oldwins = new Size();
             oldwins = highWindow.Size;
@@ -527,10 +529,12 @@ namespace TWIRC
             highWindow.Size = oldwins;
             highWindow.resize(oldwins.Width, oldwins.Height);
             highWindow.Show();
+#endif
         }
 
         private void btn_voteTimer_Click(object sender, EventArgs e)
         {
+#if !OFFLINE
             Point oldwin = new Point();
             oldwin.X = timerWindow.Location.X;
             oldwin.Y = timerWindow.Location.Y;
@@ -539,6 +543,7 @@ namespace TWIRC
             timerWindow.StartPosition = FormStartPosition.Manual;
             timerWindow.Location = oldwin;
             timerWindow.Show();
+#endif
         }
 
         private void RNGWindow_LocationChanged(object sender, EventArgs e)

@@ -32,6 +32,7 @@ namespace TWIRC
         public List<hardCom> hardList = new List<hardCom>();
         public List<luaCom> luaList = new List<luaCom>();
         public int globalCooldown;
+        public int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
 
         //antispam
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
@@ -68,7 +69,7 @@ namespace TWIRC
             biasControl = buttMuncher;
             luaServer = luaSurfer;
 
-            newBias.Add(new double[7] { 0,0,0,0,0,0,5 });//0 (start)
+            newBias.Add(new double[7] { 0,0,0,0,0,0,6.5 });//0 (start)
             newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
             newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
             newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
@@ -78,9 +79,12 @@ namespace TWIRC
             newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
             newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
             newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
-            newBias.Add(new double[7] { 0,0,0,0,9,0,0 });//10 (a)
-            newBias.Add(new double[7] { 0,0,0,0,0,8,0 });//11 (b)
+            newBias.Add(new double[7] { 0,0,0,0,9.5,0,0 });//10 (a)
+            newBias.Add(new double[7] { 0,0,0,0,0,8.5,0 });//11 (b)
             newBias.Add(new double[7] { 2.5, 2.5, 2.5, 2.5, 0, 0, 0 });//12 (movement)
+            newBias.Add(new double[7] { 0, 5, 5, 0, 0, 0, 0 });//13 vertical
+            newBias.Add(new double[7] { 5, 0, 0, 5, 0, 0, 0 });//14 horizontal
+            newBias.Add(new double[7] { 0, 0, 0, 0, 4.75, 4.25, 0 });//15 buttons
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -118,7 +122,7 @@ namespace TWIRC
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
-                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
+                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0, isnew INTEGER DEFAULT 1);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) DEFAULT 1, silence TINYINT(1) DEFAULT 0, oauth VARCHAR(200), cooldown INT DEFAULT 20,loglevel TINYINT(1) DEFAULT 2,logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
@@ -129,8 +133,8 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"',0);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
@@ -251,9 +255,9 @@ namespace TWIRC
 
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
            
-            hardList.Add(new hardCom("!addcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
+            hardList.Add(new hardCom("!ac", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!dc", 3, 1));//delcom
-            hardList.Add(new hardCom("!editcom", 3, 2));//editcom
+            hardList.Add(new hardCom("!ec", 3, 2));//editcom
             hardList.Add(new hardCom("!addalias", 3, 2));//addalias
             hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
             
@@ -268,7 +272,7 @@ namespace TWIRC
                 hardList.Add(new hardCom("!permit", 2, 1));
                 hardList.Add(new hardCom("!whitelist", 0, 0));
             }
-            hardList.Add(new hardCom("!commands", 0, 0, 120));
+            hardList.Add(new hardCom("!rngppcommands", 0, 0, 120));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",4,7));
@@ -284,10 +288,10 @@ namespace TWIRC
             hardList.Add(new hardCom("!background",0,1));
             //hardList.Add(new hardCom("!song",0,1));
             //hardList.Add(new hardCom("!seriousmode",3,1);
-            hardList.Add(new hardCom("!save", 3, 0));
+            hardList.Add(new hardCom("!save", 3, 1));
             hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
-            hardList.Add(new hardCom("!givemoney", 0, 1,3600));
-            hardList.Add(new hardCom("!giveball", 0, 1,3600));
+            hardList.Add(new hardCom("!givemoney", 0, 0));
+            hardList.Add(new hardCom("!giveball", 0, 0));
             
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -338,15 +342,20 @@ namespace TWIRC
             }
             appendFile(commandsPATH, "</table>\nBOOTIFUL!");
 
-            string s = "INSERT INTO buttons (left,down,up,right,a,b,start) VALUES (";
-            foreach (int a in biasControl.stats)
+            if (sender != null)
             {
-                s += a + ",";
+                string s = "INSERT INTO buttons (left,down,up,right,a,b,start) VALUES (";
+                foreach (int a in biasControl.stats)
+                {
+                    s += a + ",";
+                }
+                s = s.Substring(0, s.Length - 1);
+                s += ");";
+                new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
+                biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+
+                irc.RfcPrivmsg(channels, ".mods");
             }
-            s = s.Substring(0, s.Length - 1);
-            s += ");";
-            new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
-            biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
         }
 
         void connection()
@@ -544,13 +553,13 @@ namespace TWIRC
             string result = message;
             foreach (ali alias in aliList)
             {
-                result = alias.filter(message);//shouldn't matter much
+                result = alias.filter(result);//shouldn't matter much
             }
             return result;
         }
 
 
-        public void checkCommand(string channel, string user, string message)
+        public bool checkCommand(string channel, string user, string message)
         {
             string[] str, tempVar3;
             bool done = false; int auth = pullAuth(user);
@@ -565,7 +574,7 @@ namespace TWIRC
                     if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
                     switch (h.returnKeyword())
                     {
-                        case "!addcom":
+                        case "!ac":
                                 fail = false;
 
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -586,7 +595,7 @@ namespace TWIRC
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                 }
                             break;
-                        case "!editcom":
+                        case "!ec":
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -598,11 +607,10 @@ namespace TWIRC
                                         tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                         comlist[a].setResponse(tempVar3);
                                         comlist[a].setAuth(tempVar1);
-                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1 authlevel=@par3 WHERE keyword=@par2;", dbConn);
+                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1, authlevel=@par3 WHERE keyword=@par2;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
-                                        safe();
                                         fail = false;
                                     }
                                 }
@@ -622,7 +630,6 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", str[1]);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
-                                        safe();
                                         break; }
 
                                 }
@@ -642,14 +649,28 @@ namespace TWIRC
                                     fail = true;
                                     foreach (ali c in aliList)
                                     {
-                                        if (c.getTo() == str[2]) { c.addFrom(str[1]); fail = false; break; }
+                                        if (c.getTo() == str[2]) {
+                                            c.addFrom(str[1]);
+                                            fail = false;
+                                            string gatherer ="";
+                                            foreach (string tempAli in c.getFroms())
+                                            {
+                                                gatherer += tempAli + " ";
+                                            }
+                                            gatherer = gatherer.TrimEnd();
+                                            SQLiteCommand cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
+                                            cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", str[2]);
+                                            cmd.ExecuteNonQuery();
+                                            break;
+                                        }
                                     }
-                                    if (fail) { aliList.Add(new ali(str[1], str[2])); }
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
-                                    cmd.ExecuteNonQuery();
+                                    if (fail) {
+                                        aliList.Add(new ali(str[1], str[2]));
+                                        SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
+                                        cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
+                                        cmd.ExecuteNonQuery();
+                                    }
                                     sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
-                                    safe();
                                 }
                             break;
                         case "!delalias":
@@ -658,12 +679,25 @@ namespace TWIRC
                                 {
                                     if (c.delFrom(str[1]))
                                     {
-                                        SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
-                                        cmd.Parameters.AddWithValue("@par1", str[1]);cmd.ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
-                                        if (c.getFroms().Count() == 0) { aliList.Remove(c); }
+                                        if (c.getFroms().Count() == 0) { 
+                                            aliList.Remove(c);
+                                            SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
+                                            cmd.Parameters.AddWithValue("@par1", str[1]); cmd.ExecuteNonQuery();
+                                        } else
+                                        {
+                                            string gatherer = "";
+                                            foreach (string tempAli in c.getFroms())
+                                            {
+                                                gatherer += tempAli + " ";
+                                            }
+                                            gatherer = gatherer.TrimEnd();
+                                            SQLiteCommand cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
+                                            cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", c.getTo());
+                                            cmd.ExecuteNonQuery();
+                                            break;
+                                        }
                                         fail = false;
-                                        safe();
                                         break;
                                     }
                                 }
@@ -676,7 +710,6 @@ namespace TWIRC
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
-                                safe();
                             }
                             else
                             {
@@ -700,7 +733,6 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", str[1]);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
-                                        safe();
                                     }
                                 }
                             break;
@@ -877,11 +909,15 @@ namespace TWIRC
                                 tempVar2 = tempVar2.ToLower().Replace("left", "4");
                                 tempVar2 = tempVar2.ToLower().Replace("right", "6");
                                 tempVar2 = tempVar2.ToLower().Replace("start", "0");
+                                tempVar2 = tempVar2.ToLower().Replace("ab", "15");
                                 tempVar2 = tempVar2.ToLower().Replace("a", "10");
                                 tempVar2 = tempVar2.ToLower().Replace("b", "11");
                                 tempVar2 = tempVar2.ToLower().Replace("movement", "12");
+                                tempVar2 = tempVar2.ToLower().Replace("vertical", "13");
+                                tempVar2 = tempVar2.ToLower().Replace("horizontal", "14");
+                                
 
-                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-2])$").Success)
+                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-5])$").Success)
                                 {
                                     
                                     tempVar1 = 1;
@@ -937,7 +973,14 @@ namespace TWIRC
                             }
                             else
                             {
-                                sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes)- getNow())/60 +1)+" minutes.");
+                                if ((lastVoteTime + timeBetweenVotes) - getNow() > 30)
+                                {
+                                    sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes) - getNow()) / 60 + 1) + " minutes.");
+                                }
+                                else
+                                {
+                                    sendMess(channel, "You just missed it, sorry!");
+                                }
                             }
                             break;
                         case "!balance":
@@ -957,7 +1000,10 @@ namespace TWIRC
                             sendMess(channel, User+", your balance is "+tempVar2+".");
                             break;
                         case "!setpoints":
-                            sendMess(channel, "BUT " + user.ToUpper() + ", THAT'D BE CHEATING!");
+                            if(Regex.Match(str[2],"^[1-9][0-9]{1,8}$").Success){
+                                setPoints(str[1],int.Parse(str[2]));
+                                sendMess(channel,"Points have been changed, cheater.");
+                            }
                             break;
 
                         case "!addlog":
@@ -996,18 +1042,17 @@ namespace TWIRC
                             break;
 
                         case "!save":
-                            tempVar2 = "0";
-                            if (str.Count() > 1)
-                            {
-                                tempVar2 = str[1];
-                            }
+                            tempVar2 = str[1];
                             luaServer.send_to_all("SAVE", tempVar2);
                             sendMess(channel, User + "-> Saved game with parameter '"+tempVar2+"'.");
                             break;
-                        case "!commands":
+
+                        case "!rngppcommands":
                             sendMess(channel, User + "-> commands are located at "+commandsURL+" .");
-                            break;                     
+                            break;
+                     
                         case "!givemoney":
+
                             bool givemoneysucces = false;
                             if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
                             {
@@ -1034,24 +1079,17 @@ namespace TWIRC
                             break;
                         case "!giveball":
                             bool giveballsucces = false;
-                            if (Regex.Match(str[1], @"^[1-9]([0-9]{1,8})?$").Success)
-                            {
-                                if (int.Parse(str[1])*1500 <= getPoints(user))
+                                if (1500 <= getPoints(user))
                                 {
-                                    addPoints(user, int.Parse(str[1]) * -1500, "ball to game");
-                                    luaServer.send_to_all("ADDBALLS", str[1]);
-                                    sendMess(channel, User+" gave ?birja some pokéballs.");
+                                    addPoints(user, -1500, "ball to game");
+                                    luaServer.send_to_all("ADDBALLS", "1");
+                                    sendMess(channel, User+" gave ?birja a pokéball.");
                                     giveballsucces = true;
                                 }
                                 else
                                 {
                                     sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
                                 }
-                            }
-                            else
-                            {
-                                sendMess(channel, "Not a (valid) number.");
-                            }
                             if (!giveballsucces)
                             {
                                 h.removeFromCD(user);
@@ -1128,6 +1166,7 @@ namespace TWIRC
                     if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                     {
                         if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user +">" +message); }
+                        done = true;
                         str = c.getResponse(message, user);
                         c.addCount(1);
                         SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
@@ -1141,6 +1180,7 @@ namespace TWIRC
                     }
                 }
              }
+            return done;
         }
 
         public void Close()
@@ -1244,7 +1284,7 @@ namespace TWIRC
             if (sqldr.Read())
             {
                 new SQLiteCommand("UPDATE users SET points='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetString(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','"+sqldr.GetInt32(0)+"','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -1269,13 +1309,36 @@ namespace TWIRC
             }
         }
 
+        public bool isNew(string user)
+        {
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='"+user+"';",dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                int a = sqldr.GetInt32(0);
+                if (sqldr.GetInt32(0) == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public int addAllTime(string name, int amount)
         {
-            int things;
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            int things,rank;
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime, rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
                 things = sqldr.GetInt32(0);
+                rank = sqldr.GetInt32(1);
+                if (rank == 0 && things + amount > 2500) { setAuth(name, 1); }
                 new SQLiteCommand("UPDATE users SET alltime=alltime+"+amount+" WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
                 return things;
             }
@@ -1285,6 +1348,7 @@ namespace TWIRC
                 return 0;
             }
         }
+
         public void storeMessage(string user, string message) {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
             cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
@@ -1297,6 +1361,29 @@ namespace TWIRC
             {
                 new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
             }
+        }
+
+        public void newMessage(string user)
+        {
+            string output = "";string usr = user.Substring(0,1).ToUpper() + user.Substring(1);
+            int now = getNow();
+            if(now > lastWelcomeMessageTime + welcomeMessageCD){
+                lastWelcomeMessageTime = now;
+                int rgn = new Random().Next(3);
+                switch (rgn)
+                {
+                    case 0: output = "Hello " + usr + "! Welcome to RNGPlaysPokemon. If you are new, it might be worthwile to take a look at the FAQ, or type !what."; break;
+                    case 1: output = "All welcome " + usr + " to the chat. (also, "+usr+", try !what)";break;
+                    case 2: output = "Heyo, " + usr + ". This channel is a random number generator playing pokémon, very fancy team rocket science stuff. (try !what)."; break;
+                }
+                sendMess(channels, output);
+            }
+
+        }
+
+        public void notNew(string user)
+        {
+            new SQLiteCommand("UPDATE users SET isnew = 0 WHERE name = '"+user+"';", dbConn).ExecuteNonQuery();
         }
 
         //eventbinders
@@ -1312,9 +1399,9 @@ namespace TWIRC
 
         }
 
-        public void ircError(object sender, EventArgs e)
+        public void ircError(object sender, IrcEventArgs e)
         {
-            reconnect();
+            logger.WriteLine("IRC: error in connect: " + e.Data.RawMessage);
         }
         public void ircRaw(object sender, IrcEventArgs e)
         {
@@ -1341,21 +1428,30 @@ namespace TWIRC
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
+            int level = pullAuth(nick);
             storeMessage(nick, message);
             try
             {
                 if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
-                if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
-                if (!a)
+                if (antispam && isMod) { a = checkSpam(channel, nick, message); };
+                if (!a && level>=0)
                 {
                     message = filter(message);
-                    this.checkCommand(channel, nick, message);
+                    a = checkCommand(channel, nick, message);
+                }
+                if (a == false && level == 0 && isNew(nick))
+                {
+                    if (!message.StartsWith("wtf"))
+                    {
+                        newMessage(nick);
+                    }
+                    notNew(nick);
                 }
             }
-            catch
+            catch (Exception exc)
             {
-                logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
+                logger.WriteLine("IRC: Crisis adverted: "+exc.Message+" :: Message: <"+nick+"> "+message);
             }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
@@ -1367,43 +1463,30 @@ namespace TWIRC
             message = message.Remove(message.Length - 1);
             if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
         }
-        public void ircQuery(object sender, EventArgs e)
+        public void ircQuery(object sender, IrcEventArgs e)
         {
-
-        }
-        public void safe()//saves all data
-        {
-            string temp;
-            temp = "";
-            foreach (command c in comlist)
+            string str = e.Data.Message;
+            if(str.StartsWith("The moderators"))
             {
-                temp += c.ToString() + "\n";
+                str = str.Substring("the moderators of this room are: ".Length);
+                string[] splt = str.Split(new string[] { ", " }, StringSplitOptions.None);
+                isMod = false;
+                foreach (string moderator in splt)
+                {
+                    if (moderator == bot_name)
+                    {
+                        isMod = true;
+                    }
+                    else
+                    {
+                        if (pullAuth(moderator) < 4)
+                        {
+                            setAuth(moderator, 3);
+                        }
+                    }
+                }
+            
             }
-            writeFile("Commands.twirc", temp);
-            temp = "";
-            foreach (ali c in aliList)
-            {
-                temp += c.ToString() + "\n";
-            }
-            writeFile("Aliases.twirc", temp);
-
-            //rewriting it
-            foreach (command c in comlist)
-            {
-                string str = "UPDATE commands SET authlevel='" + c.getAuth() + "',count='" + c.getCount() + "',response='" + MySqlEscape(c.getResponse()) + "' WHERE keyword='" + c.getKey() + "'; ";
-                new SQLiteCommand(str , dbConn).ExecuteNonQuery();
-            }
-
-        }
-
-        public static string MySqlEscape(string usString)
-        {
-            if (usString == null)
-            {
-                return null;
-            }
-            // it escapes \r, \n, \x00, \x1a, baskslash, single quotes, double quotes and semi colons
-            return Regex.Replace(usString, "([\\r\\n\\x00\\x1a\\\'\";])", "\\$1");
         }
 
         public string[] FileLines(string path)
