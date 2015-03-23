@@ -157,7 +157,7 @@ namespace TWIRC
                 //RNGLogger.WriteLine("Doing hold: " + nextRNG);
                 ishold = true;
                 lasthold = nextRNG.ToString();
-                holdtime = 0; // randy.Next(8);
+                holdtime = 1 + randy.Next(7);
                 command = "HOLD:";
 
             }
