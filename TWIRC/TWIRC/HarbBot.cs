@@ -113,7 +113,7 @@ namespace TWIRC
                 
                 globalCooldown = 20; 
                 antispam = true;
-                oauth = "oauth:773yvysvxvdqwxlobr0rk17ce4fi4d";
+                oauth = "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd";
                 logLevel = 2;
                 progressLogPATH = @"C:\Users\Zack\Dropbox\Public\rnglog.txt";
                 maxBiasDiff = 0.05;
