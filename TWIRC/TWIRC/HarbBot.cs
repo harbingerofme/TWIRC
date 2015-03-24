@@ -237,6 +237,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!sbversion",0,0));
             hardList.Add(new hardCom("!sbleaderboard",0,0));
             hardList.Add(new hardCom("!sqlquery",5,0));
+            hardList.Add(new hardCom("sayingsbot",0,0,20));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -806,7 +807,7 @@ namespace TWIRC
                             sendMess(channel, User + " politley murders " + str[1]);
                             break;
                         case "!calluser":
-                            sendMess(channel, "CALLING " + str[1] + "! WOULD " + str[1] + " PLEASE REPORT TO THE CHAT!");
+                            sendMess(channel, "CALLING " + str[1].ToUpper() + "! WOULD " + str[1].ToUpper() + " PLEASE REPORT TO THE CHAT!");
                             break;
                         case "!count":
                             SQLiteDataReader getCountCmd = new SQLiteCommand("SELECT DATA FROM misc WHERE ID = 'CountGame';", dbConn).ExecuteReader(); //needs to be put into int count
@@ -861,6 +862,9 @@ namespace TWIRC
                             break;
                         case "!sqlquery":
                             //new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);",dbConn).ExecuteNonQuery();
+                            break;
+                        case "sayingsbot":
+                            sendMess(channel, "/me reporting, " + user + "!");
                             break;
                         case "!quotes":
                             Random rnd = new Random();
