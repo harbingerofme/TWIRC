@@ -873,6 +873,7 @@ namespace TWIRC
                             string fParam = str[3];
                             Boolean success = false;
                             SQLiteDataReader quotesReader;
+                            quser = quser.ToLower();
 
                             if (function == "say")
                             {
