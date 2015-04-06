@@ -1329,9 +1329,30 @@ namespace TWIRC
             message = message.Remove(message.Length - 1);
             if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
         }
-        public void ircQuery(object sender, EventArgs e)
+        public void ircQuery(object sender, IrcEventArgs e)
         {
+            string str = e.Data.Message;
+            if (str.StartsWith("The moderators"))
+            {
+                str = str.Substring("the moderators of this room are: ".Length);
+                string[] splt = str.Split(new string[] { ", " }, StringSplitOptions.None);
+                isMod = false;
+                foreach (string moderator in splt)
+                {
+                    if (moderator == bot_name)
+                    {
+                        isMod = true;
+                    }
+                    else
+                    {
+                        if (pullAuth(moderator) < 4)
+                        {
+                            setAuth(moderator, 3);
+                        }
+                    }
+                }
 
+            }
         }
         public void safe()//saves all data
         {
