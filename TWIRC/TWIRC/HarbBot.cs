@@ -48,9 +48,6 @@ namespace TWIRC
 
         System.Timers.Timer saveTimer;
 
-        private static Ini.IniFile configini = new Ini.IniFile(sysPath() + "\\config.ini");
-        private Ini.IniFile classini = new Ini.IniFile(configini.IniReadValue("Paths", "classicini"));
-
         public Thread one;
 
         public HarbBot(Logger logLogger)
@@ -821,13 +818,26 @@ namespace TWIRC
                             break;
                         case "!classic":
                             //TODO: Need to SQL this
-                            sendMess(channel, classini.IniReadValue("Classic", str[1]));
+                            SQLiteCommand classicCmd = new SQLiteCommand("SELECT data FROM userdata WHERE user = @par1 AND dataType = '4';", dbConn);
+                            classicCmd.Parameters.AddWithValue("@par1", str[1]);
+                            SQLiteDataReader classicReader = classicCmd.ExecuteReader();
+                            if (classicReader.Read())
+                            {
+                                sendMess(channel, classicReader.GetString(0));
+                            }
+                            else
+                            {
+                                sendMess(channel, "Classic " + str[1] + " does not exist!");
+                            }
                             break;
                         case "!addclassic":
                             string classicAdd = str[1];
                             string classicMessage = str[2];
-                            classini.IniWriteValue("Classic", classicAdd, classicMessage);
-                            sendMess(channel, "Classic command " + classicAdd + " appears as " + classini.IniReadValue("Classic", classicAdd));
+                            SQLiteCommand classicAddCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES (@par1, '4', @par2);", dbConn);
+                            classicAddCommand.Parameters.AddWithValue("@par1", classicAdd);
+                            classicAddCommand.Parameters.AddWithValue("@par2", classicMessage);
+                            classicAddCommand.ExecuteNonQuery();
+                            sendMess(channel, "Classic command " + classicAdd + " appears as " + classicMessage);
                             this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
                             break;
                         case "!kill":
@@ -900,9 +910,15 @@ namespace TWIRC
                             string fParam = str[3];
                             Boolean success = false;
                             SQLiteDataReader quotesReader;
+                            SQLiteCommand quotesCommand;
                             quser = quser.ToLower();
 
-                            if (function == "say")
+                            if (function == "info")
+                            {
+                                sendMess(channel, "Infomation about quotes avalible on the !sbcommands page.");
+                                break;
+                            }
+                            else if (function == "say")
                             {
                                 if (quser == "random")
                                 {
@@ -933,11 +949,16 @@ namespace TWIRC
                                     if (fParam == "r")
                                     {
                                         //random user quote
-                                        quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + quser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                        quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
+                                        quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                        quotesReader = quotesCommand.ExecuteReader();
+
                                         if(quotesReader.Read()) 
                                         {
                                             int rand = rnd.Next(1, quotesReader.GetInt32(0) + 1);
-                                            quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + quser + "' AND datatype = '1' AND dataID = '" + rand + "';", dbConn).ExecuteReader();
+                                            quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = '" + rand + "';", dbConn);
+                                            quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                            quotesReader = quotesCommand.ExecuteReader();
                                             if (quotesReader.Read()) { sendMess(channel, "("+rand+"): "+quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
                                             break;
                                         }
@@ -950,7 +971,10 @@ namespace TWIRC
                                         catch { }
                                         if (success)
                                         {
-                                            quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + quser + "' AND datatype = '1' AND dataID = '" + fParam + "';", dbConn).ExecuteReader();
+                                            quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = @par2;", dbConn);
+                                            quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                            quotesCommand.Parameters.AddWithValue("@par2", fParam);
+                                            quotesReader = quotesCommand.ExecuteReader();
                                             if (quotesReader.Read()) { sendMess(channel, quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + fParam + " does not exist for " + quser); }
                                             break;
                                         }
@@ -966,7 +990,9 @@ namespace TWIRC
                             {
                                 int length;
                                 int newLength;
-                                quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + quser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
+                                quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                quotesReader = quotesCommand.ExecuteReader();
                                 if (quotesReader.Read())
                                 {
                                     length = quotesReader.GetInt32(0);
@@ -977,7 +1003,10 @@ namespace TWIRC
                                     //No quotes yet exsist
                                     newLength = 1;
                                 }
-                                new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('"+quser+"', '1', '" + newLength + "', '" + fParam + "');", dbConn).ExecuteNonQuery();
+                                quotesCommand  = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES (@par1, '1', '" + newLength + "',  @par2);", dbConn);
+                                quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                quotesCommand.Parameters.AddWithValue("@par2", fParam);
+                                quotesCommand.ExecuteNonQuery();
                                 sendMess(channel, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
                                 this.appendFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
 
@@ -990,7 +1019,9 @@ namespace TWIRC
                                     {
                                         length = quotesReader.GetInt32(0);
                                         newLength = length + 1;
-                                        new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '" + quser + "');", dbConn).ExecuteNonQuery();
+                                        quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', @par1);", dbConn);
+                                        quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                        quotesCommand.ExecuteNonQuery();
                                         sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
                                         this.appendFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
                                     }
@@ -1421,7 +1452,7 @@ namespace TWIRC
         {
             try
             {
-                File.AppendAllText(path, stuff);
+                File.AppendAllText(path, Environment.NewLine + stuff);
                 return true;
             }
             catch
