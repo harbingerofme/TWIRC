@@ -44,7 +44,9 @@ namespace TWIRC
         
         //some settings
         public bool silence,isMod = false;
-        public string progressLogPATH;
+        public string progressLogPATH = sysPath() + "\\SayingsBotLog.txt";
+
+        System.Timers.Timer saveTimer;
 
         private static Ini.IniFile configini = new Ini.IniFile(sysPath() + "\\config.ini");
         private Ini.IniFile classini = new Ini.IniFile(configini.IniReadValue("Paths", "classicini"));
@@ -87,7 +89,7 @@ namespace TWIRC
                 antispam = false;
                 oauth = "oauth:tpjq7tyuevo3nyre0ywdlklznmkh0r";
                 logLevel = 2;
-                progressLogPATH = @"C:\rnglog.txt";
+                //progressLogPATH = sysPath() + "\\SayingsBotLog.txt";
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -132,7 +134,7 @@ namespace TWIRC
                     oauth = sqldr.GetString(4);
                     globalCooldown = sqldr.GetInt32(5);
                     logLevel = sqldr.GetInt32(6);
-                    progressLogPATH = sqldr.GetString(7);
+                    //progressLogPATH = sqldr.GetString(7);
             }
             if(!File.Exists("chat.sqlite")){
                 SQLiteConnection.CreateFile("chat.sqlite");
@@ -243,12 +245,11 @@ namespace TWIRC
             one.Name = "SAYINGSBOT IRC CONNECTION";
             one.IsBackground = true;
 
-            saveTimer_Elapsed(null, null);
-
-            //saveTimer = new System.Timers.Timer(30 * 60 * 1000);
-            //saveTimer.AutoReset = true;
-            //saveTimer.Elapsed += saveTimer_Elapsed;
-            //saveTimer.Start();
+            
+            saveTimer = new System.Timers.Timer(5 * 60 * 1000);
+            saveTimer.AutoReset = true;
+            saveTimer.Elapsed += saveTimer_Elapsed;
+            saveTimer.Start();
             System.Timers.Timer colourTimer = new System.Timers.Timer(10000);
             colourTimer.AutoReset = true;
             colourTimer.Elapsed += colourTimer_Elapsed;
@@ -292,6 +293,28 @@ namespace TWIRC
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            logger.WriteLine("Save Timer");
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("IRC not Connected!");
+                try
+                {
+                    logger.WriteLine("Attempting IRC Connection!");
+                    irc.Connect("irc.twitch.tv", 6667);
+                }
+                catch (ConnectionException ex1)
+                {
+                    logger.WriteLine("Connection Exception");
+                    this.appendFile(progressLogPATH, "Connection Exception");
+                    this.appendFile(progressLogPATH, Convert.ToString(ex1));
+                }
+                catch (Exception ex2)
+                {
+                    logger.WriteLine("General Catch");
+                    this.appendFile(progressLogPATH, "General Catch");
+                    this.appendFile(progressLogPATH, Convert.ToString(ex2));
+                }
+            }
             /*write here what you want to save, I've left the previous one here.
              * 
             writeFile(commandsPATH, "<DOCTYPE html><head><title>RNGPPBot commands</title><h1>RNGPPBot commands</h1></head>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.<table border='1px' cellspacing='0px'><tr><td><b>keyword</b></td><td><b>level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td><td><b>output<b></td></tr>");
@@ -546,7 +569,7 @@ namespace TWIRC
                                     cmd.Parameters.AddWithValue("@par2",tempVar2);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
-                                    this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" added.");
+                                    this.appendFile(progressLogPATH, "Command \"" + str[1] + "\" added.");
                                 }
                             break;
                         case "!sbeditcom":
@@ -565,7 +588,7 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
-                                        this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" has been edited.");
+                                        this.appendFile(progressLogPATH, "Command \"" + str[1] + "\" has been edited.");
                                         safe();
                                         fail = false;
                                     }
@@ -586,7 +609,7 @@ namespace TWIRC
                                         cmd.Parameters.AddWithValue("@par1", str[1]);
                                         cmd.ExecuteNonQuery();
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
-                                        this.writeFile(progressLogPATH, "Command \"" + str[1] + "\" has been deleted.");
+                                        this.appendFile(progressLogPATH, "Command \"" + str[1] + "\" has been deleted.");
                                         safe();
                                         break; }
 
@@ -614,7 +637,7 @@ namespace TWIRC
                                     cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
-                                    this.writeFile(progressLogPATH, "Alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                    this.appendFile(progressLogPATH, "Alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
                             break;
@@ -627,7 +650,7 @@ namespace TWIRC
                                         SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", str[1]);cmd.ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
-                                        this.writeFile(progressLogPATH, "Alias \"" + str[1] + "\" removed.");
+                                        this.appendFile(progressLogPATH, "Alias \"" + str[1] + "\" removed.");
                                         if (c.getFroms().Count() == 0) { aliList.Remove(c); }
                                         fail = false;
                                         safe();
@@ -643,7 +666,7 @@ namespace TWIRC
                             {
                                 setAuth(str[1].ToLower(), int.Parse(str[2]));
                                 sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
-                                this.writeFile(progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
+                                this.appendFile(progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
                                 safe();
                             }
                             else
@@ -677,7 +700,7 @@ namespace TWIRC
                                 {
                                     setAuth(str[1], -1);
                                     sendMess(channel, User + "-> \"" + str[1] + "\" has been banned from using bot commands.");
-                                    this.writeFile(progressLogPATH, str[1] + " has been banned from using bot commands.");
+                                    this.appendFile(progressLogPATH, str[1] + " has been banned from using bot commands.");
                                 }
 
                             break;
@@ -686,7 +709,7 @@ namespace TWIRC
                                 {
                                     setAuth(str[1], 0);
                                     sendMess(channel, User + "-> \"" + str[1] + "\" has been unbanned.");
-                                    this.writeFile(progressLogPATH, str[1] + "has been unbanned.");
+                                    this.appendFile(progressLogPATH, str[1] + "has been unbanned.");
                                 }
 
                             break;
@@ -780,7 +803,7 @@ namespace TWIRC
                             SQLiteDataReader usersReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + user + "' AND datatype = '0';", dbConn).ExecuteReader();
                             if (usersReader.Read()) { 
                                 sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
-                                this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
+                                this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
                             }
                             break;
                         case "!edituser":
@@ -790,10 +813,11 @@ namespace TWIRC
                             SQLiteDataReader userssReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + newUser + "' AND datatype = '0';", dbConn).ExecuteReader();
                             if (userssReader.Read()) { 
                                 sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
-                                this.writeFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
+                                this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
                             }
                             break;
                         case "!classic":
+                            //TODO: Need to SQL this
                             sendMess(channel, classini.IniReadValue("Classic", str[1]));
                             break;
                         case "!addclassic":
@@ -801,7 +825,7 @@ namespace TWIRC
                             string classicMessage = str[2];
                             classini.IniWriteValue("Classic", classicAdd, classicMessage);
                             sendMess(channel, "Classic command " + classicAdd + " appears as " + classini.IniReadValue("Classic", classicAdd));
-                            this.writeFile(progressLogPATH, "Classic command " + classicAdd + " added.");
+                            this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
                             break;
                         case "!kill":
                             sendMess(channel, User + " politley murders " + str[1]);
@@ -952,15 +976,31 @@ namespace TWIRC
                                 }
                                 new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('"+quser+"', '1', '" + newLength + "', '" + fParam + "');", dbConn).ExecuteNonQuery();
                                 sendMess(channel, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-                                this.writeFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-                                break;
+                                this.appendFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
+
+                                //If it's the user's first quote
+                                //Originally addusertorandom
+                                if (newLength == 1)
+                                {
+                                    quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                    if (quotesReader.Read())
+                                    {
+                                        length = quotesReader.GetInt32(0);
+                                        newLength = length + 1;
+                                        new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '" + quser + "');", dbConn).ExecuteNonQuery();
+                                        sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                        this.appendFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                    }
+                                    break;
+                                }
+                                else { break; }
                             }
                             else if (function == "edit")
                             {
                                 sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
                                 break;
                             }
-                            else if (function == "addusertorandom")
+                            /*else if (function == "addusertorandom")
                             {
                                 quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
                                 if (quotesReader.Read())
@@ -972,7 +1012,7 @@ namespace TWIRC
                                     this.writeFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
                                 }
                                 break;
-                            }
+                            }*/
                             else
                             {
                                 sendMess(channel, "Incorrect use of !quotes.");
@@ -1273,7 +1313,7 @@ namespace TWIRC
             catch
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
-                this.writeFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
+                this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
             }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
