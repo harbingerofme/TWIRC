@@ -294,12 +294,15 @@ namespace TWIRC
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             logger.WriteLine("Save Timer");
+            this.appendFile(progressLogPATH, "Save Timer");
             if (!irc.IsConnected)
             {
                 logger.WriteLine("IRC not Connected!");
+                this.appendFile(progressLogPATH, "IRC not Connected!");
                 try
                 {
                     logger.WriteLine("Attempting IRC Connection!");
+                    this.appendFile(progressLogPATH, "Attempting IRC Connection!");
                     irc.Connect("irc.twitch.tv", 6667);
                 }
                 catch (ConnectionException ex1)
