@@ -64,6 +64,8 @@
             this.btn_voteTimer = new System.Windows.Forms.Button();
             this.btn_rngTest = new System.Windows.Forms.Button();
             this.txt_numrolls = new System.Windows.Forms.TextBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -79,12 +81,12 @@
             // 
             // btn_RestartIRC
             // 
-            this.btn_RestartIRC.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_RestartIRC.Location = new System.Drawing.Point(255, 333);
+            this.btn_RestartIRC.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_RestartIRC.Location = new System.Drawing.Point(246, 333);
             this.btn_RestartIRC.Name = "btn_RestartIRC";
-            this.btn_RestartIRC.Size = new System.Drawing.Size(62, 20);
+            this.btn_RestartIRC.Size = new System.Drawing.Size(87, 20);
             this.btn_RestartIRC.TabIndex = 2;
-            this.btn_RestartIRC.Text = "Restart IRC";
+            this.btn_RestartIRC.Text = "disconnect irc";
             this.btn_RestartIRC.UseVisualStyleBackColor = true;
             this.btn_RestartIRC.Click += new System.EventHandler(this.btn_RestartIRC_Click);
             // 
@@ -154,10 +156,9 @@
             this.text_log.Multiline = true;
             this.text_log.Name = "text_log";
             this.text_log.ReadOnly = true;
-            this.text_log.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.text_log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.text_log.Size = new System.Drawing.Size(415, 211);
             this.text_log.TabIndex = 16;
-            this.text_log.WordWrap = false;
             this.text_log.TextChanged += new System.EventHandler(this.text_log_TextChanged);
             // 
             // timer_RNG
@@ -389,11 +390,35 @@
             this.txt_numrolls.Text = "1000";
             this.txt_numrolls.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.button2.Location = new System.Drawing.Point(246, 307);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(87, 20);
+            this.button2.TabIndex = 38;
+            this.button2.Text = "connect irc";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // button3
+            // 
+            this.button3.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.button3.Location = new System.Drawing.Point(246, 281);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(87, 20);
+            this.button3.TabIndex = 39;
+            this.button3.Text = "reconnect irc";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 378);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.btn_voteTimer);
             this.Controls.Add(this.btn_Leaderboard);
             this.Controls.Add(this.btn_dumpBiases);
@@ -471,6 +496,8 @@
         private System.Windows.Forms.Button btn_voteTimer;
         private System.Windows.Forms.Button btn_rngTest;
         private System.Windows.Forms.TextBox txt_numrolls;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
     }
 }
 

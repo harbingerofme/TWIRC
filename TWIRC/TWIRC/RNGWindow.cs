@@ -142,7 +142,8 @@ namespace TWIRC
         private void btn_RestartIRC_Click(object sender, EventArgs e)
         {
             //one day I'll fix this.
-          //  HB.reconnect();
+          //
+            HB.doDisconnect();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -555,6 +556,21 @@ namespace TWIRC
         private void button2_Click(object sender, EventArgs e)
         {
             RNGLogger.WriteLine(RNGesus.rngTest(Convert.ToInt32(txt_numrolls.Text)));
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            HB.doConnect();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            HB.doReconnect();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            HB.doReconnect2();
         }
 
 

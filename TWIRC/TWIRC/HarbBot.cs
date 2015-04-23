@@ -51,7 +51,7 @@ namespace TWIRC
 
         //voting and bias related stuff.
         public List<intIntStr> votingList = new List<intIntStr>();
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null;
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null;
         public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
 
         int moneyPerVote = 50;
@@ -65,6 +65,12 @@ namespace TWIRC
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
             irc.ActiveChannelSyncing = true;
+            //irc.AutoReconnect = true;
+            //irc.AutoRejoin = true;
+            //irc.AutoRelogin = true;
+            //irc.SocketReceiveTimeout = 30;
+            //irc.SocketSendTimeout = 10;
+
 
             biasControl = buttMuncher;
             luaServer = luaSurfer;
@@ -88,9 +94,13 @@ namespace TWIRC
 
             //write these Methods
             irc.OnConnected += ircConnected;
+            irc.OnDisconnected += ircDisconnected;
+            irc.OnDisconnecting += ircDisconnecting;
+            irc.OnConnecting += ircConnecting;
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
             irc.OnQueryNotice += ircNotice;
+
 
             irc.OnQueryMessage += ircQuery;
             irc.OnRawMessage += ircRaw;
@@ -303,10 +313,6 @@ namespace TWIRC
             hardList.Add(new hardCom("!delclassic",2,2));
             */
 
-            one = new Thread(connection);
-            one.Name = "RNGPPBOT IRC CONNECTION";
-            one.IsBackground = true;
-              
             voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
             voteTimer.Elapsed += voteTimer_Elapsed;
             voteTimer.AutoReset = false;
@@ -322,6 +328,11 @@ namespace TWIRC
             saveTimer.AutoReset = true;
             saveTimer.Elapsed += saveTimer_Elapsed;
             saveTimer.Start();
+
+            reconTimer = new System.Timers.Timer(5000);
+            reconTimer.AutoReset = true;
+            reconTimer.Elapsed += reconTimer_Elapsed;
+            reconTimer.Start();
             
 
             checkBackgrounds();
@@ -445,6 +456,98 @@ namespace TWIRC
             }
         }
 
+        void reconTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+            }
+        
+        }
+
+        public void doDisconnect()
+        {
+
+            logger.Write("IRC Disconnecting, vote timers paused ");
+            //one.Abort();
+
+            voteTimer.Stop();  // stop the vote timers while we're down
+            voteTimer2.Stop();
+
+            reconTimer.Stop();
+
+
+
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("... already disconnected.");
+                return;
+            }
+
+            try
+            {
+                irc.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine("... IRC DISCONNECT FAILED: " + ex.Message);
+            }
+
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("... disconnected.");
+                return;
+            }
+
+        }
+
+        public void doConnect()
+        {
+
+
+            logger.Write("IRC Connecting ");
+
+            if (irc.IsConnected)
+            {
+                logger.WriteLine("...  already connected.");   
+                return;
+            }
+
+           // one = new Thread(connection); // does the old reference vanish?
+           // one.Name = "RNGPPBOT IRC CONNECTION";
+           // one.IsBackground = true;
+
+            try                 { irc.Connect("irc.twitch.tv", 6667); }
+            catch (Exception ex){ logger.WriteLine("IRC CONNECT FAILED: " + ex.Message); }
+
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: ");   
+            }
+            else
+            {
+                logger.WriteLine("... Connected! Vote timers resuming...");   
+                voteTimer.Start();
+                voteTimer2.Start();
+                reconTimer.Start();
+
+            }
+        }
+
+        public void doReconnect()
+        {
+            doDisconnect();
+            doConnect();
+        }
+
+
+        public void doReconnect2()
+        {
+            irc.Reconnect(true,true);
+        }
+
+
+        /* "reconnect()"
         public void reconnect()
         {
             try
@@ -471,7 +574,7 @@ namespace TWIRC
                 reconnect();
             };
 
-        }
+        }*/
 
         public bool checkSpam(string channel, string user, string message)
         {
@@ -1387,12 +1490,50 @@ namespace TWIRC
         }
 
         //eventbinders
+
+ 
+
+        public void ircConnecting(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircConnecting()");
+            try
+            {
+                one.Abort();
+            }
+            catch{} // ignore this if it fails, because i'm lazy --bob
+
+            one = new Thread(connection);
+            one.Name = "RNGPPBOT IRC CONNECTION";
+            one.IsBackground = true;
+              
+            logger.WriteLine("Thread \"one\" recreated...");
+
+        }
+
         public void ircConnected(object sender, EventArgs e)
         {
+            logger.WriteLine("ircConnected()");
             logger.WriteLine("IRC: Joining Twitch chat");
             irc.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             one.Start();
         }
+
+        public void ircDisconnecting(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircDisconnecting()");
+
+        }
+        
+        public void ircDisconnected(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircDisconnected()");
+            try
+            {
+                one.Abort();
+            }
+            catch { }
+        }
+
 
         public void ircConError(object sender, EventArgs e)
         {
