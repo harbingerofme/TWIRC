@@ -615,7 +615,7 @@ namespace TWIRC
                             }
                             else
                             {
-                                if ((lastVoteTime + timeBetweenVotes) - getNow() > 30)
+                                if (getNow() - lastVoteTime > 30)
                                 {
                                     sendMess(channel, "No vote currently in progress, try again in " + (((lastVoteTime + timeBetweenVotes) - getNow()) / 60 + 1) + " minutes.");
                                 }
@@ -639,14 +639,18 @@ namespace TWIRC
                             {
                                 tempVar2 = tempVar1 + " PokéDollars";
                             }
-                            sendMess(channel, User + ", your balance is " + tempVar2 + ".");
+                            tempVar1 = getAllTime(user);
+                            sendMess(channel, User + ", your balance is " + tempVar2 + ". ("+tempVar1+")");
                             break;
                         case "!setpoints":
                             if (Regex.Match(str[2], "^[1-9][0-9]{1,8}$").Success)
                             {
                                 setPoints(str[1], int.Parse(str[2]));
-                                sendMess(channel, "Points have been changed, cheater.");
+                                sendMess(channel, "Points have been changed.");
                             }
+                            break;
+                        case "!check":
+                            sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + "pokédollars. (" + getAllTime(str[1]) + ")");
                             break;
 
                         case "!addlog":
@@ -843,7 +847,7 @@ namespace TWIRC
                     case 1: output = "All welcome " + usr + " to the chat. (also, " + usr + ", try !what)"; break;
                     case 2: output = "Heyo, " + usr + ". This channel is a random number generator playing pokémon, very fancy team rocket science stuff. (try !what)."; break;
                 }
-                sendMess(channels, output);
+                sendMess(channel, output);
             }
 
         }

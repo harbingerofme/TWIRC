@@ -24,7 +24,8 @@ namespace TWIRC
         public LuaServer luaServer;
 
         //important stuff
-        public string bot_name, oauth, channels;
+        public string bot_name, oauth, channel;
+        public string[] channels;
 
         //commands and aliases
         public List<command> comlist = new List<command>();
@@ -119,8 +120,9 @@ namespace TWIRC
                     logger.WriteLine("IRC: First time setup detected, making database");
                 }
                 bot_name = "rngppbot";
-                channels = "#rngplayspokemon";
+                channel = "#rngplayspokemon";
                 
+
                 globalCooldown = 20; 
                 antispam = true;
                 oauth = "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd";
@@ -142,8 +144,8 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 
-                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channel.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"',0);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
 
@@ -166,7 +168,7 @@ namespace TWIRC
                     SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM settings;", dbConn).ExecuteReader();
                     sqldr.Read();
                     bot_name = sqldr.GetString(0);
-                    channels = sqldr.GetString(1);
+                    channel = sqldr.GetString(1);
                     antispam = false; if (sqldr.GetInt32(2) == 1) { antispam = true; }
                     silence = false; if (sqldr.GetInt32(3) == 1) { silence = true; }
                     oauth = sqldr.GetString(4);
@@ -291,6 +293,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!resetbias", 4, 0));
             hardList.Add(new hardCom("!bias",0,1));
             hardList.Add(new hardCom("!balance", 0, 0,60));
+            hardList.Add(new hardCom("!check", 3, 1));
             hardList.Add(new hardCom("!addlog", 0, 1,5));
             hardList.Add(new hardCom("!setpoints",4,2));
             hardList.Add(new hardCom("!voting", 3, 1));
@@ -365,12 +368,13 @@ namespace TWIRC
                 new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
                 biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 
-                irc.RfcPrivmsg(channels, ".mods");
+                irc.RfcPrivmsg(channel, ".mods");
             }
         }
 
         void connection()
         {
+            channels = new string[] {channel, bot_name};
             irc.RfcJoin(channels);
             irc.Listen();
 
@@ -378,8 +382,8 @@ namespace TWIRC
 
         public void say(string message)
         {   
-            sendMess(channels, message);
-            checkCommand(channels, channels.Substring(1), filter(message));//I guess?
+            sendMess(channel, message);
+            checkCommand(channel, channel.Substring(1), filter(message));//I guess?
         }
 
         void checkBackgrounds()
@@ -405,7 +409,7 @@ namespace TWIRC
                 {
                     voteStatus = 1;
                     voteTimer2.Start();
-                    sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                    sendMess(channel, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
                 }
                 if (sender == voteTimer2)
                 {
@@ -451,7 +455,7 @@ namespace TWIRC
                     lastVoteTime = getNow();
                     voteStatus = 0;
                     voteTimer.Start();
-                    sendMess(channels, str);
+                    sendMess(channel, str);
                 }
             }
         }

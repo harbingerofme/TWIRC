@@ -162,6 +162,23 @@ namespace TWIRC
             }
         }
 
+        public int getAllTime(string name)
+        {
+            name = name.ToLower();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                return sqldr.GetInt32(0);
+            }
+            else
+            {
+
+                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                return 0;
+            }
+        }
+
         public void storeMessage(string user, string message)
         {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
