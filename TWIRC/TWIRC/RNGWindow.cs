@@ -59,7 +59,7 @@ namespace TWIRC
 
             biasWindow = newbiaswindow;
 #if !OFFLINE
-            highWindow = new highscores();
+            highWindow = new highscores(bot);
             highWindow.Show();
             timerWindow = new votetimer(bot);
             timerWindow.Show();
@@ -524,7 +524,7 @@ namespace TWIRC
             oldwin.X = highWindow.Location.X;
             oldwin.Y = highWindow.Location.Y;
             highWindow.Close();
-            highWindow = new highscores();
+            highWindow = new highscores(HB);
             highWindow.StartPosition = FormStartPosition.Manual;
             highWindow.Location = oldwin;
             highWindow.Size = oldwins;

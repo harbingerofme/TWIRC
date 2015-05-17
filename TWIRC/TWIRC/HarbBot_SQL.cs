@@ -11,6 +11,71 @@ namespace TWIRC
 {
     public partial class HarbBot //contains various sql methods
     {
+        public void loadBiases()
+        {
+            List<Bias> biases = new List<Bias>();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM biases;",dbConn).ExecuteReader();
+            while(sqldr.Read())
+            {
+                biases.Add(new Bias(sqldr.GetString(1), sqldr.GetString(0)));
+            }
+            biasList = biases;
+        }
+
+        public bool addBias(string keyword, string numbers)
+        {
+            SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE aliases LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
+            if(sql.Read()){
+                return false;
+            }
+            else
+            {
+                sql = new SQLiteCommand("SELECT aliases FROM biases WHERE numbers  = '"+ numbers +"';",dbConn).ExecuteReader();
+                if (sql.Read())
+                {
+                    string str = sql.GetString(0) + keyword + " ";
+                    new SQLiteCommand("UPDATE biases SET aliases = '" + str + "' WHERE numbers  = '" + numbers + "';",dbConn).ExecuteNonQuery();
+                }
+                else
+                {
+                    new SQLiteCommand("INSERT INTO biases (aliases,numbers) VALUES (' " + keyword + " ', '" + numbers + "');",dbConn).ExecuteNonQuery();
+                }
+                return true;
+               
+            }
+        }
+
+        public bool delBias(string keyword)
+        {
+            SQLiteDataReader sql = new SQLiteCommand("SELECT aliases,numbers FROM biases WHERE aliases LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
+            if (sql.Read())
+            {
+                string numbers = sql.GetString(1);
+                string oldAli = sql.GetString(0).Trim();
+                string[] split = oldAli.Split(' ');
+                string newAli = " ";
+                foreach (string str in split)
+                {
+                    if(str != keyword)
+                    {
+                        newAli += str + " ";
+                    }
+                }
+                if(newAli.Length > 1)
+                {
+                    new SQLiteCommand("UPDATE biases SET aliases = '"+newAli+"' WHERE numbers = '"+numbers+"';", dbConn).ExecuteNonQuery();
+                }
+                else
+                {
+                    new SQLiteCommand("DELETE FROM biases WHERE numbers = '" + numbers + "';", dbConn).ExecuteNonQuery();
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
 
         public void notNew(string user)
@@ -106,20 +171,24 @@ namespace TWIRC
         }
         public int addPoints(string name, int amount, string why)
         {
-            int things;
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
-            if (sqldr.Read())
+            if (amount != 0)
             {
-                things = sqldr.GetInt32(0);
-                new SQLiteCommand("UPDATE users SET points='" + (things + amount) + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','" + why + "','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
-                return things;
+                int things;
+                SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+                if (sqldr.Read())
+                {
+                    things = sqldr.GetInt32(0);
+                    new SQLiteCommand("UPDATE users SET points='" + (things + amount) + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                    new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','" + why + "','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                    return things;
+                }
+                else
+                {
+                    new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+                    return 0;
+                }
             }
-            else
-            {
-                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
-                return 0;
-            }
+            return 0;
         }
 
         public bool isNew(string user)

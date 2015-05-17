@@ -485,6 +485,117 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             return (int)Math.Floor(diff.TotalSeconds);
         }
     }
+
+    public class Bias : System.Object
+    {
+        public string keyword;
+        public double[] numbers;
+        public double factor;
+
+        public Bias(string word,string nrs){
+            string[] temp = nrs.Split(' ');
+            numbers = new double[7];
+            for(int i = 0; i<7; i++)
+            {
+                numbers[i] = double.Parse(temp[i]);
+            }
+            keyword = word;
+            calculate();
+        }
+
+        public Bias(string word, double[] nrs)
+        {
+            keyword = word;
+            numbers = nrs;
+            calculate();
+        }
+
+        void calculate()
+        {
+            double total = 0;
+            foreach(double dbl in numbers)
+            {
+                total += dbl;
+            }
+            factor = Math.Floor(10/total * 100)/100;
+        }
+        public override string ToString() // returns the keyword
+        {
+            return keyword;
+        }
+
+        public string strNumbers()
+        {
+            string str = "";
+            foreach(double number in numbers)
+            {
+                str += number + " ";
+            }
+            str = str.Trim();
+            return str;
+        }
+
+        public override bool Equals(System.Object obj)// returns true if all numbers mean the same.
+        {
+            Bias obj1 = obj as Bias;
+            if(obj1 == null)
+            {
+                return false;
+            }
+            bool succes = true;
+            int i = 6;
+            while(i-->0)
+            {
+                if(obj1.numbers[i] * obj1.factor != numbers[i] * factor )
+                {
+                    succes = false;
+                }
+            }
+            return succes;
+        }
+
+        public double this[int key]//allows things like leftbias[1] to get the up property, etc.
+        {
+            get
+            {
+                return numbers[key];
+            }
+            set
+            {
+                numbers[key] = value;
+            }
+        }
+
+        public double this[string key]
+        {         
+            get
+            {
+                return this[convertToIndex(key)];
+            }
+            set
+            {
+                this[convertToIndex(key)] = value;
+            }
+        }
+
+        int convertToIndex(string key)//converts a case insensitive string to an index for increased readability, accepted strings are: left,up,down,right,a,b,start, returns index when matches, but -1 when not.
+        {
+            int result = -1;
+            if (key.ToLower() == "left")    { result = 0; }//I should have done this with a switch statement, but oh well, I doubt I will ever use this.
+            if (key.ToLower() == "up")      { result = 1; }
+            if (key.ToLower() == "down")    { result = 2; }
+            if (key.ToLower() == "right")   { result = 3; }
+            if (key.ToLower() == "a")       { result = 4; }
+            if (key.ToLower() == "b")       { result = 5; }
+            if (key.ToLower() == "start")   { result = 6; }
+            return result;
+        }
+
+    }
+
+
+
+
     public class intIntStr
     {
         public int Int1;

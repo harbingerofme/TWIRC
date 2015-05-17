@@ -540,6 +540,8 @@ namespace TWIRC
                         case "!bias":
                             if (voteStatus == 1)
                             {
+                                tempVar3 = (str[1] + " " + str[2]).Split(' ');
+                                /*
                                 tempVar2 = str[1];
                                 tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
                                 tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
@@ -557,60 +559,60 @@ namespace TWIRC
                                 tempVar2 = tempVar2.ToLower().Replace("movement", "12");
                                 tempVar2 = tempVar2.ToLower().Replace("vertical", "13");
                                 tempVar2 = tempVar2.ToLower().Replace("horizontal", "14");
-
-
-                                if (Regex.Match(tempVar2, @"^([0-9]|1[0-5])$").Success)
+                                */
+                                Bias q = null;
+                                tempVar1 = 1;
+                                foreach (Bias b in biasList)
                                 {
-
-                                    tempVar1 = 1;
-                                    if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
+                                    if (str[1].ToLower() == b + "")
                                     {
-                                        try//don't trust this one bit.
+                                        q = b;
+                                        break;
+                                    }
+                                }
+                                if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
+                                {
+                                    try//don't trust this one bit.
+                                    {
+                                        tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                    }
+                                    catch
+                                    {
+                                        fail = true;
+                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                    }
+                                }
+                                if (tempVar3.Length > 6)
+                                {
+                                    fail = false;
+                                    double[] dbl = new double[7];
+                                    for (int a = 0; a < 7; a++)
+                                    {
+                                        try
                                         {
-                                            tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                            dbl[a] = int.Parse(tempVar3[a]);
                                         }
                                         catch
                                         {
                                             fail = true;
-                                            logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                            break;
                                         }
                                     }
-                                    if (tempVar1 - 1 <= getPoints(user) / moneyPerVote && tempVar1 != 0)
+                                    if (!fail)
                                     {
-                                        fail = false;
-                                        foreach (intIntStr IS in votingList)
-                                        {
-                                            if (IS.Str == user) { fail = true; break; }
-                                        }
-                                        if (!fail)
-                                        {
-                                            votingList.Add(new intIntStr(user, tempVar1, int.Parse(tempVar2)));
-                                            addPoints(user, (2 - tempVar1) * moneyPerVote, "vote");
-                                            addAllTime(user, moneyPerVote);
-                                        }
-                                        else
-                                        {
-                                            int a = votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1;
-                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int1 = tempVar1;
-                                            a -= tempVar1;
-                                            if (a != 0) { addPoints(user, a * moneyPerVote, "changevote"); }
-                                            votingList[votingList.IndexOf(votingList.Find(x => x.Str == user))].Int2 = int.Parse(tempVar2);
-                                        }
+                                        q = new Bias("custom", dbl);
                                     }
-                                    if (tempVar1 == 0)
+
+                                    try
                                     {
-                                        fail = true; int a = 0;
-                                        foreach (intIntStr IS in votingList)
-                                        {
-                                            if (IS.Str == user) { fail = false; break; }
-                                            a++;
-                                        }
-                                        if (!fail)
-                                        {
-                                            addPoints(user, (votingList[a].Int1 + 2) * moneyPerVote, "refundvote");
-                                            votingList.RemoveAt(a);
-                                        }
+                                        tempVar1 = int.Parse(tempVar3[7]);
                                     }
+                                    catch { };
+
+                                }
+                                if (q != null && (tempVar1 - 1) * moneyPerVote <= getPoints(user))
+                                {
+                                    addVote(user, q, tempVar1);
                                 }
                             }
                             else
@@ -640,7 +642,7 @@ namespace TWIRC
                                 tempVar2 = tempVar1 + " PokéDollars";
                             }
                             tempVar1 = getAllTime(user);
-                            sendMess(channel, User + ", your balance is " + tempVar2 + ". ("+tempVar1+")");
+                            sendMess(channel, User + ", your balance is " + tempVar2 + ". (" + tempVar1 + ")");
                             break;
                         case "!setpoints":
                             if (Regex.Match(str[2], "^[1-9][0-9]{1,8}$").Success)
@@ -698,6 +700,58 @@ namespace TWIRC
                             sendMess(channel, User + "-> commands are located at " + commandsURL + " .");
                             break;
 
+                        case "!delbias":
+                            if (delBias(str[1]))
+                            {
+                                sendMess(channel, "Bias deleted.");
+                            }
+                            else
+                            {
+                                sendMess(channel, "No bias by that name exists");
+                            }
+                            break;
+
+                        case "!addbias":
+                            fail = false;
+                            for (int i = 2; i < 9; i++)
+                            {
+                                if (Regex.Match(str[i], @"^[0-9](\.[1-9])?$|^10$").Success)
+                                { tempVar2 += str[i] + " "; }
+                                else
+                                {
+                                    fail = true; break;
+                                }
+                            }
+                            if (!fail)
+                            {
+                                tempVar2 = tempVar2.Trim();
+                                Bias k = new Bias(str[1].ToLower(), tempVar2);
+                                foreach (Bias b in biasList)
+                                {
+                                    if (b.Equals(k))
+                                    {
+                                        k.numbers = b.numbers;
+                                        k.factor = b.factor;
+                                        break;
+                                    }
+                                }
+                                if (addBias(k + "", k.strNumbers()))
+                                {
+                                    biasList.Add(k);
+                                    sendMess(channel, User + "-> Bias added!");
+                                }
+                                else
+                                {
+                                    sendMess(channel, "Bias with that keyword already exists.");
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "One or more numbers were incorrect. (Use up to one floating point values between and including 0 and 10)");
+                            }
+
+                            break;
+
                         case "!givemoney":
 
                             bool givemoneysucces = false;
@@ -743,65 +797,68 @@ namespace TWIRC
                             }
                             break;
                         case "!background":
-                            if (backgrounds != 0)
+                            if (backgrounds_enabled)
                             {
-                                if (Regex.Match(str[1], @"^[1-9]([0-9]{1,9})?$").Success)
+                                if (backgrounds != 0)
                                 {
-                                    if (int.Parse(str[1]) <= backgrounds && int.Parse(str[1]) > 0)
+                                    if (Regex.Match(str[1], @"^[1-9]([0-9]{1,9})?$").Success)
                                     {
-                                        if (getPoints(user) >= 500)
+                                        if (int.Parse(str[1]) <= backgrounds && int.Parse(str[1]) > 0)
                                         {
-                                            bool succeeded = false;
-                                            try
+                                            if (getPoints(user) >= 500)
                                             {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            }
-                                            catch { }
-                                            try
-                                            {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".gif", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            }
-                                            catch { }
-                                            try
-                                            {
-                                                File.Copy(backgroundPATH + "background_" + str[1] + ".jpg", backgroundPATH + "background.gif", true);
-                                                succeeded = true;
-                                            }
-                                            catch { }
-                                            if (!succeeded)
-                                            {
+                                                bool succeeded = false;
+                                                try
+                                                {
+                                                    File.Copy(backgroundPATH + "background_" + str[1] + ".png", backgroundPATH + "background.gif", true);
+                                                    succeeded = true;
+                                                }
+                                                catch { }
+                                                try
+                                                {
+                                                    File.Copy(backgroundPATH + "background_" + str[1] + ".gif", backgroundPATH + "background.gif", true);
+                                                    succeeded = true;
+                                                }
+                                                catch { }
+                                                try
+                                                {
+                                                    File.Copy(backgroundPATH + "background_" + str[1] + ".jpg", backgroundPATH + "background.gif", true);
+                                                    succeeded = true;
+                                                }
+                                                catch { }
+                                                if (!succeeded)
+                                                {
 
-                                                sendMess(channel, "Something went wrong, no PokéDollars deducted.");
+                                                    sendMess(channel, "Something went wrong, no PokéDollars deducted.");
+                                                }
+                                                else
+                                                {
+                                                    addPoints(user, -500, "background");
+                                                    sendMess(channel, User + " changed the background of the stream for 500 PokéDollars!");
+                                                }
                                             }
                                             else
                                             {
-                                                addPoints(user, -500, "background");
-                                                sendMess(channel, User + " changed the background of the stream for 500 PokéDollars!");
+                                                sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
                                             }
                                         }
                                         else
                                         {
-                                            sendMess(channel, User + "-> You have insufficient funds for this. Please round up some more.");
+                                            sendMess(channel, User + "-> I do not have any backgrounds with that number, please try a different one.");
                                         }
                                     }
                                     else
                                     {
-                                        sendMess(channel, User + "-> I do not have any backgrounds with that number, please try a different one.");
+                                        sendMess(channel, "That's not a valid number, sweetie. Try using (positive) integers?");
                                     }
                                 }
                                 else
                                 {
-                                    sendMess(channel, "That's not a valid number, sweetie. Try using (positive) integers?");
+                                    sendMess(channel, "There are no backgrounds, WINSANE PLS!");
                                 }
                             }
-                            else
-                            {
-                                sendMess(channel, "There are no backgrounds, WINSANE PLS!");
+                                break;
                             }
-                            break;
-                    }
                     break;
 
 
@@ -852,6 +909,33 @@ namespace TWIRC
 
         }
 
+        public void addVote(string user, Bias b, int amount)
+        {
+            var x = -1;
+            for(int a = 0; a<votingList.Count; a++)
+            {
+                if (votingList[a].Str == user.ToLower())
+                {
+                    x = a;
+                    break;
+                }
+            }
+            if(x>-1)
+            {
+                addPoints(user, (votingList[x].Int-1) * moneyPerVote, "refundvote");
+                votingList.RemoveAt(x);
+                votinglist.RemoveAt(x);
+            }
+            if(amount!=0){
+                addPoints(user, (2 - amount) * moneyPerVote, "vote");
+                votingList.Add(new intStr(user, amount));
+                votinglist.Add(b);
+                if(x == -1)
+                {
+                    addAllTime(user, moneyPerVote);
+                }
+            }
 
+        }
     }
 }

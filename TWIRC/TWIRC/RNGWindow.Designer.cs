@@ -71,9 +71,9 @@
             // 
             // btn_KillClients
             // 
-            this.btn_KillClients.Location = new System.Drawing.Point(0, 250);
+            this.btn_KillClients.Location = new System.Drawing.Point(0, 271);
             this.btn_KillClients.Name = "btn_KillClients";
-            this.btn_KillClients.Size = new System.Drawing.Size(77, 22);
+            this.btn_KillClients.Size = new System.Drawing.Size(77, 24);
             this.btn_KillClients.TabIndex = 0;
             this.btn_KillClients.Text = "Kill Clients";
             this.btn_KillClients.UseVisualStyleBackColor = true;
@@ -82,9 +82,9 @@
             // btn_RestartIRC
             // 
             this.btn_RestartIRC.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_RestartIRC.Location = new System.Drawing.Point(246, 333);
+            this.btn_RestartIRC.Location = new System.Drawing.Point(246, 361);
             this.btn_RestartIRC.Name = "btn_RestartIRC";
-            this.btn_RestartIRC.Size = new System.Drawing.Size(87, 20);
+            this.btn_RestartIRC.Size = new System.Drawing.Size(87, 22);
             this.btn_RestartIRC.TabIndex = 2;
             this.btn_RestartIRC.Text = "disconnect irc";
             this.btn_RestartIRC.UseVisualStyleBackColor = true;
@@ -92,9 +92,9 @@
             // 
             // btn_Decay
             // 
-            this.btn_Decay.Location = new System.Drawing.Point(196, 251);
+            this.btn_Decay.Location = new System.Drawing.Point(196, 272);
             this.btn_Decay.Name = "btn_Decay";
-            this.btn_Decay.Size = new System.Drawing.Size(49, 21);
+            this.btn_Decay.Size = new System.Drawing.Size(49, 23);
             this.btn_Decay.TabIndex = 3;
             this.btn_Decay.Text = "Decay";
             this.btn_Decay.UseVisualStyleBackColor = true;
@@ -106,7 +106,7 @@
             this.ts_isconnected,
             this.ts_counter0,
             this.ts_rngesus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 356);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 388);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(415, 22);
             this.statusStrip1.SizingGrip = false;
@@ -138,9 +138,9 @@
             // txt_Command
             // 
             this.txt_Command.Dock = System.Windows.Forms.DockStyle.Left;
-            this.txt_Command.Location = new System.Drawing.Point(0, 211);
+            this.txt_Command.Location = new System.Drawing.Point(0, 228);
             this.txt_Command.Name = "txt_Command";
-            this.txt_Command.Size = new System.Drawing.Size(134, 19);
+            this.txt_Command.Size = new System.Drawing.Size(134, 20);
             this.txt_Command.TabIndex = 15;
             this.txt_Command.Text = "COMMAND";
             this.txt_Command.TextChanged += new System.EventHandler(this.txt_Command_TextChanged);
@@ -157,7 +157,7 @@
             this.text_log.Name = "text_log";
             this.text_log.ReadOnly = true;
             this.text_log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.text_log.Size = new System.Drawing.Size(415, 211);
+            this.text_log.Size = new System.Drawing.Size(415, 228);
             this.text_log.TabIndex = 16;
             this.text_log.TextChanged += new System.EventHandler(this.text_log_TextChanged);
             // 
@@ -168,9 +168,9 @@
             // 
             // txt_RNGInterval
             // 
-            this.txt_RNGInterval.Location = new System.Drawing.Point(166, 252);
+            this.txt_RNGInterval.Location = new System.Drawing.Point(166, 273);
             this.txt_RNGInterval.Name = "txt_RNGInterval";
-            this.txt_RNGInterval.Size = new System.Drawing.Size(24, 19);
+            this.txt_RNGInterval.Size = new System.Drawing.Size(24, 20);
             this.txt_RNGInterval.TabIndex = 17;
             this.txt_RNGInterval.Text = "40";
             this.txt_RNGInterval.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_RNGInterval_KeyDown);
@@ -182,9 +182,9 @@
             // 
             // btn_DownLeft
             // 
-            this.btn_DownLeft.Location = new System.Drawing.Point(88, 333);
+            this.btn_DownLeft.Location = new System.Drawing.Point(88, 361);
             this.btn_DownLeft.Name = "btn_DownLeft";
-            this.btn_DownLeft.Size = new System.Drawing.Size(36, 21);
+            this.btn_DownLeft.Size = new System.Drawing.Size(36, 23);
             this.btn_DownLeft.TabIndex = 20;
             this.btn_DownLeft.Text = "D-L";
             this.btn_DownLeft.UseVisualStyleBackColor = true;
@@ -192,9 +192,9 @@
             // 
             // btn_Down
             // 
-            this.btn_Down.Location = new System.Drawing.Point(130, 333);
+            this.btn_Down.Location = new System.Drawing.Point(130, 361);
             this.btn_Down.Name = "btn_Down";
-            this.btn_Down.Size = new System.Drawing.Size(35, 21);
+            this.btn_Down.Size = new System.Drawing.Size(35, 23);
             this.btn_Down.TabIndex = 21;
             this.btn_Down.Text = "DN";
             this.btn_Down.UseVisualStyleBackColor = true;
@@ -202,9 +202,9 @@
             // 
             // btn_DownRight
             // 
-            this.btn_DownRight.Location = new System.Drawing.Point(171, 333);
+            this.btn_DownRight.Location = new System.Drawing.Point(171, 361);
             this.btn_DownRight.Name = "btn_DownRight";
-            this.btn_DownRight.Size = new System.Drawing.Size(40, 21);
+            this.btn_DownRight.Size = new System.Drawing.Size(40, 23);
             this.btn_DownRight.TabIndex = 22;
             this.btn_DownRight.Text = "D-R";
             this.btn_DownRight.UseVisualStyleBackColor = true;
@@ -212,9 +212,9 @@
             // 
             // btn_Left
             // 
-            this.btn_Left.Location = new System.Drawing.Point(88, 306);
+            this.btn_Left.Location = new System.Drawing.Point(88, 332);
             this.btn_Left.Name = "btn_Left";
-            this.btn_Left.Size = new System.Drawing.Size(36, 21);
+            this.btn_Left.Size = new System.Drawing.Size(36, 23);
             this.btn_Left.TabIndex = 23;
             this.btn_Left.Text = "LFT";
             this.btn_Left.UseVisualStyleBackColor = true;
@@ -222,9 +222,9 @@
             // 
             // btn_Neutral
             // 
-            this.btn_Neutral.Location = new System.Drawing.Point(130, 306);
+            this.btn_Neutral.Location = new System.Drawing.Point(130, 332);
             this.btn_Neutral.Name = "btn_Neutral";
-            this.btn_Neutral.Size = new System.Drawing.Size(35, 21);
+            this.btn_Neutral.Size = new System.Drawing.Size(35, 23);
             this.btn_Neutral.TabIndex = 24;
             this.btn_Neutral.Text = "5";
             this.btn_Neutral.UseVisualStyleBackColor = true;
@@ -232,9 +232,9 @@
             // 
             // btn_Right
             // 
-            this.btn_Right.Location = new System.Drawing.Point(171, 306);
+            this.btn_Right.Location = new System.Drawing.Point(171, 332);
             this.btn_Right.Name = "btn_Right";
-            this.btn_Right.Size = new System.Drawing.Size(40, 21);
+            this.btn_Right.Size = new System.Drawing.Size(40, 23);
             this.btn_Right.TabIndex = 25;
             this.btn_Right.Text = "RGT";
             this.btn_Right.UseVisualStyleBackColor = true;
@@ -242,9 +242,9 @@
             // 
             // btn_UpLeft
             // 
-            this.btn_UpLeft.Location = new System.Drawing.Point(88, 280);
+            this.btn_UpLeft.Location = new System.Drawing.Point(88, 303);
             this.btn_UpLeft.Name = "btn_UpLeft";
-            this.btn_UpLeft.Size = new System.Drawing.Size(36, 21);
+            this.btn_UpLeft.Size = new System.Drawing.Size(36, 23);
             this.btn_UpLeft.TabIndex = 26;
             this.btn_UpLeft.Text = "U-L";
             this.btn_UpLeft.UseVisualStyleBackColor = true;
@@ -252,9 +252,9 @@
             // 
             // btn_Up
             // 
-            this.btn_Up.Location = new System.Drawing.Point(130, 280);
+            this.btn_Up.Location = new System.Drawing.Point(130, 303);
             this.btn_Up.Name = "btn_Up";
-            this.btn_Up.Size = new System.Drawing.Size(35, 21);
+            this.btn_Up.Size = new System.Drawing.Size(35, 23);
             this.btn_Up.TabIndex = 27;
             this.btn_Up.Text = "UP";
             this.btn_Up.UseVisualStyleBackColor = true;
@@ -262,9 +262,9 @@
             // 
             // btn_UpRight
             // 
-            this.btn_UpRight.Location = new System.Drawing.Point(171, 280);
+            this.btn_UpRight.Location = new System.Drawing.Point(171, 303);
             this.btn_UpRight.Name = "btn_UpRight";
-            this.btn_UpRight.Size = new System.Drawing.Size(40, 21);
+            this.btn_UpRight.Size = new System.Drawing.Size(40, 23);
             this.btn_UpRight.TabIndex = 28;
             this.btn_UpRight.Text = "U-R";
             this.btn_UpRight.UseVisualStyleBackColor = true;
@@ -273,9 +273,9 @@
             // txt_Parameter
             // 
             this.txt_Parameter.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txt_Parameter.Location = new System.Drawing.Point(134, 211);
+            this.txt_Parameter.Location = new System.Drawing.Point(134, 228);
             this.txt_Parameter.Name = "txt_Parameter";
-            this.txt_Parameter.Size = new System.Drawing.Size(281, 19);
+            this.txt_Parameter.Size = new System.Drawing.Size(281, 20);
             this.txt_Parameter.TabIndex = 29;
             this.txt_Parameter.Text = "0";
             this.txt_Parameter.TextChanged += new System.EventHandler(this.txt_Parameter_TextChanged);
@@ -283,9 +283,9 @@
             // 
             // txt_IRCManual
             // 
-            this.txt_IRCManual.Location = new System.Drawing.Point(0, 230);
+            this.txt_IRCManual.Location = new System.Drawing.Point(0, 249);
             this.txt_IRCManual.Name = "txt_IRCManual";
-            this.txt_IRCManual.Size = new System.Drawing.Size(415, 19);
+            this.txt_IRCManual.Size = new System.Drawing.Size(415, 20);
             this.txt_IRCManual.TabIndex = 30;
             this.txt_IRCManual.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_IRCManual_KeyDown);
             // 
@@ -296,9 +296,9 @@
             // 
             // btn_Save
             // 
-            this.btn_Save.Location = new System.Drawing.Point(0, 333);
+            this.btn_Save.Location = new System.Drawing.Point(0, 361);
             this.btn_Save.Name = "btn_Save";
-            this.btn_Save.Size = new System.Drawing.Size(77, 21);
+            this.btn_Save.Size = new System.Drawing.Size(77, 23);
             this.btn_Save.TabIndex = 31;
             this.btn_Save.Text = "Save";
             this.btn_Save.UseVisualStyleBackColor = true;
@@ -306,9 +306,9 @@
             // 
             // txt_Halp
             // 
-            this.txt_Halp.Location = new System.Drawing.Point(339, 334);
+            this.txt_Halp.Location = new System.Drawing.Point(339, 362);
             this.txt_Halp.Name = "txt_Halp";
-            this.txt_Halp.Size = new System.Drawing.Size(76, 20);
+            this.txt_Halp.Size = new System.Drawing.Size(76, 22);
             this.txt_Halp.TabIndex = 32;
             this.txt_Halp.Text = "Halp";
             this.txt_Halp.UseVisualStyleBackColor = true;
@@ -316,9 +316,9 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(0, 300);
+            this.button1.Location = new System.Drawing.Point(0, 325);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(77, 34);
+            this.button1.Size = new System.Drawing.Size(77, 37);
             this.button1.TabIndex = 33;
             this.button1.Text = "Manual Bias Entry";
             this.button1.UseVisualStyleBackColor = true;
@@ -327,9 +327,9 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(88, 254);
+            this.checkBox1.Location = new System.Drawing.Point(88, 275);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(72, 16);
+            this.checkBox1.Size = new System.Drawing.Size(72, 17);
             this.checkBox1.TabIndex = 34;
             this.checkBox1.Text = "RNGesus";
             this.checkBox1.UseVisualStyleBackColor = true;
@@ -337,9 +337,9 @@
             // 
             // btn_dumpBiases
             // 
-            this.btn_dumpBiases.Location = new System.Drawing.Point(0, 273);
+            this.btn_dumpBiases.Location = new System.Drawing.Point(0, 296);
             this.btn_dumpBiases.Name = "btn_dumpBiases";
-            this.btn_dumpBiases.Size = new System.Drawing.Size(77, 21);
+            this.btn_dumpBiases.Size = new System.Drawing.Size(77, 23);
             this.btn_dumpBiases.TabIndex = 35;
             this.btn_dumpBiases.Text = "Dump Biases";
             this.btn_dumpBiases.UseVisualStyleBackColor = true;
@@ -353,9 +353,9 @@
             // 
             // btn_Leaderboard
             // 
-            this.btn_Leaderboard.Location = new System.Drawing.Point(339, 250);
+            this.btn_Leaderboard.Location = new System.Drawing.Point(339, 271);
             this.btn_Leaderboard.Name = "btn_Leaderboard";
-            this.btn_Leaderboard.Size = new System.Drawing.Size(76, 32);
+            this.btn_Leaderboard.Size = new System.Drawing.Size(76, 35);
             this.btn_Leaderboard.TabIndex = 36;
             this.btn_Leaderboard.Text = "Show Leaderboard";
             this.btn_Leaderboard.UseVisualStyleBackColor = true;
@@ -363,9 +363,9 @@
             // 
             // btn_voteTimer
             // 
-            this.btn_voteTimer.Location = new System.Drawing.Point(339, 288);
+            this.btn_voteTimer.Location = new System.Drawing.Point(339, 312);
             this.btn_voteTimer.Name = "btn_voteTimer";
-            this.btn_voteTimer.Size = new System.Drawing.Size(76, 32);
+            this.btn_voteTimer.Size = new System.Drawing.Size(76, 35);
             this.btn_voteTimer.TabIndex = 37;
             this.btn_voteTimer.Text = "Show Vote Timer";
             this.btn_voteTimer.UseVisualStyleBackColor = true;
@@ -385,7 +385,7 @@
             // 
             this.txt_numrolls.Location = new System.Drawing.Point(217, 4);
             this.txt_numrolls.Name = "txt_numrolls";
-            this.txt_numrolls.Size = new System.Drawing.Size(100, 19);
+            this.txt_numrolls.Size = new System.Drawing.Size(100, 20);
             this.txt_numrolls.TabIndex = 39;
             this.txt_numrolls.Text = "1000";
             this.txt_numrolls.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -393,9 +393,9 @@
             // button2
             // 
             this.button2.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.button2.Location = new System.Drawing.Point(246, 307);
+            this.button2.Location = new System.Drawing.Point(246, 333);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(87, 20);
+            this.button2.Size = new System.Drawing.Size(87, 22);
             this.button2.TabIndex = 38;
             this.button2.Text = "connect irc";
             this.button2.UseVisualStyleBackColor = true;
@@ -404,9 +404,9 @@
             // button3
             // 
             this.button3.Font = new System.Drawing.Font("MS UI Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.button3.Location = new System.Drawing.Point(246, 281);
+            this.button3.Location = new System.Drawing.Point(246, 304);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(87, 20);
+            this.button3.Size = new System.Drawing.Size(87, 22);
             this.button3.TabIndex = 39;
             this.button3.Text = "reconnect irc";
             this.button3.UseVisualStyleBackColor = true;
@@ -414,9 +414,9 @@
             // 
             // RNGWindow
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(415, 378);
+            this.ClientSize = new System.Drawing.Size(415, 410);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.btn_voteTimer);

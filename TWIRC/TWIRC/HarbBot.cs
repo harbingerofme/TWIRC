@@ -32,6 +32,7 @@ namespace TWIRC
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
         public List<luaCom> luaList = new List<luaCom>();
+        public List<Bias> biasList = new List<Bias>();
         public int globalCooldown;
         public int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
 
@@ -48,14 +49,18 @@ namespace TWIRC
         //some settings
         public bool silence,isMod = false;
         public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
-        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
+        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
         //voting and bias related stuff.
-        public List<intIntStr> votingList = new List<intIntStr>();
+        public List<intStr> votingList = new List<intStr>();
+        public List<Bias> votinglist = new List<Bias>();
+
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null;
-        public List<double[]> newBias = new List<double[]>(); double maxBiasDiff;
+        public double[] newBias = new double[7]; double maxBiasDiff;
 
         int moneyPerVote = 50;
+
+        public bool backgrounds_enabled = false;
 
         public Thread one;
 
@@ -76,22 +81,7 @@ namespace TWIRC
             biasControl = buttMuncher;
             luaServer = luaSurfer;
 
-            newBias.Add(new double[7] { 0,0,0,0,0,0,6.5 });//0 (start)
-            newBias.Add(new double[7] { 5,5,0,0,0,0,0 });//1
-            newBias.Add(new double[7] { 0,10,0,0,0,0,0 });//2
-            newBias.Add(new double[7] { 0,5,0,5,0,0,0 });//3
-            newBias.Add(new double[7] { 10,0,0,0,0,0,0 });//4
-            newBias.Add(new double[7] { 0,0,0,0,0,0,0 });//5
-            newBias.Add(new double[7] { 0,0,0,10,0,0,0 });//6
-            newBias.Add(new double[7] { 5,0,5,0,0,0,0 });//7
-            newBias.Add(new double[7] { 0,0,10,0,0,0,0 });//8
-            newBias.Add(new double[7] { 0,0,5,5,0,0,0 });//9
-            newBias.Add(new double[7] { 0,0,0,0,9.5,0,0 });//10 (a)
-            newBias.Add(new double[7] { 0,0,0,0,0,8.5,0 });//11 (b)
-            newBias.Add(new double[7] { 2.5, 2.5, 2.5, 2.5, 0, 0, 0 });//12 (movement)
-            newBias.Add(new double[7] { 0, 5, 5, 0, 0, 0, 0 });//13 vertical
-            newBias.Add(new double[7] { 5, 0, 0, 5, 0, 0, 0 });//14 horizontal
-            newBias.Add(new double[7] { 0, 0, 0, 0, 4.75, 4.25, 0 });//15 buttons
+            newBias = new double[7] { 10,10,10,10,9,8,6.5 };
 
             //write these Methods
             irc.OnConnected += ircConnected;
@@ -143,11 +133,13 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                
+                new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));",dbConn).ExecuteNonQuery();
+
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channel.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"',0);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES ('left', '10 0 0 0 0 0 0'),('up','0 10 0 0 0 0 0'),('down', '0 0 10 0 0 0 0'),('right', '0 0 0 10 0 0 0'),('start', '0 0 0 0 0 0 10')",dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
@@ -175,6 +167,7 @@ namespace TWIRC
                     globalCooldown = sqldr.GetInt32(5);
                     logLevel = sqldr.GetInt32(6);
                     progressLogPATH = sqldr.GetString(7);
+                
             }
             if(!File.Exists("chat.sqlite")){
                 SQLiteConnection.CreateFile("chat.sqlite");
@@ -249,6 +242,9 @@ namespace TWIRC
                 moneyPerVote = rdr.GetInt32(4);
             }
 
+            loadBiases();
+
+
             rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
             while(rdr.Read())
             {
@@ -305,7 +301,10 @@ namespace TWIRC
             hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
             hardList.Add(new hardCom("!givemoney", 0, 0));
             hardList.Add(new hardCom("!giveball", 0, 0));
-            
+            hardList.Add(new hardCom("!addbias", 3, 8));
+            hardList.Add(new hardCom("!delbias", 3, 1));
+
+
             /*
             //sayingsbot overrides, we might add these eventually            
             hardList.Add(new hardCom("!whois",0,1,20));
@@ -402,7 +401,10 @@ namespace TWIRC
 
         void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            checkBackgrounds();
+            if (backgrounds_enabled)
+            {
+                checkBackgrounds();
+            }
             if (voteStatus != -1)
             {
                 if (sender == voteTimer)
@@ -420,25 +422,20 @@ namespace TWIRC
                     if (votingList.Count > 0)
                     {
                         int a = 0;
-                        foreach (intIntStr b in votingList)
+                        for(int q = 0; q<votinglist.Count; q++)
                         {
-                            a += b.Int1;
-                            for (int i = 0; i < b.Int1; i++)
+                            var b = votingList[q].Int;
+                            Bias B = votinglist[q];
+                            a += b;
+                            for (int j = 0; j < 7; j++)
                             {
-                                for (int j = 0; j < 7; j++)
-                                {
-                                    values[j] += newBias[b.Int2][j];
-                                }
+                                values[j] += B[j]*B.factor*b;
                             }
                         }
                         for (int i = 0; i < 7; i++)
                         {
-                            if (values[i] > highest)
-                            {
-                                id = i;
-                            }
                             serverput += values[i] + " ";
-                            values[i] = (values[i] * maxBiasDiff) / (a * 10);
+                            values[i] = (values[i] * maxBiasDiff * newBias[i]/10) / (a * 10);
                             tobebias[i] += values[i];
                             
                         }
@@ -452,6 +449,7 @@ namespace TWIRC
                     }
                     str += " Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes. ("+serverput+")";
                     votingList.Clear();
+                    votinglist.Clear();
                     lastVoteTime = getNow();
                     voteStatus = 0;
                     voteTimer.Start();
@@ -680,7 +678,7 @@ namespace TWIRC
                     }
                     else
                     {
-                        if (pullAuth(moderator) < 4)
+                        if (pullAuth(moderator) < 4 && pullAuth(moderator) != -1)//we kinda forgot to check for banned moderators, woops.
                         {
                             setAuth(moderator, 3);
                         }

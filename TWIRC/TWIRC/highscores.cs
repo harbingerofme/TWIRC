@@ -23,10 +23,12 @@ namespace TWIRC
         string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
         int defaultWidth, defaultHeight;
         Font labelFont;
+        HarbBot hb;
         SQLiteConnection dbConn;
 
-        public highscores()
+        public highscores(HarbBot b)
         {
+            hb = b;
             Height = 240;//slightly larger since c# also counts the edges
             Width = 330;//see above
             defaultWidth = 330; defaultHeight = 280;
@@ -130,16 +132,22 @@ namespace TWIRC
                 }
                 if (type == 3)
                 {
-                    dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
-                    dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name, COUNT(*) FROM (SELECT name FROM transactions WHERE item = 'background') GROUP BY name ORDER BY COUNT(*) DESC LIMIT 7;", dbConn).ExecuteReader();
-                    while (sqldr.Read())
+                    if (hb.backgrounds_enabled)
                     {
-                        data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
+                        dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
+                        dbConn.Open();
+                        sqldr = new SQLiteCommand("SELECT name, COUNT(*) FROM (SELECT name FROM transactions WHERE item = 'background') GROUP BY name ORDER BY COUNT(*) DESC LIMIT 7;", dbConn).ExecuteReader();
+                        while (sqldr.Read())
+                        {
+                            data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
+                        }
+                        if (data.Count < 7) { type = 4; data = new List<intStr>(); }
+                        dbConn.Close();
                     }
-                    if (data.Count < 7) { type = 4; data = new List<intStr>(); }
-                    dbConn.Close();
-
+                    else
+                    {
+                        type++;
+                    }
                 }
                 if (type == 4)
                 {
@@ -201,7 +209,7 @@ namespace TWIRC
                 {
                     dbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>749 AND not name like '%bot ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>499 AND not name like '%bot' ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
