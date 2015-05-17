@@ -24,21 +24,21 @@ namespace TWIRC
 
         public bool addBias(string keyword, string numbers)
         {
-            SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE aliases LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE keywords LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
             if(sql.Read()){
                 return false;
             }
             else
             {
-                sql = new SQLiteCommand("SELECT aliases FROM biases WHERE numbers  = '"+ numbers +"';",dbConn).ExecuteReader();
+                sql = new SQLiteCommand("SELECT keywords FROM biases WHERE numbers  = '"+ numbers +"';",dbConn).ExecuteReader();
                 if (sql.Read())
                 {
                     string str = sql.GetString(0) + keyword + " ";
-                    new SQLiteCommand("UPDATE biases SET aliases = '" + str + "' WHERE numbers  = '" + numbers + "';",dbConn).ExecuteNonQuery();
+                    new SQLiteCommand("UPDATE biases SET keywords = '" + str + "' WHERE numbers  = '" + numbers + "';",dbConn).ExecuteNonQuery();
                 }
                 else
                 {
-                    new SQLiteCommand("INSERT INTO biases (aliases,numbers) VALUES (' " + keyword + " ', '" + numbers + "');",dbConn).ExecuteNonQuery();
+                    new SQLiteCommand("INSERT INTO biases (keywords,numbers) VALUES (' " + keyword + " ', '" + numbers + "');",dbConn).ExecuteNonQuery();
                 }
                 return true;
                
@@ -47,7 +47,7 @@ namespace TWIRC
 
         public bool delBias(string keyword)
         {
-            SQLiteDataReader sql = new SQLiteCommand("SELECT aliases,numbers FROM biases WHERE aliases LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql = new SQLiteCommand("SELECT keywords,numbers FROM biases WHERE keywords LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
             if (sql.Read())
             {
                 string numbers = sql.GetString(1);
@@ -63,7 +63,7 @@ namespace TWIRC
                 }
                 if(newAli.Length > 1)
                 {
-                    new SQLiteCommand("UPDATE biases SET aliases = '"+newAli+"' WHERE numbers = '"+numbers+"';", dbConn).ExecuteNonQuery();
+                    new SQLiteCommand("UPDATE biases SET keywords = '"+newAli+"' WHERE numbers = '"+numbers+"';", dbConn).ExecuteNonQuery();
                 }
                 else
                 {
