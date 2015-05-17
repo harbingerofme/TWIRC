@@ -582,6 +582,7 @@ namespace TWIRC
                                     if (!fail)
                                     {
                                         q = new Bias("custom", dbl);
+                                        tempVar1 = 1;
                                     }
 
                                     try
