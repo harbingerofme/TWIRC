@@ -35,7 +35,7 @@ namespace TWIRC
         ///   |__                                   (if it's zack, and he does that god awful wix1,wix2,wix3,wix4 emote, clear the chat)
         /// filter(string) --                       replaces the beginning of a message with it's alias if it has one. (If somehow a train of aliases is generated, they will be replacing each other in timestamp order)
         /// checkCommand(string1,string2,string3) -- Check if it's a hardcoded command
-        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background
+        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !addbias !delbias !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background
         ///   |                                      if no matches were found
         ///   |                                      check if it's a softcommand, if so:
         ///   |__                                    update it's count and lasttime (for cooldown purposes), and send response
@@ -541,25 +541,6 @@ namespace TWIRC
                             if (voteStatus == 1)
                             {
                                 tempVar3 = (str[1] + " " + str[2]).Split(' ');
-                                /*
-                                tempVar2 = str[1];
-                                tempVar2 = tempVar2.ToLower().Replace("up-left", "7");
-                                tempVar2 = tempVar2.ToLower().Replace("up-right", "9");
-                                tempVar2 = tempVar2.ToLower().Replace("up", "8");
-                                tempVar2 = tempVar2.ToLower().Replace("neutral", "5");
-                                tempVar2 = tempVar2.ToLower().Replace("down-left", "1");
-                                tempVar2 = tempVar2.ToLower().Replace("down-right", "3");
-                                tempVar2 = tempVar2.ToLower().Replace("down", "2");
-                                tempVar2 = tempVar2.ToLower().Replace("left", "4");
-                                tempVar2 = tempVar2.ToLower().Replace("right", "6");
-                                tempVar2 = tempVar2.ToLower().Replace("start", "0");
-                                tempVar2 = tempVar2.ToLower().Replace("ab", "15");
-                                tempVar2 = tempVar2.ToLower().Replace("a", "10");
-                                tempVar2 = tempVar2.ToLower().Replace("b", "11");
-                                tempVar2 = tempVar2.ToLower().Replace("movement", "12");
-                                tempVar2 = tempVar2.ToLower().Replace("vertical", "13");
-                                tempVar2 = tempVar2.ToLower().Replace("horizontal", "14");
-                                */
                                 Bias q = null;
                                 tempVar1 = 1;
                                 foreach (Bias b in biasList)
@@ -610,7 +591,7 @@ namespace TWIRC
                                     catch { };
 
                                 }
-                                if (q != null && (tempVar1 - 1) * moneyPerVote <= getPoints(user))
+                                if (q != null && (tempVar1 - 2) * moneyPerVote <= getPoints(user))
                                 {
                                     addVote(user, q, tempVar1);
                                 }

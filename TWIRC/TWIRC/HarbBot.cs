@@ -139,7 +139,7 @@ namespace TWIRC
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channel.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"',0);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biassettings (timebetweenvote,timetovote,def,maxdiff) VALUES ('1800','300','1.00:1.00:1.00:1.00:0.96:0.92:0.82','0.05');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES ('left', '10 0 0 0 0 0 0'),('up','0 10 0 0 0 0 0'),('down', '0 0 10 0 0 0 0'),('right', '0 0 0 10 0 0 0'),('start', '0 0 0 0 0 0 10')",dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')",dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
