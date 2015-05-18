@@ -17,7 +17,11 @@ namespace TWIRC
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM biases;",dbConn).ExecuteReader();
             while(sqldr.Read())
             {
-                biases.Add(new Bias(sqldr.GetString(0), sqldr.GetString(1)));
+                foreach(string s in sqldr.GetString(0).Trim().Split(' '))
+                {
+                    if(s.Length>=1)
+                    biases.Add(new Bias(s, sqldr.GetString(1)));
+                }
             }
             biasList = biases;
         }
