@@ -1,0 +1,51 @@
+try
+                {
+                    string[] tempString = FileLines("Commands.twirc");
+                    foreach (string tempString1 in tempString)
+                    {
+                        if (tempString1.Length > 0)
+                        {
+                            if (tempString1[0] == '1')
+                            {
+                                comlist.Add(new command(tempString1));
+                                comlist[comlist.Count - 1].setCooldown(globalCooldown);
+                            }
+                        }
+                    }
+                    logger.WriteLine("Loaded up " + comlist.Count() + " commands.");
+                    File.Copy("Commands.twirc", "backupCommands.twirc", true);
+                }
+                catch
+                {
+                    logger.WriteLine("'Commands.twirc' contains an error and I was unable to parse it. Please check the file.");
+                }
+				}
+				}//might not be an accruate number of }
+				}
+				else{                logger.WriteLine("Command File non-existant, making a new one. (no commands loaded, except hardcoded ones)");
+                writeFile("Commands.twirc", "");}
+
+
+if (File.Exists("Aliases.twirc"))
+            {
+                try
+                {
+                    string[] tempString = FileLines("Aliases.twirc");
+                    foreach (string tempString1 in tempString)
+                    {
+                        aliList.Add(new ali(tempString1));
+                    }
+                    logger.WriteLine("Loaded up " + aliList.Count() + " aliases.");
+                    File.Copy("Aliases.twirc", "backupAliases.twirc", true);
+                }
+                catch
+                {
+                    logger.WriteLine("'Aliases.twirc' contains an error and I was unable to parse it. Please check the file.");
+                }
+            }
+
+				            else
+            {
+                logger.WriteLine("Aliases File non-existant, making a new one. (none loaded)");
+                writeFile("Aliases.twirc", "");
+            }
