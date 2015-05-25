@@ -1,0 +1,9 @@
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.csprojResolveAssemblyReference.cache
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.RNGWindow.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.Properties.Resources.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.csproj.GenerateResource.Cache
+D:\SayingsBot.exe.config
+D:\SayingsBot.exe
+D:\SayingsBot.pdb
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.exe
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.pdb

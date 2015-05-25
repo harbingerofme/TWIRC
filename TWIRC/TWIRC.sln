@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TWIRC", "TWIRC\TWIRC.csproj", "{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}"
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayingsBot", "TWIRC\SayingsBot.csproj", "{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +15,9 @@ Global
 		{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}.Debug|x86.Build.0 = Debug|x86
 		{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}.Release|x86.ActiveCfg = Release|x86
 		{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = TWIRC\TWIRC.csproj

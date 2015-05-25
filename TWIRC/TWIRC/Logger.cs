@@ -9,7 +9,7 @@ using System.Threading;
 using System.Diagnostics;
 #endif
 
-namespace TWIRC
+namespace SayingsBot
 {
     public class Logger
     {

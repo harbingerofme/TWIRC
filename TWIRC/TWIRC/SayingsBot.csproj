@@ -5,9 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{8305B2F1-907F-4886-9A5B-B3E891F9DC5E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>TWIRC</RootNamespace>
-    <AssemblyName>TWIRC</AssemblyName>
+    <RootNamespace>SayingsBot</RootNamespace>
+    <AssemblyName>SayingsBot</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>488d26cd</NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -20,10 +22,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>488d26cd</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,7 +46,7 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>TWIRC.Program</StartupObject>
+    <StartupObject>SayingsBot.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DEBUG_OFFLINE|x86'">
     <DebugSymbols>true</DebugSymbols>

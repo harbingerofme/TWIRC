@@ -26,3 +26,4 @@ C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojReso
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.RNGWindow.resources
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.Properties.Resources.resources
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csproj.GenerateResource.Cache
+D:\SayingsBot.exe.config

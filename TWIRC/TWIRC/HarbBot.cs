@@ -12,7 +12,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
 
-namespace TWIRC
+namespace SayingsBot
 {
     public class HarbBot
     {
@@ -47,6 +47,7 @@ namespace TWIRC
         public string progressLogPATH = sysPath() + "\\SayingsBotLog.txt";
 
         System.Timers.Timer saveTimer;
+        System.Timers.Timer reconTimer;
 
         public Thread one;
 
@@ -59,6 +60,9 @@ namespace TWIRC
 
             //write these Methods
             irc.OnConnected += ircConnected;
+            irc.OnDisconnected += ircDisconnected;
+            irc.OnDisconnecting += ircDisconnecting;
+            irc.OnConnecting += ircConnecting;
             irc.OnConnectionError += ircConError;
             irc.OnError += ircError;
             irc.OnQueryNotice += ircNotice;
@@ -84,9 +88,11 @@ namespace TWIRC
                 
                 globalCooldown = 20; 
                 antispam = false;
-                oauth = "oauth:tpjq7tyuevo3nyre0ywdlklznmkh0r";
+                oauth = "oauth:tpjq7tyuevo3nyre0ywdlklznmkh0r"; //TODO: not the latest OAUTH
                 logLevel = 2;
                 //progressLogPATH = sysPath() + "\\SayingsBotLog.txt";
+
+                //TODO: Add sayingsbotty things
 
                 short temp2 = 0; if (antispam) { temp2 = 1; }
                 SQLiteConnection.CreateFile("db.sqlite");
@@ -194,10 +200,6 @@ namespace TWIRC
                 asWhitelist.Add(rdr.GetString(1));
             }
 
-            //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
-           
-            //You'll want to change these.
-
             hardList.Add(new hardCom("!sbaddcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!sbdelcom", 3, 1));//delcom
             hardList.Add(new hardCom("!sbeditcom", 3, 2));//editcom
@@ -211,8 +213,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!sbsilence",3,1));
             hardList.Add(new hardCom("!sbrank", 0, 0,60));
             hardList.Add(new hardCom("!commands", 0, 0, 120));
-
-            //sayingsbot things, we might add these eventually            
+          
             hardList.Add(new hardCom("!whoisuser",0,1,20));
             hardList.Add(new hardCom("!editme",0,0));
             hardList.Add(new hardCom("!edituser",3,1));
@@ -243,16 +244,20 @@ namespace TWIRC
             one.IsBackground = true;
 
             
-            saveTimer = new System.Timers.Timer(5 * 60 * 1000);
-            saveTimer.AutoReset = true;
-            saveTimer.Elapsed += saveTimer_Elapsed;
-            saveTimer.Start();
+            //saveTimer = new System.Timers.Timer(5 * 60 * 1000);
+            //saveTimer.AutoReset = true;
+            //saveTimer.Elapsed += saveTimer_Elapsed;
+            //saveTimer.Start();
+
             System.Timers.Timer colourTimer = new System.Timers.Timer(10000);
             colourTimer.AutoReset = true;
             colourTimer.Elapsed += colourTimer_Elapsed;
             colourTimer.Start();
-            //decrepated
-            //checkBackgrounds();
+
+            reconTimer = new System.Timers.Timer(5000);
+            reconTimer.AutoReset = true;
+            reconTimer.Elapsed += reconTimer_Elapsed;
+            reconTimer.Start();
 
             try
             {
@@ -288,33 +293,9 @@ namespace TWIRC
             
         }
 
+        [System.Obsolete("Unused")]
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            logger.WriteLine("Save Timer");
-            this.appendFile(progressLogPATH, "Save Timer");
-            if (!irc.IsConnected)
-            {
-                logger.WriteLine("IRC not Connected!");
-                this.appendFile(progressLogPATH, "IRC not Connected!");
-                try
-                {
-                    logger.WriteLine("Attempting IRC Connection!");
-                    this.appendFile(progressLogPATH, "Attempting IRC Connection!");
-                    irc.Connect("irc.twitch.tv", 6667);
-                }
-                catch (ConnectionException ex1)
-                {
-                    logger.WriteLine("Connection Exception");
-                    this.appendFile(progressLogPATH, "Connection Exception");
-                    this.appendFile(progressLogPATH, Convert.ToString(ex1));
-                }
-                catch (Exception ex2)
-                {
-                    logger.WriteLine("General Catch");
-                    this.appendFile(progressLogPATH, "General Catch");
-                    this.appendFile(progressLogPATH, Convert.ToString(ex2));
-                }
-            }
             /*write here what you want to save, I've left the previous one here.
              * 
             writeFile(commandsPATH, "<DOCTYPE html><head><title>RNGPPBot commands</title><h1>RNGPPBot commands</h1></head>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.<table border='1px' cellspacing='0px'><tr><td><b>keyword</b></td><td><b>level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td><td><b>output<b></td></tr>");
@@ -336,6 +317,15 @@ namespace TWIRC
              */
         }
 
+        void reconTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+            }
+
+        }
+
         void connection()
         {
             irc.RfcJoin(channels);
@@ -343,112 +333,118 @@ namespace TWIRC
 
         }
 
+        [System.Obsolete("Unused")]
         public void say(string message)
         {   
             sendMess(channels, message);
             checkCommand(channels, channels.Substring(1), filter(message));//I guess?
         }
 
-        /*
-        void checkBackgrounds()
+        public void doDisconnect()
         {
-            bool fail = false; int a = -1;
-            while (!fail)
+
+            logger.Write("IRC Disconnecting");
+            reconTimer.Stop();
+            if (!irc.IsConnected)
             {
-                a++;
-                if (!File.Exists(backgroundPATH + "background_" + a + ".png") && !File.Exists(backgroundPATH + "background_" + a + ".gif") && !File.Exists(backgroundPATH + "background_" + a + ".jpg"))
-                {
-                    fail = true;
-                }
+                logger.WriteLine("... already disconnected.");
+                return;
             }
-            backgrounds = a;
+
+            try
+            {
+                irc.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine("... IRC DISCONNECT FAILED: " + ex.Message);
+            }
+
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("... disconnected.");
+                return;
+            }
+
         }
 
-        void voteTimer_Elapsed(object sender, ElapsedEventArgs e)
+        public void doConnect()
         {
-            checkBackgrounds();
-            if (voteStatus != -1)
+
+
+            logger.Write("IRC Connecting ");
+
+            if (irc.IsConnected)
             {
-                if (sender == voteTimer)
-                {
-                    voteStatus = 1;
-                    voteTimer2.Start();
-                    sendMess(channels, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
-                }
-                if (sender == voteTimer2)
-                {
-                    string str = "Voting is over.";
-                    double[] tobebias = biasControl.getDefaultBias();
-                    double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
-                    string serverput = ""; int highest = 0, id = 0;
-                    if (votingList.Count > 0)
-                    {
-                        int a = 0;
-                        foreach (intIntStr b in votingList)
-                        {
-                            a += b.Int1;
-                            for (int i = 0; i < b.Int1; i++)
-                            {
-                                for (int j = 0; j < 7; j++)
-                                {
-                                    values[j] += newBias[b.Int2][j];
-                                }
-                            }
-                        }
-                        for (int i = 0; i < 7; i++)
-                        {
-                            if (values[i] > highest)
-                            {
-                                id = i;
-                            }
-                            serverput += values[i] + " ";
-                            values[i] = (values[i] * maxBiasDiff) / (a * 10);
-                            tobebias[i] += values[i];
-                            
-                        }
-                        str += " Processed " + a + " votes from " + votingList.Count + " users. ";
-                        biasControl.setBias(tobebias);
-                        luaServer.send_to_all("SETBIAS",tobebias[0]+" "+tobebias[1]+" "+tobebias[2]+" "+tobebias[3]+" "+tobebias[4]+" "+tobebias[5]+" "+tobebias[6]);
-                    }
-                    else
-                    {
-                        biasControl.doDecay();
-                    }
-                    str += " Next vote starts in " + (Math.Floor((((double)timeBetweenVotes)) / 6) / 10) + " minutes. ("+serverput+")";
-                    votingList.Clear();
-                    lastVoteTime = getNow();
-                    voteStatus = 0;
-                    voteTimer.Start();
-                    sendMess(channels, str);
-                }
+                logger.WriteLine("...  already connected.");
+                return;
+            }
+
+            try { irc.Connect("irc.twitch.tv", 6667); }
+            catch (Exception ex) { logger.WriteLine("IRC CONNECT FAILED: " + ex.Message); }
+
+            if (!irc.IsConnected)
+            {
+                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: ");
+            }
+            else
+            {
+                logger.WriteLine("... Connected! Timers resuming...");
+                reconTimer.Start();
+
             }
         }
-         */
 
-        public void reconnect()
+        public void doReconnect()
         {
+            doDisconnect();
+            doConnect();
+        }
+
+        public void doReconnect2()
+        {
+            irc.Reconnect(true, true);
+        }
+        public void ircConnecting(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircConnecting()");
             try
             {
                 one.Abort();
-                irc.Disconnect();
             }
-            catch { };
-            try
-            {
-                irc.Connect("irc.twitch.tv", 6667);
-            }
-            catch (ConnectionException e)
-            {
-                if (logLevel != 0)
-                {
-                    logger.Write("IRC: Connection error: " + e.Message + ". Retrying in 5 seconds.");
-                }
-                Thread.Sleep(5000);
-                reconnect();
-            };
+            catch{} // ignore this if it fails, because i'm lazy --bob
+
+            one = new Thread(connection);
+            one.Name = "SAYINGSBOT IRC CONNECTION";
+            one.IsBackground = true;
+              
+            logger.WriteLine("Thread \"one\" recreated...");
 
         }
 
+        public void ircConnected(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircConnected()");
+            logger.WriteLine("IRC: Joining Twitch chat");
+            irc.Login(bot_name, "SAYINGSBOT", 0, bot_name, oauth);
+            one.Start();
+        }
+
+        public void ircDisconnecting(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircDisconnecting()");
+
+        }
+        
+        public void ircDisconnected(object sender, EventArgs e)
+        {
+            logger.WriteLine("ircDisconnected()");
+            try
+            {
+                one.Abort();
+            }
+            catch { }
+        }
         public bool checkSpam(string channel, string user, string message)
         {
             List<asUser> temp = new List<asUser>();List<intStr> temp2 = new List<intStr>();
@@ -550,6 +546,8 @@ namespace TWIRC
                     if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
                     switch (h.returnKeyword())
                     {
+                        case "!recon":
+                            break;
                         case "!sbaddcom":
                                 fail = false;
 
@@ -794,13 +792,17 @@ namespace TWIRC
                             sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
                             break;
                         case "!whoisuser":
-                            SQLiteDataReader userReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + str[1] + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                            userCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
+                            SQLiteDataReader userReader = userCommand.ExecuteReader();
                             if (userReader.Read()) { sendMess(channel, userReader.GetString(0)); } else { sendMess(channel, str[1] + " does not have a !whoisuser."); }
                             break;
                         case "!editme":
                             string newText = str[1];
                             setWhoIsUser(user, newText);
-                            SQLiteDataReader usersReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + user + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            SQLiteCommand usersCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                            usersCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
+                            SQLiteDataReader usersReader = usersCommand.ExecuteReader();
                             if (usersReader.Read()) { 
                                 sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
                                 this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
@@ -810,7 +812,9 @@ namespace TWIRC
                             string newUser = str[1];
                             string newTextEU = str[2];
                             setWhoIsUser(newUser, newTextEU);
-                            SQLiteDataReader userssReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + newUser + "' AND datatype = '0';", dbConn).ExecuteReader();
+                            SQLiteCommand userssCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                            userssCommand.Parameters.AddWithValue("@par1", newUser.ToLower());
+                            SQLiteDataReader userssReader = userssCommand.ExecuteReader();
                             if (userssReader.Read()) { 
                                 sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
                                 this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
@@ -841,7 +845,29 @@ namespace TWIRC
                             this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
                             break;
                         case "!kill":
-                            sendMess(channel, User + " politley murders " + str[1]);
+                            Random r = new Random();
+                            Int32 Rand = r.Next(5);
+                            string text2send = null;
+                            switch (Rand)
+                            {
+                                case 1:
+                                    text2send = " politley murders ";
+                                    break;
+                                case 2:
+                                    text2send = " slightly mames ";
+                                    break;
+                                case 3:
+                                    text2send = " slowly ravages ";
+                                    break;
+                                case 4:
+                                    text2send = " quickly stabs ";
+                                    break;
+                                default:
+                                    text2send = " politley murders ";
+                                    break;
+
+                            }
+                            sendMess(channel, User + text2send + str[1] + ".");
                             break;
                         case "!calluser":
                             sendMess(channel, "CALLING " + str[1].ToUpper() + "! WOULD " + str[1].ToUpper() + " PLEASE REPORT TO THE CHAT!");
@@ -1281,22 +1307,14 @@ namespace TWIRC
             }
         }
 
-        //eventbinders
-        public void ircConnected(object sender, EventArgs e)
-        {
-            logger.WriteLine("IRC: Joining Twitch chat");
-            irc.Login(bot_name, "SayingsBot", 0, bot_name, oauth);
-            one.Start();
-        }
-
+        [System.Obsolete("Unused - No Code")]
         public void ircConError(object sender, EventArgs e)
         {
-
         }
 
+        [System.Obsolete("Unused - No Code")]
         public void ircError(object sender, EventArgs e)
         {
-            reconnect();
         }
         public void ircRaw(object sender, IrcEventArgs e)
         {
@@ -1385,6 +1403,7 @@ namespace TWIRC
 
             }
         }
+        [System.Obsolete("Unused")]
         public void safe()//saves all data
         {
             /* No clue what this is, should have been gone ages ago.

@@ -1,4 +1,4 @@
-﻿namespace TWIRC
+﻿namespace SayingsBot
 {
     partial class RNGWindow
     {

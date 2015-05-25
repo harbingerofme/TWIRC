@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Data.SQLite;
 
 
-namespace TWIRC
+namespace SayingsBot
 {
     public partial class RNGWindow : Form
     {
@@ -104,7 +104,7 @@ namespace TWIRC
 
         private void btn_RestartIRC_Click(object sender, EventArgs e)
         {
-            HB.reconnect();
+            HB.doReconnect();
         }
 
         private void btn_ClearLog_Click(object sender, EventArgs e)
@@ -175,22 +175,20 @@ namespace TWIRC
 
         private void ts_Matinence_on_Click(object sender, EventArgs e)
         {
-            HarbBot hb = Program.HarbBot;
-            hb.sendMess(hb.channels, "/me is going down for matinence, be back soon!");
+            HB.sendMess(HB.channels, "/me is going down for matinence, be back soon!");
             Program.RNGLogger.WriteLine("Silence has been set to: On");
             ts_MatinenceLevel.Text = "On";
-            hb.silence = true; 
-            new SQLiteCommand("UPDATE settings SET silence=1;", hb.dbConn).ExecuteNonQuery();
+            HB.silence = true; 
+            new SQLiteCommand("UPDATE settings SET silence=1;", HB.dbConn).ExecuteNonQuery();
         }
 
         private void ts_Matinence_off_Click(object sender, EventArgs e)
         {
-            HarbBot hb = Program.HarbBot;
-            hb.silence = false;
-            new SQLiteCommand("UPDATE settings SET silence=0;", hb.dbConn).ExecuteNonQuery();
+            HB.silence = false;
+            new SQLiteCommand("UPDATE settings SET silence=0;", HB.dbConn).ExecuteNonQuery();
             Program.RNGLogger.WriteLine("Silence has been set to: Off");
             ts_MatinenceLevel.Text = "Off";
-            hb.sendMess(hb.channels, "/me is back! Enjoy the cake!");
+            HB.sendMess(HB.channels, "/me is back! Enjoy the cake!");
         }
     }
 }
