@@ -893,6 +893,7 @@ namespace TWIRC
 
         public void addVote(string user, Bias b, int amount)
         {
+            var money = 0;
             var x = -1;
             for(int a = 0; a<votingList.Count; a++)
             {
@@ -904,19 +905,21 @@ namespace TWIRC
             }
             if(x>-1)
             {
-                addPoints(user, (votingList[x].Int-1) * moneyPerVote, "refundvote");
+                money -= (votingList[x].Int - 1) * moneyPerVote;
                 votingList.RemoveAt(x);
                 votinglist.RemoveAt(x);
             }
             if(amount!=0){
-                addPoints(user, (2 - amount) * moneyPerVote, "vote");
+                money += ((1 - amount) * moneyPerVote);
                 votingList.Add(new intStr(user, amount));
                 votinglist.Add(b);
                 if(x == -1)
                 {
+                    money += 50;
                     addAllTime(user, moneyPerVote);
                 }
             }
+            addPoints(user, money, "vote");
 
         }
     }
