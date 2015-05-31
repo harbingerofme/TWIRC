@@ -238,6 +238,8 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbleaderboard",0,0));
             hardList.Add(new hardCom("!sqlquery",5,0));
             hardList.Add(new hardCom("sayingsbot",0,0,20));
+            hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
+            hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -544,11 +546,23 @@ namespace SayingsBot
                     done = true;
                     str = h.returnPars(message);
                     if (logLevel == 1) { logger.WriteLine("IRC:<- <"+user +"> " + message); }
+
+                    if (h.returnKeyword() != "!sbgetuseraliases")
+                    {
+                    for (int it = 0; it < str.Length; it++)
+                    {
+                        if (getUserFromAlias(str[it]) != null)
+                        {
+                            string tmp = getUserFromAlias(str[it]);
+                            str[it] = tmp;
+                        }
+                    }
+                    }
                     switch (h.returnKeyword())
                     {
-                        case "!recon":
-                            break;
-                        case "!sbaddcom":
+                            case "!recon":
+                                break;
+                            case "!sbaddcom":
                                 fail = false;
 
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -562,15 +576,15 @@ namespace SayingsBot
                                     else { tempVar2 = str[2] + " " + str[3]; }
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);",dbConn);
+                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", str[1].ToLower());
-                                    cmd.Parameters.AddWithValue("@par2",tempVar2);
+                                    cmd.Parameters.AddWithValue("@par2", tempVar2);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                                     this.appendFile(progressLogPATH, "Command \"" + str[1] + "\" added.");
                                 }
-                            break;
-                        case "!sbeditcom":
+                                break;
+                            case "!sbeditcom":
                                 fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
@@ -595,12 +609,13 @@ namespace SayingsBot
                                 {
                                     sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
-                            break;
-                        case "!sbdelcom"://delete command
-                            fail = true;
+                                break;
+                            case "!sbdelcom"://delete command
+                                fail = true;
                                 for (int a = 0; a < comlist.Count() && fail; a++)
                                 {
-                                    if (comlist[a].doesMatch(str[1])) { 
+                                    if (comlist[a].doesMatch(str[1]))
+                                    {
                                         comlist.RemoveAt(a);
                                         fail = false;
                                         SQLiteCommand cmd = new SQLiteCommand("DELETE FROM commands WHERE keyword=@par1;", dbConn);
@@ -609,15 +624,16 @@ namespace SayingsBot
                                         sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
                                         this.appendFile(progressLogPATH, "Command \"" + str[1] + "\" has been deleted.");
                                         safe();
-                                        break; }
+                                        break;
+                                    }
 
                                 }
                                 if (fail)
                                 {
                                     sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                                 }
-                            break;
-                        case "!sbaddalias": //add alias
+                                break;
+                            case "!sbaddalias": //add alias
                                 fail = false;
                                 foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
                                 foreach (hardCom c in hardList) { if (c.doesMatch(str[1]) || fail) { fail = true; break; } }
@@ -638,15 +654,15 @@ namespace SayingsBot
                                     this.appendFile(progressLogPATH, "Alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                                     safe();
                                 }
-                            break;
-                        case "!sbdelalias":
+                                break;
+                            case "!sbdelalias":
                                 fail = true;
                                 foreach (ali c in aliList)
                                 {
                                     if (c.delFrom(str[1]))
                                     {
                                         SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
-                                        cmd.Parameters.AddWithValue("@par1", str[1]);cmd.ExecuteNonQuery();
+                                        cmd.Parameters.AddWithValue("@par1", str[1]); cmd.ExecuteNonQuery();
                                         sendMess(channel, user + " -> Alias \"" + str[1] + "\" removed.");
                                         this.appendFile(progressLogPATH, "Alias \"" + str[1] + "\" removed.");
                                         if (c.getFroms().Count() == 0) { aliList.Remove(c); }
@@ -656,24 +672,25 @@ namespace SayingsBot
                                     }
                                 }
                                 if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
-                            break;
-                        case "!sbset"://!set <name> <level>
-                            if(!Regex.Match(str[1].ToLower(),@"^[a-z0-9_]+$").Success){sendMess(channel,"I'm sorry, "+User+". That's not a valid name.");}
-                            else{
-                            if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
-                            {
-                                setAuth(str[1].ToLower(), int.Parse(str[2]));
-                                sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
-                                this.appendFile(progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
-                                safe();
-                            }
-                            else
-                            {
-                                sendMess(channel, "I'm sorry, " + User + ". You either lack the authorisation to give such levels to that person, or that level is not a valid number.");
-                            }
-                            }
-                            break;
-                        case "!sbeditcount":
+                                break;
+                            case "!sbset"://!set <name> <level>
+                                if (!Regex.Match(str[1].ToLower(), @"^[a-z0-9_]+$").Success) { sendMess(channel, "I'm sorry, " + User + ". That's not a valid name."); }
+                                else
+                                {
+                                    if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                                    {
+                                        setAuth(str[1].ToLower(), int.Parse(str[2]));
+                                        sendMess(channel, user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");
+                                        this.appendFile(progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
+                                        safe();
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, "I'm sorry, " + User + ". You either lack the authorisation to give such levels to that person, or that level is not a valid number.");
+                                    }
+                                }
+                                break;
+                            case "!sbeditcount":
                                 fail = true;
                                 if (!Regex.Match(str[2], @"^\d+$").Success)
                                 {
@@ -692,8 +709,8 @@ namespace SayingsBot
                                         safe();
                                     }
                                 }
-                            break;
-                        case "!banuser":
+                                break;
+                            case "!banuser":
                                 if (auth > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
                                 {
                                     setAuth(str[1], -1);
@@ -701,8 +718,8 @@ namespace SayingsBot
                                     this.appendFile(progressLogPATH, str[1] + " has been banned from using bot commands.");
                                 }
 
-                            break;
-                        case "!unbanuser":
+                                break;
+                            case "!unbanuser":
                                 if (pullAuth(str[1]) == -1)
                                 {
                                     setAuth(str[1], 0);
@@ -710,376 +727,394 @@ namespace SayingsBot
                                     this.appendFile(progressLogPATH, str[1] + "has been unbanned.");
                                 }
 
-                            break;
-                        case "!sbsilence":
-                            if (Regex.Match(str[1], "(on)|(off)|1|0|(true)|(false)|(yes)|(no)", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
-                            if (Regex.Match(str[1], "(on)|1|(true)|(yes)", RegexOptions.IgnoreCase).Success) { silence = true; new SQLiteCommand("UPDATE settings SET silence=1;", dbConn).ExecuteNonQuery(); }
-                            if (Regex.Match(str[1], "(off)|0|(false)|(no)",RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
-                            
-                            break;
-
-                        case "!sbrank":
-                            string text ="";
-                            switch (auth)
-                            {
-                                case 0: text = "an user"; break;
-                                case 1: text = "a regular"; break;
-                                case 2: text = "trusted"; break;
-                                case 3: text = "a moderator"; break;
-                                case 4: text = "the broadcaster"; break;
-                                case 5: text = "an administrator of " + bot_name; break;
-                                default: text = "special"; break;
-                            }
-                            sendMess(channel, User + ", you are "+text+".");
-                            break;
-                        /*
-                        case "!permit":
-                            if (antispam)
-                            {
-                                permits.Add(new intStr(str[1], getNow()));
-                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User+". This permit expires in "+permitTime+" seconds.");
-                            }
-                            break;
-
-                        case "!whitelist":
-                            if (auth == 3 && message.Split(' ').Count()>=3)
-                            {
-                                SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aswhitelist (name,regex) VALUES (@par1,@par2) VALUES",dbConn);
-                                cmd.Parameters.AddWithValue("@par1", message.Split(' ')[1]);
-                                cmd.Parameters.AddWithValue("@par2", message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                cmd.ExecuteNonQuery();
-                                asWhitelist.Add(message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                asWhitelist2.Add(message.Split(' ')[1]);
-                                sendMess(channel, User + "-> I've added it to the whitelist, I can't guarantee any results.");
-                            }
-                            else
-                            {
-                                if(asWhitelist.Count == 0)
-                                {
-                                    tempVar2 = "There are no whitelisted links.";
-                                }
-                                if (asWhitelist.Count == 1)
-                                {
-                                    tempVar2 = "The only whitelisted website is " + asWhitelist2[0];
-                                }
-                                if (asWhitelist.Count > 1)
-                                {
-                                    tempVar2 = "Whitelisted websites are: ";
-                                    foreach (string tempStr1 in asWhitelist2)
-                                    {
-
-                                        tempVar2 += tempStr1 + ", ";
-                                    }
-                                    tempVar2 = tempVar2.Substring(0, tempVar2.Length - 2);
-                                    tempVar2 += ".";
-                                }
-                                sendMess(channel, tempVar2);
-                            }
-                            break;*/
-                        case "!commands":
-                            sendMess(channel, User + " --> SayingsBot Commands at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#Commands");
-                            break;
-                        case "!givecake":
-                            sendMess(channel, User + " gives " + str[1] + " some cake!");
-                            break;
-                        case "!givepie":
-                            sendMess(channel, User + " gives " + str[1] + " some pie!");
-                            break;
-                        case "!givea":
-                            sendMess(channel, User + " gives " + str[1] + " a " + str[2] + "!");
-                            break;
-                        case "!givesome":
-                            sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
-                            break;
-                        case "!whoisuser":
-                            SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                            userCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
-                            SQLiteDataReader userReader = userCommand.ExecuteReader();
-                            if (userReader.Read()) { sendMess(channel, userReader.GetString(0)); } else { sendMess(channel, str[1] + " does not have a !whoisuser."); }
-                            break;
-                        case "!editme":
-                            string newText = str[1];
-                            setWhoIsUser(user, newText);
-                            SQLiteCommand usersCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                            usersCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
-                            SQLiteDataReader usersReader = usersCommand.ExecuteReader();
-                            if (usersReader.Read()) { 
-                                sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
-                                this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
-                            }
-                            break;
-                        case "!edituser":
-                            string newUser = str[1];
-                            string newTextEU = str[2];
-                            setWhoIsUser(newUser, newTextEU);
-                            SQLiteCommand userssCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                            userssCommand.Parameters.AddWithValue("@par1", newUser.ToLower());
-                            SQLiteDataReader userssReader = userssCommand.ExecuteReader();
-                            if (userssReader.Read()) { 
-                                sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
-                                this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
-                            }
-                            break;
-                        case "!classic":
-                            //TODO: Need to SQL this
-                            SQLiteCommand classicCmd = new SQLiteCommand("SELECT data FROM userdata WHERE user = @par1 AND dataType = '4';", dbConn);
-                            classicCmd.Parameters.AddWithValue("@par1", str[1]);
-                            SQLiteDataReader classicReader = classicCmd.ExecuteReader();
-                            if (classicReader.Read())
-                            {
-                                sendMess(channel, classicReader.GetString(0));
-                            }
-                            else
-                            {
-                                sendMess(channel, "Classic " + str[1] + " does not exist!");
-                            }
-                            break;
-                        case "!addclassic":
-                            string classicAdd = str[1];
-                            string classicMessage = str[2];
-                            SQLiteCommand classicAddCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES (@par1, '4', @par2);", dbConn);
-                            classicAddCommand.Parameters.AddWithValue("@par1", classicAdd);
-                            classicAddCommand.Parameters.AddWithValue("@par2", classicMessage);
-                            classicAddCommand.ExecuteNonQuery();
-                            sendMess(channel, "Classic command " + classicAdd + " appears as " + classicMessage);
-                            this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
-                            break;
-                        case "!kill":
-                            Random r = new Random();
-                            Int32 Rand = r.Next(5);
-                            string text2send = null;
-                            switch (Rand)
-                            {
-                                case 1:
-                                    text2send = " politley murders ";
-                                    break;
-                                case 2:
-                                    text2send = " slightly mames ";
-                                    break;
-                                case 3:
-                                    text2send = " slowly ravages ";
-                                    break;
-                                case 4:
-                                    text2send = " quickly stabs ";
-                                    break;
-                                default:
-                                    text2send = " politley murders ";
-                                    break;
-
-                            }
-                            sendMess(channel, User + text2send + str[1] + ".");
-                            break;
-                        case "!calluser":
-                            sendMess(channel, "CALLING " + str[1].ToUpper() + "! WOULD " + str[1].ToUpper() + " PLEASE REPORT TO THE CHAT!");
-                            break;
-                        case "!count":
-                            SQLiteDataReader getCountCmd = new SQLiteCommand("SELECT DATA FROM misc WHERE ID = 'CountGame';", dbConn).ExecuteReader(); //needs to be put into int count
-                            int count;
-                            if (getCountCmd.Read())
-                            {
-                                count = int.Parse(getCountCmd.GetString(0));
-                                count++;
-                                new SQLiteCommand("UPDATE misc SET DATA = '" + count + "' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
-                            }
-                            else//countgame doesn't exist?
-                            {
-                                count = 1;
-                                new SQLiteCommand("INSERT INTO misc (ID,DATA) VALUES ('CountGame','1');", dbConn).ExecuteNonQuery();
-                            }
-                            sendMess(channel, cstr(count));
-                            break;
-                        case "!newcount":
-                            new SQLiteCommand("UPDATE misc SET DATA = '0' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
-                            sendMess(channel, "Counting Game Reset");
-                            break;
-                        case "!points":
-                            sendMess(channel, user + " you have " + getPoints(user) + " points.");
-                            break;
-                        case "!seepoints":
-                            sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points.");
-                            break;
-                        case "!setpoints":
-                            setPoints(str[1], cint(str[2]));
-                            sendMess(channel, str[1]+"'s points set to "+str[2]+" points.");
-                            break;
-                        case "!addpoints":
-                            addPoints(str[1], cint(str[2]), "Manual Add");
-                            addAllTime(str[1], cint(str[2]));
-                            sendMess(channel, str[1] + " gained " + str[2] + " points.");
-                            break;
-                        case "!nc":
-                            sendMess(channel, str[1] + "! Please change the color of your name, neon colors hurt some peoples eyes! (If you don't know how type \".color\")");
-                            break;
-                        case "!sbversion":
-                            sendMess(channel, "/me is currently HB" + Application.ProductVersion + " bassed off of SB2.8.2. Changelog at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#ChangeLog");
-                            break;
-                        case "!sbleaderboard":
-                            SQLiteDataReader sqldr;
-                            string messString = "Leaderboard: ";
-                            sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC,name LIMIT 5;", dbConn).ExecuteReader();
-                            while (sqldr.Read())
-                            {
-                                messString += sqldr.GetString(0) + " with " + sqldr.GetInt32(1) + " points. ";
-                            }
-                            sendMess(channel, messString);
-                            break;
-                        case "!sqlquery":
-                            //new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);",dbConn).ExecuteNonQuery();
-                            break;
-                        case "sayingsbot":
-                            sendMess(channel, "/me reporting, " + user + "!");
-                            break;
-                        case "!quotes":
-                            Random rnd = new Random();
-                            string function = str[1];
-                            string quser = str[2];
-                            string fParam = str[3];
-                            Boolean success = false;
-                            SQLiteDataReader quotesReader;
-                            SQLiteCommand quotesCommand;
-                            quser = quser.ToLower();
-
-                            if (function == "info")
-                            {
-                                sendMess(channel, "Infomation about quotes avalible on the !sbcommands page.");
                                 break;
-                            }
-                            else if (function == "say")
-                            {
-                                if (quser == "random")
+                            case "!sbsilence":
+                                if (Regex.Match(str[1], "(on)|(off)|1|0|(true)|(false)|(yes)|(no)", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
+                                if (Regex.Match(str[1], "(on)|1|(true)|(yes)", RegexOptions.IgnoreCase).Success) { silence = true; new SQLiteCommand("UPDATE settings SET silence=1;", dbConn).ExecuteNonQuery(); }
+                                if (Regex.Match(str[1], "(off)|0|(false)|(no)", RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
+
+                                break;
+
+                            case "!sbrank":
+                                string text = "";
+                                switch (auth)
                                 {
-                                    //randomquote
-                                    quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND dataType = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
-                                    if (quotesReader.Read())
-                                    {
-                                        int ubound = quotesReader.GetInt32(0);
-                                        int rand = rnd.Next(1,ubound + 1);
-                                        quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user = 'overallRandom' AND dataType = '5' AND dataID ='" + rand + "';",dbConn).ExecuteReader();
-                                        if (quotesReader.Read())
-                                        {
-                                            string theuser = quotesReader.GetString(0);
-                                            quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + theuser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
-                                            if (quotesReader.Read())
-                                            {
-                                                rand = rnd.Next(1,quotesReader.GetInt32(0) + 1);
-                                                quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + theuser + "' AND datatype = '1' AND dataID = '" + rand + "';", dbConn).ExecuteReader();
-                                                if (quotesReader.Read()) { sendMess(channel, theuser+"(" + rand + "): " + quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    break;
+                                    case 0: text = "an user"; break;
+                                    case 1: text = "a regular"; break;
+                                    case 2: text = "trusted"; break;
+                                    case 3: text = "a moderator"; break;
+                                    case 4: text = "the broadcaster"; break;
+                                    case 5: text = "an administrator of " + bot_name; break;
+                                    default: text = "special"; break;
+                                }
+                                sendMess(channel, User + ", you are " + text + ".");
+                                break;
+                            /*
+                            case "!permit":
+                                if (antispam)
+                                {
+                                    permits.Add(new intStr(str[1], getNow()));
+                                    sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User+". This permit expires in "+permitTime+" seconds.");
+                                }
+                                break;
+
+                            case "!whitelist":
+                                if (auth == 3 && message.Split(' ').Count()>=3)
+                                {
+                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aswhitelist (name,regex) VALUES (@par1,@par2) VALUES",dbConn);
+                                    cmd.Parameters.AddWithValue("@par1", message.Split(' ')[1]);
+                                    cmd.Parameters.AddWithValue("@par2", message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
+                                    cmd.ExecuteNonQuery();
+                                    asWhitelist.Add(message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
+                                    asWhitelist2.Add(message.Split(' ')[1]);
+                                    sendMess(channel, User + "-> I've added it to the whitelist, I can't guarantee any results.");
                                 }
                                 else
                                 {
-                                    if (fParam == "r")
+                                    if(asWhitelist.Count == 0)
                                     {
-                                        //random user quote
-                                        quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
-                                        quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                        quotesReader = quotesCommand.ExecuteReader();
-
-                                        if(quotesReader.Read()) 
+                                        tempVar2 = "There are no whitelisted links.";
+                                    }
+                                    if (asWhitelist.Count == 1)
+                                    {
+                                        tempVar2 = "The only whitelisted website is " + asWhitelist2[0];
+                                    }
+                                    if (asWhitelist.Count > 1)
+                                    {
+                                        tempVar2 = "Whitelisted websites are: ";
+                                        foreach (string tempStr1 in asWhitelist2)
                                         {
-                                            int rand = rnd.Next(1, quotesReader.GetInt32(0) + 1);
-                                            quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = '" + rand + "';", dbConn);
-                                            quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                            quotesReader = quotesCommand.ExecuteReader();
-                                            if (quotesReader.Read()) { sendMess(channel, "("+rand+"): "+quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
-                                            break;
+
+                                            tempVar2 += tempStr1 + ", ";
+                                        }
+                                        tempVar2 = tempVar2.Substring(0, tempVar2.Length - 2);
+                                        tempVar2 += ".";
+                                    }
+                                    sendMess(channel, tempVar2);
+                                }
+                                break;*/
+                            case "!commands":
+                                sendMess(channel, User + " --> SayingsBot Commands at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#Commands");
+                                break;
+                            case "!givecake":
+                                sendMess(channel, User + " gives " + str[1] + " some cake!");
+                                break;
+                            case "!givepie":
+                                sendMess(channel, User + " gives " + str[1] + " some pie!");
+                                break;
+                            case "!givea":
+                                sendMess(channel, User + " gives " + str[1] + " a " + str[2] + "!");
+                                break;
+                            case "!givesome":
+                                sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
+                                break;
+                            case "!whoisuser":
+                                SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                                userCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
+                                SQLiteDataReader userReader = userCommand.ExecuteReader();
+                                if (userReader.Read()) { sendMess(channel, userReader.GetString(0)); } else { sendMess(channel, str[1] + " does not have a !whoisuser."); }
+                                break;
+                            case "!editme":
+                                string newText = str[1];
+                                setWhoIsUser(user, newText);
+                                SQLiteCommand usersCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                                usersCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
+                                SQLiteDataReader usersReader = usersCommand.ExecuteReader();
+                                if (usersReader.Read())
+                                {
+                                    sendMess(channel, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
+                                    this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
+                                }
+                                break;
+                            case "!edituser":
+                                string newUser = str[1];
+                                string newTextEU = str[2];
+                                setWhoIsUser(newUser, newTextEU);
+                                SQLiteCommand userssCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+                                userssCommand.Parameters.AddWithValue("@par1", newUser.ToLower());
+                                SQLiteDataReader userssReader = userssCommand.ExecuteReader();
+                                if (userssReader.Read())
+                                {
+                                    sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
+                                    this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
+                                }
+                                break;
+                            case "!classic":
+                                //TODO: Need to SQL this
+                                SQLiteCommand classicCmd = new SQLiteCommand("SELECT data FROM userdata WHERE user = @par1 AND dataType = '4';", dbConn);
+                                classicCmd.Parameters.AddWithValue("@par1", str[1]);
+                                SQLiteDataReader classicReader = classicCmd.ExecuteReader();
+                                if (classicReader.Read())
+                                {
+                                    sendMess(channel, classicReader.GetString(0));
+                                }
+                                else
+                                {
+                                    sendMess(channel, "Classic " + str[1] + " does not exist!");
+                                }
+                                break;
+                            case "!addclassic":
+                                string classicAdd = str[1];
+                                string classicMessage = str[2];
+                                SQLiteCommand classicAddCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES (@par1, '4', @par2);", dbConn);
+                                classicAddCommand.Parameters.AddWithValue("@par1", classicAdd);
+                                classicAddCommand.Parameters.AddWithValue("@par2", classicMessage);
+                                classicAddCommand.ExecuteNonQuery();
+                                sendMess(channel, "Classic command " + classicAdd + " appears as " + classicMessage);
+                                this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
+                                break;
+                            case "!kill":
+                                Random r = new Random();
+                                Int32 Rand = r.Next(5);
+                                string text2send = null;
+                                switch (Rand)
+                                {
+                                    case 1:
+                                        text2send = " politley murders ";
+                                        break;
+                                    case 2:
+                                        text2send = " slightly mames ";
+                                        break;
+                                    case 3:
+                                        text2send = " slowly ravages ";
+                                        break;
+                                    case 4:
+                                        text2send = " quickly stabs ";
+                                        break;
+                                    default:
+                                        text2send = " politley murders ";
+                                        break;
+
+                                }
+                                sendMess(channel, User + text2send + str[1] + ".");
+                                break;
+                            case "!calluser":
+                                sendMess(channel, "CALLING " + str[1].ToUpper() + "! WOULD " + str[1].ToUpper() + " PLEASE REPORT TO THE CHAT!");
+                                break;
+                            case "!count":
+                                SQLiteDataReader getCountCmd = new SQLiteCommand("SELECT DATA FROM misc WHERE ID = 'CountGame';", dbConn).ExecuteReader(); //needs to be put into int count
+                                int count;
+                                if (getCountCmd.Read())
+                                {
+                                    count = int.Parse(getCountCmd.GetString(0));
+                                    count++;
+                                    new SQLiteCommand("UPDATE misc SET DATA = '" + count + "' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
+                                }
+                                else//countgame doesn't exist?
+                                {
+                                    count = 1;
+                                    new SQLiteCommand("INSERT INTO misc (ID,DATA) VALUES ('CountGame','1');", dbConn).ExecuteNonQuery();
+                                }
+                                sendMess(channel, cstr(count));
+                                break;
+                            case "!newcount":
+                                new SQLiteCommand("UPDATE misc SET DATA = '0' WHERE ID='CountGame';", dbConn).ExecuteNonQuery();
+                                sendMess(channel, "Counting Game Reset");
+                                break;
+                            case "!points":
+                                sendMess(channel, user + " you have " + getPoints(user) + " points.");
+                                break;
+                            case "!seepoints":
+                                sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points.");
+                                break;
+                            case "!setpoints":
+                                setPoints(str[1], cint(str[2]));
+                                sendMess(channel, str[1] + "'s points set to " + str[2] + " points.");
+                                break;
+                            case "!addpoints":
+                                addPoints(str[1], cint(str[2]), "Manual Add");
+                                addAllTime(str[1], cint(str[2]));
+                                sendMess(channel, str[1] + " gained " + str[2] + " points.");
+                                break;
+                            case "!nc":
+                                sendMess(channel, str[1] + "! Please change the color of your name, neon colors hurt some peoples eyes! (If you don't know how type \".color\")");
+                                break;
+                            case "!sbversion":
+                                sendMess(channel, "/me is currently HB" + Application.ProductVersion + " bassed off of SB2.8.2. Changelog at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#ChangeLog");
+                                break;
+                            case "!sbleaderboard":
+                                SQLiteDataReader sqldr;
+                                string messString = "Leaderboard: ";
+                                sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC,name LIMIT 5;", dbConn).ExecuteReader();
+                                while (sqldr.Read())
+                                {
+                                    messString += sqldr.GetString(0) + " with " + sqldr.GetInt32(1) + " points. ";
+                                }
+                                sendMess(channel, messString);
+                                break;
+                            case "!sqlquery":
+                                temp_createTable();
+                                break;
+                            case "sayingsbot":
+                                sendMess(channel, "/me reporting, " + user + "!");
+                                break;
+
+
+                            case "!sbadduseralias":
+                                setUserAlias(str[1], str[2]);
+                                sendMess(channel, "Gave user " + str[1] + " the alias " + str[2] + ".");
+                                break;
+                            case "!sbgetuseraliases":
+                                if (getUserAliases(str[1]) != null)
+                                {
+                                    sendMess(channel, "User " + str[1] + " has the aliases " + getUserAliases(str[1]) + ".");
+                                }
+                                else
+                                {
+                                    sendMess(channel, "User " + str[1] + " has no aliases.");
+                                }
+                                break;
+                            case "!quotes":
+                                Random rnd = new Random();
+                                string function = str[1];
+                                string quser = str[2];
+                                string fParam = str[3];
+                                Boolean success = false;
+                                SQLiteDataReader quotesReader;
+                                SQLiteCommand quotesCommand;
+                                quser = quser.ToLower();
+
+                                if (function == "info")
+                                {
+                                    sendMess(channel, "Infomation about quotes avalible on the !sbcommands page.");
+                                    break;
+                                }
+                                else if (function == "say")
+                                {
+                                    if (quser == "random")
+                                    {
+                                        //randomquote
+                                        quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND dataType = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                        if (quotesReader.Read())
+                                        {
+                                            int ubound = quotesReader.GetInt32(0);
+                                            int rand = rnd.Next(1, ubound + 1);
+                                            quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user = 'overallRandom' AND dataType = '5' AND dataID ='" + rand + "';", dbConn).ExecuteReader();
+                                            if (quotesReader.Read())
+                                            {
+                                                string theuser = quotesReader.GetString(0);
+                                                quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '" + theuser + "' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                                if (quotesReader.Read())
+                                                {
+                                                    rand = rnd.Next(1, quotesReader.GetInt32(0) + 1);
+                                                    quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='" + theuser + "' AND datatype = '1' AND dataID = '" + rand + "';", dbConn).ExecuteReader();
+                                                    if (quotesReader.Read()) { sendMess(channel, theuser + "(" + rand + "): " + quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
+                                                    break;
+                                                }
+                                            }
                                         }
                                         break;
                                     }
                                     else
                                     {
-                                        //specific user quote
-                                        try { int.Parse(fParam); success = true; }
-                                        catch { }
-                                        if (success)
+                                        if (fParam == "r")
                                         {
-                                            quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = @par2;", dbConn);
+                                            //random user quote
+                                            quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
                                             quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                            quotesCommand.Parameters.AddWithValue("@par2", fParam);
                                             quotesReader = quotesCommand.ExecuteReader();
-                                            if (quotesReader.Read()) { sendMess(channel, quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + fParam + " does not exist for " + quser); }
+
+                                            if (quotesReader.Read())
+                                            {
+                                                int rand = rnd.Next(1, quotesReader.GetInt32(0) + 1);
+                                                quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = '" + rand + "';", dbConn);
+                                                quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                                quotesReader = quotesCommand.ExecuteReader();
+                                                if (quotesReader.Read()) { sendMess(channel, "(" + rand + "): " + quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + rand + " does not exist for " + quser); }
+                                                break;
+                                            }
                                             break;
                                         }
                                         else
                                         {
-                                            sendMess(channel, "Quote " + fParam + " does not exist for " + quser + ".");
-                                            break;
+                                            //specific user quote
+                                            try { int.Parse(fParam); success = true; }
+                                            catch { }
+                                            if (success)
+                                            {
+                                                quotesCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '1' AND dataID = @par2;", dbConn);
+                                                quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                                quotesCommand.Parameters.AddWithValue("@par2", fParam);
+                                                quotesReader = quotesCommand.ExecuteReader();
+                                                if (quotesReader.Read()) { sendMess(channel, quotesReader.GetString(0)); } else { sendMess(channel, "Quote " + fParam + " does not exist for " + quser); }
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                sendMess(channel, "Quote " + fParam + " does not exist for " + quser + ".");
+                                                break;
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            else if (function == "add")
-                            {
-                                int length;
-                                int newLength;
-                                quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
-                                quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                quotesReader = quotesCommand.ExecuteReader();
-                                if (quotesReader.Read())
+                                else if (function == "add")
                                 {
-                                    length = quotesReader.GetInt32(0);
-                                    newLength = length + 1;
-                                }
-                                else
-                                {
-                                    //No quotes yet exsist
-                                    newLength = 1;
-                                }
-                                quotesCommand  = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES (@par1, '1', '" + newLength + "',  @par2);", dbConn);
-                                quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                quotesCommand.Parameters.AddWithValue("@par2", fParam);
-                                quotesCommand.ExecuteNonQuery();
-                                sendMess(channel, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-                                this.appendFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-
-                                //If it's the user's first quote
-                                //Originally addusertorandom
-                                if (newLength == 1)
-                                {
-                                    quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                    int length;
+                                    int newLength;
+                                    quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
+                                    quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                    quotesReader = quotesCommand.ExecuteReader();
                                     if (quotesReader.Read())
                                     {
                                         length = quotesReader.GetInt32(0);
                                         newLength = length + 1;
-                                        quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', @par1);", dbConn);
-                                        quotesCommand.Parameters.AddWithValue("@par1", quser);
-                                        quotesCommand.ExecuteNonQuery();
-                                        sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
-                                        this.appendFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
                                     }
+                                    else
+                                    {
+                                        //No quotes yet exsist
+                                        newLength = 1;
+                                    }
+                                    quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES (@par1, '1', '" + newLength + "',  @par2);", dbConn);
+                                    quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                    quotesCommand.Parameters.AddWithValue("@par2", fParam);
+                                    quotesCommand.ExecuteNonQuery();
+                                    sendMess(channel, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
+                                    this.appendFile(progressLogPATH, "Quote " + cstr(newLength) + " for " + quser + " has been added as: " + fParam);
+
+                                    //If it's the user's first quote
+                                    //Originally addusertorandom
+                                    if (newLength == 1)
+                                    {
+                                        quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                        if (quotesReader.Read())
+                                        {
+                                            length = quotesReader.GetInt32(0);
+                                            newLength = length + 1;
+                                            quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', @par1);", dbConn);
+                                            quotesCommand.Parameters.AddWithValue("@par1", quser);
+                                            quotesCommand.ExecuteNonQuery();
+                                            sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                            this.appendFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                        }
+                                        break;
+                                    }
+                                    else { break; }
+                                }
+                                else if (function == "edit")
+                                {
+                                    sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
                                     break;
                                 }
-                                else { break; }
-                            }
-                            else if (function == "edit")
-                            {
-                                sendMess(channel, "Editing quotes unimplimented. Bug dude to change it.");
-                                break;
-                            }
-                            /*else if (function == "addusertorandom")
-                            {
-                                quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
-                                if (quotesReader.Read())
+                                /*else if (function == "addusertorandom")
                                 {
-                                    int length = quotesReader.GetInt32(0);
-                                    int newLength = length + 1;
-                                    new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '"+quser+"');", dbConn).ExecuteNonQuery();
-                                    sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
-                                    this.writeFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                    quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND datatype = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                    if (quotesReader.Read())
+                                    {
+                                        int length = quotesReader.GetInt32(0);
+                                        int newLength = length + 1;
+                                        new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', '"+quser+"');", dbConn).ExecuteNonQuery();
+                                        sendMess(channel, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                        this.writeFile(progressLogPATH, "Added " + quser + " to overall random list. They are user " + cstr(newLength) + ".");
+                                    }
+                                    break;
+                                }*/
+                                else
+                                {
+                                    sendMess(channel, "Incorrect use of !quotes.");
+                                    break;
                                 }
-                                break;
-                            }*/
-                            else
-                            {
-                                sendMess(channel, "Incorrect use of !quotes.");
-                                break;
-                            }
                             //insert your commands here.
-                    }
+                        }
                     break;
 
 
@@ -1343,8 +1378,8 @@ namespace SayingsBot
             string message = e.Data.Message;
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
-            try
-            {
+            //try
+           // {
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -1361,12 +1396,12 @@ namespace SayingsBot
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            }
+            /*}
             catch
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
-            }
+            }*/
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
@@ -1491,6 +1526,85 @@ namespace SayingsBot
         Int32 cint(string i)
         {
             return Convert.ToInt32(i);
+        }
+
+        void temp_createTable()
+        {
+            new SQLiteCommand("CREATE TABLE userAliases (user VARCHAR(100) NOT NULL, alias VARCHAR(1024) NOT NULL);", dbConn).ExecuteNonQuery();
+        }
+
+        
+        void setUserAlias(string user, string alias)
+        {
+            string tmp;
+            SQLiteCommand getUserAliasesCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1;", dbConn);
+            getUserAliasesCommand.Parameters.AddWithValue("@par1", user);
+            SQLiteDataReader readAliases = getUserAliasesCommand.ExecuteReader();
+            if (readAliases.Read())
+            {
+                tmp = readAliases.GetString(0);
+            }
+            else
+            {
+                tmp = null;
+            }
+
+            SQLiteCommand setAliasCommand;
+            if (tmp != null) {
+                setAliasCommand = new SQLiteCommand("UPDATE userAliases SET alias=@par2 WHERE user=@par1; ", dbConn);
+            } else {
+                setAliasCommand = new SQLiteCommand("INSERT INTO userAliases (user, alias) VALUES (@par1, @par2); ", dbConn);
+            }
+            setAliasCommand.Parameters.AddWithValue("@par1", user);
+            setAliasCommand.Parameters.AddWithValue("@par2", alias);
+            setAliasCommand.ExecuteNonQuery();
+        }
+        /*
+        void addUserAlias(string user, string alias)
+        {
+            SQLiteCommand addUserAliasCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1", dbConn);
+            addUserAliasCommand.Parameters.AddWithValue("@par1", user);
+            SQLiteDataReader readAliases = addUserAliasCommand.ExecuteReader();
+            string aliases = readAliases.GetString(0);
+            aliases += alias + ":";
+            SQLiteCommand addUserAliasCommand2 = new SQLiteCommand("UPDATE userAliases SET alias=@par2 WHERE user=@par1; ", dbConn);
+            addUserAliasCommand2.Parameters.AddWithValue("@par1", user);
+            addUserAliasCommand2.Parameters.AddWithValue("@par2", alias);
+            addUserAliasCommand2.ExecuteNonQuery();
+        }*/
+        string getUserFromAlias(string alias)
+        {
+            SQLiteCommand getUserFromAliasCommand = new SQLiteCommand("SELECT user FROM userAliases WHERE alias=@par1;", dbConn);
+            getUserFromAliasCommand.Parameters.AddWithValue("@par1", alias);
+            SQLiteDataReader readAliases = getUserFromAliasCommand.ExecuteReader();
+            if (readAliases.Read())
+            {
+                return readAliases.GetString(0);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        string getUserAliases(string user)
+        {
+            SQLiteCommand getUserAliasesCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1;", dbConn);
+            getUserAliasesCommand.Parameters.AddWithValue("@par1", user);
+            SQLiteDataReader readAliases = getUserAliasesCommand.ExecuteReader();
+            if (readAliases.Read())
+            {
+                return readAliases.GetString(0);
+            }
+            else
+            {
+                return null;
+            }
+            
+        }
+        [System.Obsolete("Unprogrammed - Unused", true)]
+        string[] getUserAliasesArray(string user)
+        {
+            return null;
         }
     }
 
