@@ -517,7 +517,14 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             {
                 total += dbl;
             }
-            factor = Math.Floor(10/total * 100)/100;
+            if (total != 0)
+            {
+                factor = Math.Floor(10 / total * 100) / 100;
+            }
+            else
+            {
+                factor = 1;//(doesn't really matter what number, but still)
+            }
         }
         public override string ToString() // returns the keyword
         {

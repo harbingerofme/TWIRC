@@ -84,6 +84,7 @@ namespace TWIRC
 
         public void notNew(string user)
         {
+            user = user.ToLower();
             new SQLiteCommand("UPDATE users SET isnew = 0 WHERE name = '" + user + "';", dbConn).ExecuteNonQuery();
         }
 
@@ -120,6 +121,7 @@ namespace TWIRC
 
         public int pullAuth(string name)
         {
+            name = name.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -135,6 +137,7 @@ namespace TWIRC
         }
         public void setAuth(string user, int level)
         {
+            user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -147,6 +150,7 @@ namespace TWIRC
         }
         public int getPoints(string name)
         {
+            name = name.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -162,6 +166,7 @@ namespace TWIRC
         }
         public void setPoints(string user, int amount)
         {
+            user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -175,6 +180,7 @@ namespace TWIRC
         }
         public int addPoints(string name, int amount, string why)
         {
+            name = name.ToLower();
             if (amount != 0)
             {
                 int things;
@@ -197,6 +203,7 @@ namespace TWIRC
 
         public bool isNew(string user)
         {
+            user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -219,6 +226,7 @@ namespace TWIRC
         public int addAllTime(string name, int amount)
         {
             int things, rank;
+            name = name.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime, rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -254,6 +262,7 @@ namespace TWIRC
 
         public void storeMessage(string user, string message)
         {
+            user = user.ToLower();
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
             cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM users WHERE name= '" + user + "';", chatDbConn).ExecuteReader();

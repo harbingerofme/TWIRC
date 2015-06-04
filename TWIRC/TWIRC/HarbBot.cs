@@ -463,6 +463,7 @@ namespace TWIRC
             if (!irc.IsConnected)
             {
                 logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                doReconnect();
             }
         
         }
@@ -473,6 +474,7 @@ namespace TWIRC
             logger.Write("IRC Disconnecting, vote timers paused ");
             //one.Abort();
 
+            voteStatus = -1;
             voteTimer.Stop();  // stop the vote timers while we're down
             voteTimer2.Stop();
 
@@ -528,8 +530,10 @@ namespace TWIRC
             }
             else
             {
-                logger.WriteLine("... Connected! Vote timers resuming...");   
-                voteTimer.Start();
+                logger.WriteLine("... Connected! Vote timers resuming...");
+
+                voteStatus = 1;
+
                 voteTimer2.Start();
                 reconTimer.Start();
 

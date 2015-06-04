@@ -164,6 +164,7 @@ namespace TWIRC
             }
             else
             {
+                if (m < 0) { tim = "error, fixed soon!"; }
                 time.Text = tim;
                 title.Text = tit;
             }
