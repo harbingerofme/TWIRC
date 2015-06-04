@@ -926,7 +926,7 @@ namespace TWIRC
                 votinglist.Add(b);
                 if(x == -1)
                 {
-                    money += 50;
+                    money += moneyPerVote;
                     addAllTime(user, moneyPerVote);
                 }
             }
