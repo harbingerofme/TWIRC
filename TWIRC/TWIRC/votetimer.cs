@@ -77,7 +77,7 @@ namespace TWIRC
                 tbv = HB.timeBetweenVotes;
                 voting = HB.voteStatus;
 
-                one = new Thread(tmr_Elapsed);
+                one = new Thread(background_thread);
                 one.IsBackground = true;
                 one.Name = "VoteTimer Window";
                 one.Priority = ThreadPriority.Lowest;
@@ -93,7 +93,7 @@ namespace TWIRC
             }
         }
 
-        void tmr_Elapsed()
+        void background_thread()
         {
             while (running)
             {

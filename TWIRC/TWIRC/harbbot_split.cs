@@ -540,7 +540,7 @@ namespace TWIRC
                         case "!bias":
                             if (voteStatus == 1)
                             {
-                                tempVar3 = (str[1] + " " + str[2]).Split(' ');
+                                tempVar3 = (str[1] + " " + str[2]).Split(' ');//merge all 
                                 Bias q = null;
                                 tempVar1 = 1;
                                 foreach (Bias b in biasList)
@@ -551,29 +551,29 @@ namespace TWIRC
                                         break;
                                     }
                                 }
-                                if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)
+                                if (Regex.Match(str[2], @"^1?[0-9]{1,9}\b").Success)//is the second "word" a number?
                                 {
                                     try//don't trust this one bit.
                                     {
-                                        tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);
+                                        tempVar1 = int.Parse(str[2].Split(new string[] { " " }, 2, StringSplitOptions.None)[0]);//try to parse it as the number for bias votes
                                     }
                                     catch
                                     {
                                         fail = true;
-                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");
+                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");//has never happened, ever. Will be removed soon to improve code quality.
                                     }
                                 }
-                                if (tempVar3.Length > 6)
+                                if (tempVar3.Length > 6)//if the bias votes contrains enough words for a biasnumbers vote
                                 {
                                     fail = false;
                                     double[] dbl = new double[7];
                                     for (int a = 0; a < 7; a++)
                                     {
-                                        try
+                                        if(Regex.Match(tempVar3[a],@"^(10|[0-9](\.[0-9]){1}$").Success)
                                         {
-                                            dbl[a] = int.Parse(tempVar3[a]);
+                                            dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
                                         }
-                                        catch
+                                        else
                                         {
                                             fail = true;
                                             break;
@@ -583,16 +583,19 @@ namespace TWIRC
                                     {
                                         q = new Bias("custom", dbl);
                                         tempVar1 = 1;
+                                        try
+                                        {
+                                            tempVar1 = int.Parse(tempVar3[7]);
+                                            if(tempVar1<1)
+                                            {
+                                                tempVar1 = 1;
+                                            }
+                                        }
+                                        catch { };
                                     }
-
-                                    try
-                                    {
-                                        tempVar1 = int.Parse(tempVar3[7]);
-                                    }
-                                    catch { };
 
                                 }
-                                if (q != null && (tempVar1 - 2) * moneyPerVote <= getPoints(user))
+                                if (q != null && (tempVar1 - 2) * moneyPerVote <= getPoints(user))//(7-2) * 50 <= 50... What the fuck.
                                 {
                                     addVote(user, q, tempVar1);
                                 }
@@ -627,14 +630,14 @@ namespace TWIRC
                             sendMess(channel, User + ", your balance is " + tempVar2 + ". (" + tempVar1 + ")");
                             break;
                         case "!setpoints":
-                            if (Regex.Match(str[2], "^[1-9][0-9]{1,8}$").Success)
+                            if (Regex.Match(str[2], "^([1-9][0-9]{1,8}|[0-9])$").Success)
                             {
                                 setPoints(str[1], int.Parse(str[2]));
                                 sendMess(channel, "Points have been changed.");
                             }
                             break;
                         case "!check":
-                            sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + "pokédollars. (" + getAllTime(str[1]) + ")");
+                            sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + " pokédollars. (" + getAllTime(str[1]) + ")");
                             break;
 
                         case "!addlog":
@@ -655,6 +658,14 @@ namespace TWIRC
                                     voteStatus = 1;
                                     sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
                                     voteTimer2.Start();
+                                }
+                                else
+                                {
+                                    try { voteTimer.Stop(); voteTimer2.Stop(); }
+                                    catch { }
+                                    voteStatus = 1;
+                                    voteTimer2.Start();
+                                    sendMess(channel, "Voting started by " + User + ".");
                                 }
                             }
                             else

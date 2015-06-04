@@ -510,6 +510,7 @@ namespace TWIRC
 
 
             logger.Write("IRC Connecting ");
+            reconTimer.Start();
 
             if (irc.IsConnected)
             {
@@ -526,7 +527,7 @@ namespace TWIRC
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: ");   
+                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: (retrying in 5 seconds) ");
             }
             else
             {
@@ -535,7 +536,6 @@ namespace TWIRC
                 voteStatus = 1;
 
                 voteTimer2.Start();
-                reconTimer.Start();
 
             }
         }
