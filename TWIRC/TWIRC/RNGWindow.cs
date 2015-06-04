@@ -102,7 +102,7 @@ namespace SayingsBot
 
         }
 
-        private void btn_RestartIRC_Click(object sender, EventArgs e)
+        public void btn_RestartIRC_Click(object sender, EventArgs e)
         {
             HB.doReconnect();
         }

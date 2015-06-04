@@ -324,6 +324,7 @@ namespace SayingsBot
             if (!irc.IsConnected)
             {
                 logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                Program.mainWindow.btn_RestartIRC_Click(sender, e);
             }
 
         }
@@ -1253,10 +1254,10 @@ namespace SayingsBot
         }
         public void setWhoIsUser(string user, string message)
         {
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM userdata WHERE name='" + user + "' AND dataType='0';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM userdata WHERE user='" + user + "' AND datatype='0';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE userdata SET data='" + message + "' WHERE user='" + user + "' AND dataType='0';", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE userdata SET data='" + message + "' WHERE user='" + user + "' AND datatype='0';", dbConn).ExecuteNonQuery();
             }
             else
             {
@@ -1378,8 +1379,8 @@ namespace SayingsBot
             string message = e.Data.Message;
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
-            //try
-           // {
+            try
+            {
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -1396,12 +1397,12 @@ namespace SayingsBot
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            /*}
+            }
             catch
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
-            }*/
+            }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
