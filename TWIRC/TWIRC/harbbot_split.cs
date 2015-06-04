@@ -403,7 +403,7 @@ namespace TWIRC
                             string text = "";
                             switch (auth)
                             {
-                                case 0: text = "an user"; break;
+                                case 0: text = "a user"; break;
                                 case 1: text = "a regular"; break;
                                 case 2: text = "trusted"; break;
                                 case 3: text = "a moderator"; break;
@@ -569,7 +569,7 @@ namespace TWIRC
                                     double[] dbl = new double[7];
                                     for (int a = 0; a < 7; a++)
                                     {
-                                        if(Regex.Match(tempVar3[a],@"^(10|[0-9](\.[0-9]){1}$").Success)
+                                        if(Regex.Match(tempVar3[a],@"^(10|[0-9](\.[0-9]){1})$").Success)
                                         {
                                             dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
                                         }
