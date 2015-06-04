@@ -215,6 +215,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!commands", 0, 0, 120));
           
             hardList.Add(new hardCom("!whoisuser",0,1,20));
+            hardList.Add(new hardCom("!classicwhoisuser", 0, 1, 20));
             hardList.Add(new hardCom("!editme",0,0));
             hardList.Add(new hardCom("!edituser",3,1));
             hardList.Add(new hardCom("!classic",0,1,20));
@@ -324,7 +325,6 @@ namespace SayingsBot
             if (!irc.IsConnected)
             {
                 logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
-                Program.mainWindow.btn_RestartIRC_Click(sender, e);
             }
 
         }
@@ -809,6 +809,9 @@ namespace SayingsBot
                             case "!givesome":
                                 sendMess(channel, User + " gives " + str[1] + " some " + str[2] + "!");
                                 break;
+                            case "!classicwhoisuser":
+                                sendMess(channel, getClassicWhoIs(str[1]));
+                                break;
                             case "!whoisuser":
                                 SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
                                 userCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
@@ -836,7 +839,7 @@ namespace SayingsBot
                                 SQLiteDataReader userssReader = userssCommand.ExecuteReader();
                                 if (userssReader.Read())
                                 {
-                                    sendMess(channel, User + "'s !whoisuser now reads as: " + userssReader.GetString(0));
+                                    sendMess(channel, newUser + "'s !whoisuser now reads as: " + userssReader.GetString(0));
                                     this.appendFile(progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
                                 }
                                 break;
@@ -1606,6 +1609,31 @@ namespace SayingsBot
         string[] getUserAliasesArray(string user)
         {
             return null;
+        }
+
+        string getClassicWhoIs(string user)
+        {
+            string[] lines = FileLines(sysPath() + "\\people.txt");
+            int line = getClassicWhoIsLine(user, lines);
+            if (line == -1)
+            {
+                return "That user did not classically have a !whoisuser";
+            }
+            else
+            {
+                return lines[line].Substring(user.Length, lines[line].Length - user.Length);
+            }
+        }
+
+        int getClassicWhoIsLine(string user, string[] lines) {
+            for (int I = 0; I < lines.Length; I++)
+            {
+                if (lines[I].StartsWith(user))
+                {
+                    return I;
+                }
+            }
+            return -1;
         }
     }
 
