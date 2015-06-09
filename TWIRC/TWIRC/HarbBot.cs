@@ -325,6 +325,7 @@ namespace SayingsBot
             if (!irc.IsConnected)
             {
                 logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                doReconnect();
             }
 
         }
@@ -376,6 +377,7 @@ namespace SayingsBot
 
 
             logger.Write("IRC Connecting ");
+            reconTimer.Start();
 
             if (irc.IsConnected)
             {
