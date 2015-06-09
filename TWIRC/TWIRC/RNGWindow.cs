@@ -175,7 +175,7 @@ namespace SayingsBot
 
         private void ts_Matinence_on_Click(object sender, EventArgs e)
         {
-            HB.sendMess(HB.channels, "/me is going down for matinence, be back soon!");
+            HB.sendMess(HB.channels, "/me is going down for maintenance, be back soon!");
             Program.RNGLogger.WriteLine("Silence has been set to: On");
             ts_MatinenceLevel.Text = "On";
             HB.silence = true; 

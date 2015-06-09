@@ -46,8 +46,9 @@ namespace SayingsBot
         public bool silence,isMod = false;
         public string progressLogPATH = sysPath() + "\\SayingsBotLog.txt";
 
-        System.Timers.Timer saveTimer;
-        System.Timers.Timer reconTimer;
+        System.Timers.Timer saveTimer = null;
+        System.Timers.Timer reconTimer = null;
+        System.Timers.Timer colourTimer = null;
 
         public Thread one;
 
@@ -252,7 +253,7 @@ namespace SayingsBot
             //saveTimer.Elapsed += saveTimer_Elapsed;
             //saveTimer.Start();
 
-            System.Timers.Timer colourTimer = new System.Timers.Timer(10000);
+            colourTimer = new System.Timers.Timer(10000);
             colourTimer.AutoReset = true;
             colourTimer.Elapsed += colourTimer_Elapsed;
             colourTimer.Start();
@@ -349,6 +350,7 @@ namespace SayingsBot
 
             logger.Write("IRC Disconnecting");
             reconTimer.Stop();
+            colourTimer.Stop();
             if (!irc.IsConnected)
             {
                 logger.WriteLine("... already disconnected.");
@@ -378,6 +380,7 @@ namespace SayingsBot
 
             logger.Write("IRC Connecting ");
             reconTimer.Start();
+            colourTimer.Start();
 
             if (irc.IsConnected)
             {
