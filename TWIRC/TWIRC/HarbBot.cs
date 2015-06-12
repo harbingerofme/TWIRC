@@ -29,7 +29,6 @@ namespace SayingsBot
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
-        public List<luaCom> luaList = new List<luaCom>();
         public int globalCooldown;
 
         //antispam
@@ -103,15 +102,22 @@ namespace SayingsBot
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) DEFAULT 1, silence TINYINT(1) DEFAULT 0, oauth VARCHAR(200), cooldown INT DEFAULT 20,loglevel TINYINT(1) DEFAULT 2,logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL,moneypervote INT DEFAULT 100);",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                
+                //SayingsBot Tables
+                new SQLiteCommand("CREATE TABLE misc (ID VARCHAR(50) NOT NULL, DATA VARCHAR(50) NOT NULL);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE userAliases (user VARCHAR(100) NOT NULL, alias VARCHAR(1024) NOT NULL);", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE userdata (user VARCHAR(25) NOT NULL, datatype INT NOT NULL, dataID INT, data VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
+
                 new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channels + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','"+logLevel+"','"+progressLogPATH+"');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('" + channels.Substring(1) + "','4','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
+                //SayingsBot Data
+                new SQLiteCommand("INSERT INTO misc (ID, DATA) VALUES ('CountGame', '0');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, dataType, data) VALUES ('ExampleUser', '0', 'This is ExampleUser\'s !whoisuser message!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, dataType, dataID, data) VALUES ('ExampleUser', '1', '1', 'This is an example quote from an example user!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, dataType, dataID, data) VALUES ('overallRandom', '5', '1', 'ExampleUser');", dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
@@ -453,6 +459,7 @@ namespace SayingsBot
             }
             catch { }
         }
+        [System.Obsolete("Unused, but I have fuuture plans...")]
         public bool checkSpam(string channel, string user, string message)
         {
             List<asUser> temp = new List<asUser>();List<intStr> temp2 = new List<intStr>();
@@ -537,7 +544,6 @@ namespace SayingsBot
             }
             return result;
         }
-
 
         public void checkCommand(string channel, string user, string message)
         {
@@ -873,29 +879,7 @@ namespace SayingsBot
                                 this.appendFile(progressLogPATH, "Classic command " + classicAdd + " added.");
                                 break;
                             case "!kill":
-                                Random r = new Random();
-                                Int32 Rand = r.Next(5);
-                                string text2send = null;
-                                switch (Rand)
-                                {
-                                    case 1:
-                                        text2send = " politley murders ";
-                                        break;
-                                    case 2:
-                                        text2send = " slightly mames ";
-                                        break;
-                                    case 3:
-                                        text2send = " slowly ravages ";
-                                        break;
-                                    case 4:
-                                        text2send = " quickly stabs ";
-                                        break;
-                                    default:
-                                        text2send = " politley murders ";
-                                        break;
-
-                                }
-                                sendMess(channel, User + text2send + str[1] + ".");
+                                sendMess(channel, User + " politley murders " + str[1] + ".");
                                 break;
                             case "!calluser":
                                 sendMess(channel, "CALLING " + str[1].ToUpper() + "! WOULD " + str[1].ToUpper() + " PLEASE REPORT TO THE CHAT!");
@@ -952,7 +936,6 @@ namespace SayingsBot
                                 sendMess(channel, messString);
                                 break;
                             case "!sqlquery":
-                                temp_createTable();
                                 break;
                             case "sayingsbot":
                                 sendMess(channel, "/me reporting, " + user + "!");
@@ -964,9 +947,9 @@ namespace SayingsBot
                                 sendMess(channel, "Gave user " + str[1] + " the alias " + str[2] + ".");
                                 break;
                             case "!sbgetuseraliases":
-                                if (getUserAliases(str[1]) != null)
+                                if (getUserAlias(str[1]) != null)
                                 {
-                                    sendMess(channel, "User " + str[1] + " has the aliases " + getUserAliases(str[1]) + ".");
+                                    sendMess(channel, "User " + str[1] + " has the aliases " + getUserAlias(str[1]) + ".");
                                 }
                                 else
                                 {
@@ -1537,12 +1520,6 @@ namespace SayingsBot
             return Convert.ToInt32(i);
         }
 
-        void temp_createTable()
-        {
-            new SQLiteCommand("CREATE TABLE userAliases (user VARCHAR(100) NOT NULL, alias VARCHAR(1024) NOT NULL);", dbConn).ExecuteNonQuery();
-        }
-
-        
         void setUserAlias(string user, string alias)
         {
             string tmp;
@@ -1568,19 +1545,6 @@ namespace SayingsBot
             setAliasCommand.Parameters.AddWithValue("@par2", alias);
             setAliasCommand.ExecuteNonQuery();
         }
-        /*
-        void addUserAlias(string user, string alias)
-        {
-            SQLiteCommand addUserAliasCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1", dbConn);
-            addUserAliasCommand.Parameters.AddWithValue("@par1", user);
-            SQLiteDataReader readAliases = addUserAliasCommand.ExecuteReader();
-            string aliases = readAliases.GetString(0);
-            aliases += alias + ":";
-            SQLiteCommand addUserAliasCommand2 = new SQLiteCommand("UPDATE userAliases SET alias=@par2 WHERE user=@par1; ", dbConn);
-            addUserAliasCommand2.Parameters.AddWithValue("@par1", user);
-            addUserAliasCommand2.Parameters.AddWithValue("@par2", alias);
-            addUserAliasCommand2.ExecuteNonQuery();
-        }*/
         string getUserFromAlias(string alias)
         {
             SQLiteCommand getUserFromAliasCommand = new SQLiteCommand("SELECT user FROM userAliases WHERE alias=@par1;", dbConn);
@@ -1595,7 +1559,7 @@ namespace SayingsBot
                 return null;
             }
         }
-        string getUserAliases(string user)
+        string getUserAlias(string user)
         {
             SQLiteCommand getUserAliasesCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1;", dbConn);
             getUserAliasesCommand.Parameters.AddWithValue("@par1", user);
@@ -1610,11 +1574,6 @@ namespace SayingsBot
             }
             
         }
-        [System.Obsolete("Unprogrammed - Unused", true)]
-        string[] getUserAliasesArray(string user)
-        {
-            return null;
-        }
 
         string getClassicWhoIs(string user)
         {
@@ -1626,7 +1585,7 @@ namespace SayingsBot
             }
             else
             {
-                return lines[line].Substring(user.Length, lines[line].Length - user.Length);
+                return lines[line].Substring(user.Length + 1, lines[line].Length - (user.Length + 1));
             }
         }
 
