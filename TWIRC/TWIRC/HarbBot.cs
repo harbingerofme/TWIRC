@@ -55,8 +55,8 @@ namespace TWIRC
         public List<intStr> votingList = new List<intStr>();
         public List<Bias> votinglist = new List<Bias>();
 
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null;
-        public double[] newBias = new double[7]; double maxBiasDiff;
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null/*, exp_allTimer = null*/;
+        public double[] newBias = new double[7]; double maxBiasDiff; //int expTime = 0;
 
         int moneyPerVote = 50;
 
@@ -275,11 +275,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!silence",3,1));
             hardList.Add(new hardCom("!rank", 0, 0,60));
-            if (antispam)
-            {
                 hardList.Add(new hardCom("!permit", 2, 1));
                 hardList.Add(new hardCom("!whitelist", 0, 0));
-            }
             hardList.Add(new hardCom("!rngppcommands", 0, 0, 120));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
