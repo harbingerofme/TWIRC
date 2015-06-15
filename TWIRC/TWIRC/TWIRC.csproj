@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="ButtonMasher.cs" />
     <Compile Include="Biases.cs" />
+    <Compile Include="Calculator.cs" />
     <Compile Include="frmBias.cs">
       <SubType>Form</SubType>
     </Compile>

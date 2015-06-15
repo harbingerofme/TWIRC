@@ -36,6 +36,9 @@ namespace TWIRC
         public int globalCooldown;
         public int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
 
+        //Calculator (used for !calculate and expressions for money stuff.
+        Calculator calculator =  new Calculator();
+
         //antispam
         public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
         public List<asUser> asUsers = new List<asUser>();
@@ -278,6 +281,7 @@ namespace TWIRC
                 hardList.Add(new hardCom("!permit", 2, 1));
                 hardList.Add(new hardCom("!whitelist", 0, 0));
             hardList.Add(new hardCom("!rngppcommands", 0, 0, 120));
+            hardList.Add(new hardCom("!calculate", 0, 1));
 
             //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias",4,7));

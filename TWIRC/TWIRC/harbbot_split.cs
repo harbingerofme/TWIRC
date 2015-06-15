@@ -460,7 +460,18 @@ namespace TWIRC
                                 }
                             }
                             break;
-
+                        case "!calculate":
+                            tempVar2 = str[1] + str[2];
+                            Calculation calc = calculator.Parse(tempVar2);
+                            if (calc.Valid)
+                            {
+                                sendMess(channel, "Answer: "+ calc.Answer+". Interpreted as: "+calc.Input+".");
+                            }
+                            else
+                            {
+                                sendMess(channel,"I'm sorry, either your calculation is wrong, or I am not programmed yet to be able to read it.");
+                            }
+                            break;
                         case "!addlua"://<keyword> <command> [default (if parameter is omitted)]
 
                             break;
