@@ -1383,7 +1383,7 @@ namespace SayingsBot
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
-                return cint(sqldr.GetString(0));
+                return sqldr.GetInt32(0);
             }
             else return 0;
         }
@@ -1457,10 +1457,11 @@ namespace SayingsBot
                     }
                 }
             }
-            catch
+            catch (Exception eee)
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
+                Console.Write(eee);
             }
         }
 
@@ -1712,7 +1713,7 @@ namespace SayingsBot
         {
             if (pf.isProfanity(message))
             {
-                sendMess(channels, "PROFANITY!");
+                //sendMess(channels, "PROFANITY!");
                 this.addPoints(name, -10, "Profanity");
                 SQLiteDataReader read = new SQLiteCommand("SELECT data FROM userdata WHERE user='swearJar' AND datatype = '6';", dbConn).ExecuteReader();
                 if (read.Read())

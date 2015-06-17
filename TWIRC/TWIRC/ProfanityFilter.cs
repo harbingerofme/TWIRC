@@ -16,7 +16,7 @@ namespace SayingsBot
         /// <summary>
         /// Convinent string containing the prfanity
         /// </summary>
-        string profanityA = "ass|bitch|ballocks|cock|fuck|hell|kanker|wanker";
+        string profanityA = "ass|bitch|ballocks|cock|fag|faggot|fuck|hell|kanker|wanker";
 #endregion
 
         /// <summary>
