@@ -51,6 +51,8 @@ namespace SayingsBot
 
         public Thread one;
 
+        ProfanityFilter pf = new ProfanityFilter();
+
         public HarbBot(Logger logLogger)
         {
             logger = logLogger;
@@ -115,9 +117,10 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
                 //SayingsBot Data
                 new SQLiteCommand("INSERT INTO misc (ID, DATA) VALUES ('CountGame', '0');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO userdata (user, dataType, data) VALUES ('ExampleUser', '0', 'This is ExampleUser\'s !whoisuser message!');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO userdata (user, dataType, dataID, data) VALUES ('ExampleUser', '1', '1', 'This is an example quote from an example user!');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO userdata (user, dataType, dataID, data) VALUES ('overallRandom', '5', '1', 'ExampleUser');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES ('ExampleUser', '0', 'This is ExampleUser\'s !whoisuser message!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('ExampleUser', '1', '1', 'This is an example quote from an example user!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '1', 'ExampleUser');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES (swearJar, 6, 0);", dbConn).ExecuteNonQuery();
 
                 SQLiteCommand cmd;
                 new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
@@ -248,6 +251,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("sayingsbot",0,0,20));
             hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
             hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
+            hardList.Add(new hardCom("!swearjar", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -905,10 +909,10 @@ namespace SayingsBot
                                 sendMess(channel, "Counting Game Reset");
                                 break;
                             case "!points":
-                                sendMess(channel, user + " you have " + getPoints(user) + " points.");
+                                sendMess(channel, user + " you have " + getPoints(user) + " points. (" + getAllTime(user) + ")");
                                 break;
                             case "!seepoints":
-                                sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points.");
+                                sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points. (" + getAllTime(user) + ")");
                                 break;
                             case "!setpoints":
                                 setPoints(str[1], cint(str[2]));
@@ -954,6 +958,15 @@ namespace SayingsBot
                                 else
                                 {
                                     sendMess(channel, "User " + str[1] + " has no aliases.");
+                                }
+                                break;
+                            case "!swearjar":
+                                SQLiteDataReader tmp;
+                                tmp = new SQLiteCommand("SELECT data FROM userdata WHERE user='swearJar' AND datatype='6';", dbConn).ExecuteReader();
+                                if (tmp.Read())
+                                {
+                                    int tmpI = cint(tmp.GetString(0));
+                                    sendMess(channel, "There is currently " +tmpI + " points in the swear jar.");
                                 }
                                 break;
                             case "!quotes":
@@ -1243,6 +1256,11 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');", dbConn).ExecuteNonQuery();
             }
         }
+        /// <summary>
+        /// Set the !whoisuser message of a user.
+        /// </summary>
+        /// <param name="user">The user to set the message for.</param>
+        /// <param name="message">The message to set to the user.</param>
         public void setWhoIsUser(string user, string message)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM userdata WHERE user='" + user + "' AND datatype='0';", dbConn).ExecuteReader();
@@ -1255,6 +1273,11 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES ('" + user + "','0','" + message + "');", dbConn).ExecuteNonQuery();
             }
         }
+        /// <summary>
+        /// Gets the user's current points.
+        /// </summary>
+        /// <param name="name">The user to get the points for.</param>
+        /// <returns>The user's current points.</returns>
         public int getPoints(string name)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
@@ -1270,6 +1293,12 @@ namespace SayingsBot
                 return 0;
             }
         }
+
+        /// <summary>
+        /// Manually sets the user's points to a specific amount.
+        /// </summary>
+        /// <param name="user">The user to set points for.</param>
+        /// <param name="amount">The amount to set.</param>
         public void setPoints(string user, int amount)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
@@ -1283,6 +1312,25 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
             }
         }
+
+        /// <summary>
+        /// Adds to the user's current points.
+        /// </summary>
+        /// <param name="name">The user to add points to.</param>
+        /// <param name="amount">The amount to add.</param>
+        /// <returns>Amount added.</returns>
+        public int addPoints(string name, int amount)
+        {
+            return addPoints(name, amount, null);
+        }
+
+        /// <summary>
+        /// Adds to the user's current points.
+        /// </summary>
+        /// <param name="name">The user to add points to.</param>
+        /// <param name="amount">The amount to add.</param>
+        /// <param name="why">The reason for adding.</param>
+        /// <returns>Amount added.</returns>
         public int addPoints(string name, int amount,string why)
         {
             int things;
@@ -1303,7 +1351,12 @@ namespace SayingsBot
                 return 0;
             }
         }
-
+        /// <summary>
+        /// Adds points to the user's all time amount.
+        /// </summary>
+        /// <param name="name">The user to preform the addition on.</param>
+        /// <param name="amount">The ammount to add.</param>
+        /// <returns>The amount added.</returns>
         public int addAllTime(string name, int amount)
         {
             int things;
@@ -1319,6 +1372,20 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','"+amount+"');", dbConn).ExecuteNonQuery();
                 return 0;
             }
+        }
+        /// <summary>
+        /// Gets the user's all-time points.
+        /// </summary>
+        /// <param name="name">The user to check for.</param>
+        /// <returns>The user's all-time points in an int.</returns>
+        public int getAllTime(string name)
+        {
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                return cint(sqldr.GetString(0));
+            }
+            else return 0;
         }
         public void storeMessage(string user, string message) {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
@@ -1369,7 +1436,7 @@ namespace SayingsBot
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             storeMessage(nick, message);
-            if (message.StartsWith("!")) { } else { addPoints(nick, 2, null); addAllTime(nick, 2); }
+            if (message.StartsWith("!")) { } else { addPoints(nick, 2); addAllTime(nick, 2); }
             try
             {
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
@@ -1384,6 +1451,7 @@ namespace SayingsBot
                     }
                     else
                     {
+                        this.checkProfanity(message, nick);
                         this.checkCommand(channel, nick, message);
                         this.checkAlias(channel, nick, message);
                     }
@@ -1395,12 +1463,13 @@ namespace SayingsBot
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
             }
         }
+
         public void ircChanActi(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
-            addPoints(nick, 2, null); addAllTime(nick, 2);
+            addPoints(nick, 2); addAllTime(nick, 2);
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
             if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
@@ -1506,20 +1575,34 @@ namespace SayingsBot
                 return false;
             }
         }
-
+        /// <summary>
+        /// Gets the system path of the EXE.
+        /// </summary>
+        /// <returns>A system path.</returns>
         static string sysPath()
         {
             return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         }
+        /// <summary>
+        /// Converts an int to a string.
+        /// </summary>
         string cstr(int i)
         {
             return Convert.ToString(i);
         }
+        /// <summary>
+        /// Converts a string to an int.
+        /// </summary>
         Int32 cint(string i)
         {
             return Convert.ToInt32(i);
         }
 
+        /// <summary>
+        /// Sets a user's alias.
+        /// </summary>
+        /// <param name="user">The user to set the alias for.</param>
+        /// <param name="alias">The alias to set.</param>
         void setUserAlias(string user, string alias)
         {
             string tmp;
@@ -1545,6 +1628,11 @@ namespace SayingsBot
             setAliasCommand.Parameters.AddWithValue("@par2", alias);
             setAliasCommand.ExecuteNonQuery();
         }
+        /// <summary>
+        /// Get a user from an alias
+        /// </summary>
+        /// <param name="alias">The alias to check for.</param>
+        /// <returns>The user, or null if it's not an alias.</returns>
         string getUserFromAlias(string alias)
         {
             SQLiteCommand getUserFromAliasCommand = new SQLiteCommand("SELECT user FROM userAliases WHERE alias=@par1;", dbConn);
@@ -1559,6 +1647,11 @@ namespace SayingsBot
                 return null;
             }
         }
+        /// <summary>
+        /// Get's the user's alias.
+        /// </summary>
+        /// <param name="user">User to check for.</param>
+        /// <returns>The alias, or null if there is none.</returns>
         string getUserAlias(string user)
         {
             SQLiteCommand getUserAliasesCommand = new SQLiteCommand("SELECT alias FROM userAliases WHERE user=@par1;", dbConn);
@@ -1574,7 +1667,11 @@ namespace SayingsBot
             }
             
         }
-
+        /// <summary>
+        /// Checks through the classic !whoisuser's. (April/May 2014)
+        /// </summary>
+        /// <param name="user">The user to check for.</param>
+        /// <returns>Classic !whoisuser message.</returns>
         string getClassicWhoIs(string user)
         {
             string[] lines = FileLines(sysPath() + "\\people.txt");
@@ -1589,6 +1686,12 @@ namespace SayingsBot
             }
         }
 
+        /// <summary>
+        /// The line in the txt file that contains the user
+        /// </summary>
+        /// <param name="user">The user to check for.</param>
+        /// <param name="lines">String[] of the text document.</param>
+        /// <returns>The line, or -1 is there is none for the user.</returns>
         int getClassicWhoIsLine(string user, string[] lines) {
             for (int I = 0; I < lines.Length; I++)
             {
@@ -1598,6 +1701,31 @@ namespace SayingsBot
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Checks for profanity, then subtracts points accordingly.
+        /// </summary>
+        /// <param name="message">The message to check for swears in,</param>
+        /// <param name="name">The user sending the message.</param>
+        private void checkProfanity(string message, string name)
+        {
+            if (pf.isProfanity(message))
+            {
+                sendMess(channels, "PROFANITY!");
+                this.addPoints(name, -10, "Profanity");
+                SQLiteDataReader read = new SQLiteCommand("SELECT data FROM userdata WHERE user='swearJar' AND datatype = '6';", dbConn).ExecuteReader();
+                if (read.Read())
+                {
+                    int currentJar = cint(read.GetString(0));
+                    currentJar += 10;
+                    new SQLiteCommand("UPDATE userdata SET data='"+currentJar+"' WHERE user='swearJar' AND datatype='6';", dbConn).ExecuteNonQuery();
+                }
+                else
+                {
+                    new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES ('swearJar', '6', '10');", dbConn).ExecuteNonQuery();
+                }
+            }
         }
     }
 
