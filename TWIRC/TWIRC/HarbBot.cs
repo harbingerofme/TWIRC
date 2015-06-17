@@ -252,6 +252,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
             hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
             hardList.Add(new hardCom("!swearjar", 0, 0));
+            hardList.Add(new hardCom("!alltimefix", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -555,6 +556,8 @@ namespace SayingsBot
             bool done = false; int auth = pullAuth(user);
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
+            user = user.ToLower();
+            message = message.ToLower();
             foreach (hardCom h in hardList)//hardcoded command
             {
                 if (h.hardMatch(user,message,auth))
@@ -576,7 +579,24 @@ namespace SayingsBot
                     }
                     switch (h.returnKeyword())
                     {
-                            case "!recon":
+                            case "!alltimefix":
+                            SQLiteDataReader reader = new SQLiteCommand("SELECT * FROM users", dbConn).ExecuteReader();
+            while (reader.Read())
+            {
+                string name = reader.GetString(0);
+                int points = reader.GetInt32(3);
+                int alltime = reader.GetInt32(4);
+
+                if (points > alltime)
+                {
+                    new SQLiteCommand("UPDATE users SET alltime='" + points + "' WHERE name='" + name + "';", dbConn);
+                   logger.logAppendLine("Updated " + name);
+                }
+                else
+                {
+                    logger.logAppendLine("No update for " + name);
+                }
+            }
                                 break;
                             case "!sbaddcom":
                                 fail = false;
