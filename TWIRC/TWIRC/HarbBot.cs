@@ -253,6 +253,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
             hardList.Add(new hardCom("!swearjar", 0, 0));
             hardList.Add(new hardCom("!alltimefix", 0, 0));
+            hardList.Add(new hardCom("!userdbfix", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -598,6 +599,9 @@ namespace SayingsBot
                 }
             }
                                 break;
+                            case "!userdbfix":
+                                    new SQLiteCommand("DELETE from users WHERE name = UPPER(SUBSTR(name,1,1))||SUBSTR(name,2) and name NOT LIKE '1%'and name NOT LIKE '2%'and name NOT LIKE '3%'and name NOT LIKE '4%'and name NOT LIKE '5%'and name NOT LIKE '6%'and name NOT LIKE '7%'and name NOT LIKE '8%'and name NOT LIKE '9%'and name NOT LIKE '0%';", dbConn).ExecuteNonQuery();
+                                break;
                             case "!sbaddcom":
                                 fail = false;
 
@@ -932,7 +936,7 @@ namespace SayingsBot
                                 sendMess(channel, user + " you have " + getPoints(user) + " points. (" + getAllTime(user) + ")");
                                 break;
                             case "!seepoints":
-                                sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points. (" + getAllTime(user) + ")");
+                                sendMess(channel, str[1] + " has " + getPoints(str[1]) + " points. (" + getAllTime(str[1]) + ")");
                                 break;
                             case "!setpoints":
                                 setPoints(str[1], cint(str[2]));
@@ -1454,7 +1458,9 @@ namespace SayingsBot
             bool a = false;
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
+            nick = nick.ToLower();
             string message = e.Data.Message;
+            message = message.ToLower();
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { addPoints(nick, 2); addAllTime(nick, 2); }
             try
@@ -1489,7 +1495,9 @@ namespace SayingsBot
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
+            nick = nick.ToLower();
             string message = e.Data.Message;
+            message = message.ToLower();
             addPoints(nick, 2); addAllTime(nick, 2);
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
