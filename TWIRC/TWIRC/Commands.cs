@@ -59,6 +59,10 @@ namespace SayingsBot
                         switch (h.returnKeyword())
                         {
                             #region Select case...
+                            case "!dudesmagiccommand":
+                                new SQLiteCommand("INSERT INTO userdata VALUES ('swear', 7, 0, 'ass');", dbConn).ExecuteNonQuery();
+                                sendMess("Done.");
+                                break;
                             case "!sbaddcom":
                                 fail = false;
 
@@ -547,6 +551,22 @@ namespace SayingsBot
                                 break;
                             case "!logbotisdown":
                                 sendMess("RIP RNGLogBot.");
+                                break;
+                            case "!addswear":
+                                SQLiteDataReader profanityReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user='swear' AND datatype='7' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                                if (profanityReader.Read())
+                                {
+                                    int ubound = profanityReader.GetInt32(0);
+                                    SQLiteCommand swearCom = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('swear', '7', @par1, @par2);", dbConn);
+                                    swearCom.Parameters.AddWithValue("@par1", (ubound+1));
+                                    swearCom.Parameters.AddWithValue("@par2", str[1]);
+                                    swearCom.ExecuteNonQuery();
+                                    hb.loadProfanity();
+                                    sendMess("Added to profanity list. Reloading list...");
+                                } else {
+                                    sendMess("Something went wrong with adding the profanity...");
+                                }
+
                                 break;
                             #endregion
                         }

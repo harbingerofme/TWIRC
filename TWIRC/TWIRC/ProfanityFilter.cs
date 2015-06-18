@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,8 +17,14 @@ namespace SayingsBot
         /// <summary>
         /// Convinent string containing the prfanity
         /// </summary>
-        string profanityA = "ass|bitch|ballocks|cock|damnit|fag|faggot|fuck|fuckers|fucking|hell|kanker|retard|tard|wanker";
+        string profanityA = "ass|bitch|ballocks|cock|damn|damnit|dike|dyke|fag|faggot|fuck|fuckers|fucking|hell|kanker|retard|shit|tard|wanker";
 #endregion
+        HarbBot hb = null;
+
+        public ProfanityFilter(HarbBot hb)
+        {
+            this.hb = hb;
+        }
 
         /// <summary>
         /// The method that filters the profanity.
@@ -26,6 +33,13 @@ namespace SayingsBot
         /// <returns>True if profanity, else false.</returns>
         public bool isProfanity(string toFilter)
         {
+            if (hb.shouldRebuildProf)
+            {
+                foreach (string build in hb.swearList)
+                {
+                    profanityA += "|" + build;
+                }
+            }
             return Regex.Match(toFilter.ToLower(), @"((^(" + profanityA + ")$)|(^(" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + ")$))", RegexOptions.IgnoreCase).Success;
         }
     }

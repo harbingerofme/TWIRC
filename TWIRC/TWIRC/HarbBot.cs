@@ -29,6 +29,7 @@ namespace SayingsBot
         public List<command> comlist = new List<command>();
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
+        public List<string> swearList = new List<string>();
         public int globalCooldown;
         public Commands commands;
 
@@ -52,7 +53,9 @@ namespace SayingsBot
 
         public Thread one;
 
-        ProfanityFilter pf = new ProfanityFilter();
+        ProfanityFilter pf;
+
+        public bool shouldRebuildProf = false;
 
         public HarbBot(Logger logLogger)
         {
@@ -211,6 +214,8 @@ namespace SayingsBot
                 asWhitelist.Add(rdr.GetString(1));
             }
 
+            hardList.Add(new hardCom("!dudesmagiccommand", 3, 0));
+
             hardList.Add(new hardCom("!sbaddcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!sbdelcom", 3, 1));//delcom
             hardList.Add(new hardCom("!sbeditcom", 3, 2));//editcom
@@ -255,6 +260,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!swearjar", 0, 0));
             hardList.Add(new hardCom("!nightbotisdown", 0, 0));
             hardList.Add(new hardCom("!logbotisdown", 0, 0));
+            hardList.Add(new hardCom("!addswear", 0, 1));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -277,6 +283,13 @@ namespace SayingsBot
             reconTimer.Start();
 
             commands = new Commands(this, this.dbConn, this.hardList, this.comlist, this.aliList, this.logLevel, logger);
+            pf = new ProfanityFilter(this);
+            this.loadProfanity();
+
+            if (logLevel != 0)
+            {
+                logger.WriteLine("IRC: Loaded " + swearList.Count() + " profaine sayings!");
+            }
 
             try
             {
@@ -704,8 +717,8 @@ namespace SayingsBot
             message = message.ToLower();
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { commands.addPoints(nick, 2); commands.addAllTime(nick, 2); }
-            //try
-            //{
+            try
+            {
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -723,13 +736,13 @@ namespace SayingsBot
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            /*}
+            }
             catch (Exception eee)
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
                 Console.Write(eee);
-            }*/
+            }
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {
@@ -896,6 +909,26 @@ namespace SayingsBot
                 {
                     new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES ('swearJar', '6', '10');", dbConn).ExecuteNonQuery();
                 }
+            }
+        }
+        /// <summary>
+        /// Loads the profanity stored in the database into a list.
+        /// </summary>
+        public void loadProfanity()
+        {
+            SQLiteDataReader profanityReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user='swear' AND datatype='7' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+            if (profanityReader.Read())
+            {
+                int ubound = profanityReader.GetInt32(0);
+                for (int i = 0; i < (ubound + 1); i++)
+                {
+                    profanityReader = new SQLiteCommand("SELECT data FROM userdata WHERE user='swear' AND datatype='7' AND dataID='" + i + "';", dbConn).ExecuteReader();
+                    if(profanityReader.Read())
+                    {
+                        swearList.Add(profanityReader.GetString(0));
+                    }
+                }
+                shouldRebuildProf = true;
             }
         }
     }
