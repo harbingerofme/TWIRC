@@ -67,6 +67,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="Commands.cs" />
     <Compile Include="HarbBot.cs" />
     <Compile Include="IRCsubs.cs" />
     <Compile Include="Logger.cs" />
