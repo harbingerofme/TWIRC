@@ -17,6 +17,8 @@ namespace TWIRC
         public Calculation Parse(string formula)
         {
             formula = formula.ToLower().Replace("sqrt", "√");
+            formula = formula.Replace("pi", "π");
+            formula = formula.Replace("arctan", "Ⓣ");
             formula = formula.Replace(" ", "");
 
             List<string> stack = new List<string>();
@@ -28,7 +30,11 @@ namespace TWIRC
             {
                 if (Regex.Match(c.ToString(), @"[0-9\.\,]").Success) { numberString += c; end += c; }
                 else if (numberString != "" && double.TryParse(numberString, out a)) { stack.Add(numberString); numberString = ""; }
-                if (Regex.Match(c.ToString(), @"[-+*/^√]").Success)
+                if (c == 'π')
+                {
+                    stack.Add(Math.PI.ToString());
+                }
+                if (Regex.Match(c.ToString(), @"[-+*/^√Ⓣ]").Success)
                 {
                     end += c;
                     if (opstack.Count != 0)
@@ -96,7 +102,8 @@ namespace TWIRC
                             case "*": finalStack[finalStack.Count - 2] = finalStack[finalStack.Count - 1] * finalStack[finalStack.Count - 2]; finalStack.RemoveAt(finalStack.Count - 1); break;
                             case "^": finalStack[finalStack.Count - 2] = Math.Pow(finalStack[finalStack.Count - 2], finalStack[finalStack.Count - 1]); finalStack.RemoveAt(finalStack.Count - 1); break;
                             case "√": finalStack[finalStack.Count - 1] = Math.Sqrt(finalStack[finalStack.Count - 1]); break;
-                        }
+                            case "Ⓣ": finalStack[finalStack.Count - 1] = Math.Atan(finalStack[finalStack.Count - 1]); break;  
+                    }
                     //Console.Write(s + ":");
                 }
                 if (finalStack.Count != 1)
@@ -126,6 +133,7 @@ namespace TWIRC
                 case '*': return 3; break;
                 case '^': return 4; break;
                 case '√': return 5; break;
+                case 'Ⓣ': return 5; break;
                 default: return 0; break;//Wha?
             }
         }
@@ -140,6 +148,7 @@ namespace TWIRC
                 case '*': return -1; break;
                 case '^': return 1; break;
                 case '√': return 1; break; //correct?
+                case 'Ⓣ': return 1; break;
                 default: return -1; break;//Wha?
             }
         }

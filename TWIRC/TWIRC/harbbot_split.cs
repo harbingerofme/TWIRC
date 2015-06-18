@@ -393,9 +393,9 @@ namespace TWIRC
 
                             break;
                         case "!silence":
-                            if (Regex.Match(str[1], "(on)|(off)|1|0|(true)|(false)|(yes)|(no)", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
-                            if (Regex.Match(str[1], "(on)|1|(true)|(yes)", RegexOptions.IgnoreCase).Success) { silence = true; new SQLiteCommand("UPDATE settings SET silence=1;", dbConn).ExecuteNonQuery(); }
-                            if (Regex.Match(str[1], "(off)|0|(false)|(no)", RegexOptions.IgnoreCase).Success) { silence = false; new SQLiteCommand("UPDATE settings SET silence=0;", dbConn).ExecuteNonQuery(); }
+                            if (Regex.Match(str[1], "^((on)|(off)|1|0|(true)|(false)|(yes)|(no))$", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
+                            if (Regex.Match(str[1], "^((on)|1|(true)|(yes))$", RegexOptions.IgnoreCase).Success) { silence = true; setSetting("silence", "bit", "1"); }
+                            if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { silence = false; setSetting("silence", "bit", "0"); }
 
                             break;
 
@@ -523,14 +523,13 @@ namespace TWIRC
                             if (!fail)
                             {
                                 biasControl.setDefaultBias(tobedefaultbias);
-                                string sqlStr = "UPDATE biassettings SET def='";
+                                string sqlStr="";
                                 for (int a = 0; a < 7; a++)
                                 {
                                     sqlStr += tobedefaultbias[a].ToString();
                                     if (a != 6) { sqlStr += ":"; }
                                 }
-                                sqlStr += "';";
-                                new SQLiteCommand(sqlStr, dbConn).ExecuteNonQuery();
+                                setSetting("defaultbias", "string", sqlStr);
                                 sendMess(channel, User + "-> Default bias set! I really hope you know what you are doing.");
                             }
                             else
@@ -543,7 +542,7 @@ namespace TWIRC
                             if (Regex.Match(str[1], @"^([01]\.[0-9]{1,9})|(1)").Success)
                             {
                                 maxBiasDiff = double.Parse(str[1]);
-                                new SQLiteCommand("UPDATE biassettings SET maxdiff='" + maxBiasDiff + "';", dbConn).ExecuteNonQuery();
+                                setSetting("biasmaxdiff", "double", "" + maxBiasDiff);
                                 sendMess(channel, User + "-> Max bias difference updated, this will take effect after the next vote.");
                             }
                             else
