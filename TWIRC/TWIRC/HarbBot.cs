@@ -253,8 +253,8 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
             hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
             hardList.Add(new hardCom("!swearjar", 0, 0));
-            hardList.Add(new hardCom("!alltimefix", 0, 0));
-            hardList.Add(new hardCom("!userdbfix", 0, 0));
+            hardList.Add(new hardCom("!nightbotisdown", 0, 0));
+            hardList.Add(new hardCom("!logbotisdown", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -276,7 +276,7 @@ namespace SayingsBot
             reconTimer.Elapsed += reconTimer_Elapsed;
             reconTimer.Start();
 
-            commands = new Commands(dbConn);
+            commands = new Commands(this, this.dbConn, this.hardList, this.comlist, this.aliList, this.logLevel, logger);
 
             try
             {
@@ -447,7 +447,7 @@ namespace SayingsBot
         public void checkCommand(string channel, string user, string message)
         {
             //Yup
-            commands.checkCommand(channel, user, message, this.hardList, this.comlist, this.aliList, this.logLevel, logger);
+            commands.checkCommand(channel, user, message);
         }
         public void checkAlias(string channel, string user, string message)
         {
@@ -704,8 +704,8 @@ namespace SayingsBot
             message = message.ToLower();
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { commands.addPoints(nick, 2); commands.addAllTime(nick, 2); }
-            try
-            {
+            //try
+            //{
                 if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
@@ -723,13 +723,13 @@ namespace SayingsBot
                         this.checkAlias(channel, nick, message);
                     }
                 }
-            }
+            /*}
             catch (Exception eee)
             {
                 logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
                 Console.Write(eee);
-            }
+            }*/
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {

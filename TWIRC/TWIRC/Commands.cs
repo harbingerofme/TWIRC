@@ -10,15 +10,26 @@ namespace SayingsBot
 {
     public class Commands
     {
-        HarbBot hb = Program.HarbBot;
+        HarbBot hb;
         SQLiteConnection dbConn;
+        List<hardCom> hardList;
+        List<command> comlist;
+        List<ali> aliList;
+        Logger logger;
+        Int32 logLevel;
 
-        public Commands(SQLiteConnection dbConnn)
+        public Commands(HarbBot hb, SQLiteConnection dbConn, List<hardCom> hardList, List<command> comlist, List<ali> aliList, int logLevel, Logger logger)
         {
-            this.dbConn = dbConnn;
+            this.hb = hb;
+            this.dbConn = dbConn;
+            this.hardList = hardList;
+            this.comlist = comlist;
+            this.aliList = aliList;
+            this.logLevel = logLevel;
+            this.logger = logger;
         }
 
-        public void checkCommand(string channel, string user, string message, List<hardCom> hardList, List<command> comlist, List<ali> aliList, int logLevel, Logger logger)
+        public void checkCommand(string channel, string user, string message)
         {
             string[] str, tempVar3;
             bool done = false; int auth = hb.pullAuth(user);
@@ -47,6 +58,7 @@ namespace SayingsBot
                         }
                         switch (h.returnKeyword())
                         {
+                            #region Select case...
                             case "!sbaddcom":
                                 fail = false;
 
@@ -530,6 +542,13 @@ namespace SayingsBot
                                     sendMess("Incorrect use of !quotes.");
                                     break;
                                 }
+                            case "!nightbotisdown":
+                                sendMess("I'm not logbot! I can't handle this!");
+                                break;
+                            case "!logbotisdown":
+                                sendMess("RIP RNGLogBot.");
+                                break;
+                            #endregion
                         }
                         if (!done)
                         {
