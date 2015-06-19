@@ -214,7 +214,7 @@ namespace SayingsBot
                 asWhitelist.Add(rdr.GetString(1));
             }
 
-            hardList.Add(new hardCom("!dudesmagiccommand", 3, 0));
+            hardList.Add(new hardCom("!dudesmagiccommand", 5, 0));
 
             hardList.Add(new hardCom("!sbaddcom", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
             hardList.Add(new hardCom("!sbdelcom", 3, 1));//delcom
@@ -462,33 +462,6 @@ namespace SayingsBot
             //Yup
             commands.checkCommand(channel, user, message);
         }
-        public void checkAlias(string channel, string user, string message)
-        {
-            string[] str, tempVar3;
-            bool done = false; int auth = pullAuth(user);
-            bool fail; int tempVar1 = 0; string tempVar2 = "";
-            string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
-            if (!done)
-            {
-                foreach (ali c in aliList)//flexible commands
-                {
-                    if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
-                    {
-                        if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
-                        str = c.getResponse(message, user);
-                        c.addCount(1);
-                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
-                        cmd.Parameters.AddWithValue("@par1", c.getKey());
-                        cmd.ExecuteNonQuery();
-                        //if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
-                        foreach (string b in str)
-                        {
-                            sendMess(channel, b);
-                        }
-                    }
-                }
-            }
-        }
         public void Close()
         {
             try
@@ -733,7 +706,6 @@ namespace SayingsBot
                     {
                         this.checkProfanity(message, nick);
                         this.checkCommand(channel, nick, message);
-                        this.checkAlias(channel, nick, message);
                     }
                 }
             }

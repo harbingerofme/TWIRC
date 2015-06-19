@@ -570,23 +570,44 @@ namespace SayingsBot
                                 break;
                             #endregion
                         }
-                        if (!done)
+                    }
+                    if (!done)
+                    {
+                        foreach (command c in comlist)//flexible commands
                         {
-                            foreach (command c in comlist)//flexible commands
+                            if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                             {
-                                if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
+                                done = true;
+                                if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
+                                str = c.getResponse(message, user);
+                                c.addCount(1);
+                                SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
+                                cmd.Parameters.AddWithValue("@par1", c.getKey());
+                                cmd.ExecuteNonQuery();
+                                if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
+                                foreach (string b in str)
                                 {
-                                    if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
-                                    str = c.getResponse(message, user);
-                                    c.addCount(1);
-                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", c.getKey());
-                                    cmd.ExecuteNonQuery();
-                                    if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
-                                    foreach (string b in str)
-                                    {
-                                        sendMess(b);
-                                    }
+                                    sendMess(b);
+                                }
+                            }
+                        }
+                    }
+                    if (!done)
+                    {
+                        foreach (ali c in aliList)//flexible commands
+                        {
+                            if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
+                            {
+                                if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
+                                str = c.getResponse(message, user);
+                                c.addCount(1);
+                                SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
+                                cmd.Parameters.AddWithValue("@par1", c.getKey());
+                                cmd.ExecuteNonQuery();
+                                //if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
+                                foreach (string b in str)
+                                {
+                                    sendMess(b);
                                 }
                             }
                         }
