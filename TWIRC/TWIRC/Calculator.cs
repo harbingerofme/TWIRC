@@ -19,6 +19,11 @@ namespace TWIRC
             formula = formula.ToLower().Replace("sqrt", "√");
             formula = formula.Replace("pi", "π");
             formula = formula.Replace("arctan", "Ⓣ");
+            formula = formula.Replace("arcsin", "Ⓢ");
+            formula = formula.Replace("arccos", "Ⓒ");
+            formula = formula.Replace("cos", "Ｃ");
+            formula = formula.Replace("tan", "Ｔ");
+            formula = formula.Replace("sin", "Ｓ");
             formula = formula.Replace(" ", "");
 
             List<string> stack = new List<string>();
@@ -32,9 +37,9 @@ namespace TWIRC
                 else if (numberString != "" && double.TryParse(numberString, out a)) { stack.Add(numberString); numberString = ""; }
                 if (c == 'π')
                 {
-                    stack.Add(Math.PI.ToString());
+                    stack.Add(Math.PI.ToString()); end += c;
                 }
-                if (Regex.Match(c.ToString(), @"[-+*/^√Ⓣ]").Success)
+                if (Regex.Match(c.ToString(), @"[-+*/^√ⓉⓈⒸＣＳＴ]").Success)
                 {
                     end += c;
                     if (opstack.Count != 0)
@@ -102,7 +107,12 @@ namespace TWIRC
                             case "*": finalStack[finalStack.Count - 2] = finalStack[finalStack.Count - 1] * finalStack[finalStack.Count - 2]; finalStack.RemoveAt(finalStack.Count - 1); break;
                             case "^": finalStack[finalStack.Count - 2] = Math.Pow(finalStack[finalStack.Count - 2], finalStack[finalStack.Count - 1]); finalStack.RemoveAt(finalStack.Count - 1); break;
                             case "√": finalStack[finalStack.Count - 1] = Math.Sqrt(finalStack[finalStack.Count - 1]); break;
-                            case "Ⓣ": finalStack[finalStack.Count - 1] = Math.Atan(finalStack[finalStack.Count - 1]); break;  
+                            case "Ⓣ": finalStack[finalStack.Count - 1] = Math.Atan(finalStack[finalStack.Count - 1]); break;
+                            case "Ⓢ": finalStack[finalStack.Count - 1] = Math.Asin(finalStack[finalStack.Count - 1]); break;
+                            case "Ⓒ": finalStack[finalStack.Count - 1] = Math.Acos(finalStack[finalStack.Count - 1]); break;
+                            case "Ｔ": finalStack[finalStack.Count - 1] = Math.Tan(finalStack[finalStack.Count - 1]); break;
+                            case "Ｓ": finalStack[finalStack.Count - 1] = Math.Sin(finalStack[finalStack.Count - 1]); break;
+                            case "Ｃ": finalStack[finalStack.Count - 1] = Math.Cos(finalStack[finalStack.Count - 1]); break;
                     }
                     //Console.Write(s + ":");
                 }
@@ -123,7 +133,7 @@ namespace TWIRC
 
             return new Calculation(!error, answer, end);
         }
-        private int getPrecedence(char i)
+        private int getPrecedence(char i)//Yes I know the breaks are redundant, they are only still here to piss people off.
         {
             switch (i)
             {
@@ -134,11 +144,16 @@ namespace TWIRC
                 case '^': return 4; break;
                 case '√': return 5; break;
                 case 'Ⓣ': return 5; break;
+                case 'Ⓢ': return 5; break;
+                case 'Ⓒ': return 5; break;
+                case 'Ｔ': return 5; break;
+                case 'Ｓ': return 5; break;
+                case 'Ｃ': return 5; break;
                 default: return 0; break;//Wha?
             }
         }
 
-        private int getAssociative(char i)
+        private int getAssociative(char i)//Screw everyone.
         {
             switch (i)
             {
@@ -149,9 +164,14 @@ namespace TWIRC
                 case '^': return 1; break;
                 case '√': return 1; break; //correct?
                 case 'Ⓣ': return 1; break;
+                case 'Ⓢ': return 1; break;
+                case 'Ⓒ': return 1;break;
+                case 'Ｔ': return 1; break;
+                case 'Ｓ': return 1; break;
+                case 'Ｃ': return 1; break;
                 default: return -1; break;//Wha?
             }
-        }
+        }//YOLO
     }
 
     class Calculation
