@@ -263,7 +263,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!giveball", 0, 0));
             hardList.Add(new hardCom("!addbias", 3, 8));
             hardList.Add(new hardCom("!delbias", 3, 1));
-
+            hardList.Add(new hardCom("!expall", 0, 1));
+            hardList.Add(new hardCom("!repel", 3, 1));
 
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -318,6 +319,10 @@ namespace TWIRC
             reconTimer.AutoReset = true;
             reconTimer.Elapsed += reconTimer_Elapsed;
             reconTimer.Start();
+
+            exp_allTimer = new System.Timers.Timer(1);
+            exp_allTimer.AutoReset = false;
+            exp_allTimer.Enabled = false;
         }
 
         public void loadAliases()

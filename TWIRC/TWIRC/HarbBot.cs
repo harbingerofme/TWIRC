@@ -58,8 +58,9 @@ namespace TWIRC
         public List<intStr> votingList = new List<intStr>();
         public List<Bias> votinglist = new List<Bias>();
 
-        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300; public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null/*, exp_allTimer = null*/;
-        public double[] newBias = new double[7]; double maxBiasDiff; //int expTime = 0;
+        public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
+        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null;
+        public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0;
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "8X";
 
@@ -73,6 +74,9 @@ namespace TWIRC
             logger = logLogger;
             biasControl = buttMuncher;
             luaServer = luaSurfer;
+
+            luaServer.send_to_all("EXPOFF", "");
+            luaServer.send_to_all("REPELOFF", "");
 
             newBias = new double[7] { 10,10,10,10,9,8,6.5 };
 
@@ -226,6 +230,24 @@ namespace TWIRC
                 }
             }
         }
+
+        void exp_allTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (expTime > 0)
+            {
+                exp_allTimer.Dispose();
+                exp_allTimer = new System.Timers.Timer(expTime);
+                exp_allTimer.AutoReset = false;
+                exp_allTimer.Elapsed += exp_allTimer_Elapsed;
+                exp_allTimer.Start();
+            }
+            else
+            {
+                exp_allTimer.Enabled = false;
+                luaServer.send_to_all("EXPOFF", "");
+            }
+        }
+
 
         void reconTimer_Elapsed(object sender, ElapsedEventArgs e)
         {

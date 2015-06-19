@@ -35,7 +35,7 @@ namespace TWIRC
         ///   |__                                   (if it's zack, and he does that god awful wix1,wix2,wix3,wix4 emote, clear the chat)
         /// filter(string) --                       replaces the beginning of a message with it's alias if it has one. (If somehow a train of aliases is generated, they will be replacing each other in timestamp order)
         /// checkCommand(string1,string2,string3) -- Check if it's a hardcoded command
-        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !addbias !delbias !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background
+        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !addbias !delbias !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background !expall
         ///   |                                      if no matches were found
         ///   |                                      check if it's a softcommand, if so:
         ///   |__                                    update it's count and lasttime (for cooldown purposes), and send response
@@ -864,6 +864,41 @@ namespace TWIRC
                                 }
                             }
                                 break;
+
+                        case "!expall": 
+                            int.TryParse(str[1], out tempVar1); 
+                            if (tempVar1 > 0) 
+                            {
+                                tempVar2 = expAllFunc.Replace("X", tempVar1 + "");
+                                int expAllMoney = (int)calculator.Parse(tempVar2).Answer; 
+                                if (expAllMoney <= getPoints(user)) 
+                                {
+                                    addPoints(user, -1 * expAllMoney, "EXP ALL (" + str[1] + ")");
+                                    if (exp_allTimer.Enabled)
+                                    {
+                                        expTime += tempVar1;
+                                    }else
+                                    {
+                                        luaServer.send_to_all("EXPON", "");
+                                        exp_allTimer.Dispose();
+                                        exp_allTimer = new System.Timers.Timer(tempVar1);
+                                        exp_allTimer.AutoReset = false;
+                                        exp_allTimer.Elapsed += exp_allTimer_Elapsed;
+                                        exp_allTimer.Start();
+                                    }
+                                    sendMess(channel, "EXPALL turned on for :" + tempVar1 + " seconds. " + expAllMoney + " has been deducted from your account, " + User);
+                                }
+                                else
+                                {
+                                    sendMess(channel, "You don't have enough money, you'd need; " + expAllMoney);
+                                }
+                            };
+                            break;
+                        case "!repel":
+                            if (Regex.Match(str[1], "^((on)|1|(true)|(yes))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELON", ""); sendMess(channel, "Repel ON"); }
+                            if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELOFF", ""); sendMess(channel, "Repel OFF"); }
+                                break;
+                        case "!reloadSettings": loadSettings(); break;
                             }
                     break;
 
