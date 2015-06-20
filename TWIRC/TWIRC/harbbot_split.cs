@@ -881,7 +881,7 @@ namespace TWIRC
                                     {
                                         luaServer.send_to_all("EXPON", "");
                                         exp_allTimer.Dispose();
-                                        exp_allTimer = new System.Timers.Timer(tempVar1);
+                                        exp_allTimer = new System.Timers.Timer(tempVar1*1000);
                                         exp_allTimer.AutoReset = false;
                                         exp_allTimer.Elapsed += exp_allTimer_Elapsed;
                                         exp_allTimer.Start();
@@ -899,6 +899,7 @@ namespace TWIRC
                             if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELOFF", ""); sendMess(channel, "Repel OFF"); }
                                 break;
                         case "!reloadSettings": loadSettings(); break;
+                        case "!changesetting": if (setSetting(str[1], str[2], str[3])) { sendMess(channel, "Setting changed! Reloading settings.."); loadSettings(); } else { sendMess(channel, "Setting not found!"); }; break;
                             }
                     break;
 

@@ -236,7 +236,7 @@ namespace TWIRC
             if (expTime > 0)
             {
                 exp_allTimer.Dispose();
-                exp_allTimer = new System.Timers.Timer(expTime);
+                exp_allTimer = new System.Timers.Timer(expTime*1000);
                 exp_allTimer.AutoReset = false;
                 exp_allTimer.Elapsed += exp_allTimer_Elapsed;
                 exp_allTimer.Start();

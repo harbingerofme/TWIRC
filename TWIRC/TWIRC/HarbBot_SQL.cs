@@ -265,6 +265,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!delbias", 3, 1));
             hardList.Add(new hardCom("!expall", 0, 1));
             hardList.Add(new hardCom("!repel", 3, 1));
+            hardList.Add(new hardCom("!reloadsettings", 3, 0));
+            hardList.Add(new hardCom("!changesetting", 5, 2));
 
             /*
             //sayingsbot overrides, we might add these eventually            
