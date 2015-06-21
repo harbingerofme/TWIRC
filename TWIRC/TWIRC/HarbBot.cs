@@ -60,9 +60,9 @@ namespace TWIRC
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
         public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null;
-        public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0;
+        public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
 
-        int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "8X";
+        int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
         public bool backgrounds_enabled = false;
 
@@ -235,6 +235,7 @@ namespace TWIRC
         {
             if (expTime > 0)
             {
+                expTime = 0;
                 exp_allTimer.Dispose();
                 exp_allTimer = new System.Timers.Timer(expTime*1000);
                 exp_allTimer.AutoReset = false;
@@ -245,6 +246,7 @@ namespace TWIRC
             {
                 exp_allTimer.Enabled = false;
                 luaServer.send_to_all("EXPOFF", "");
+                sendMess(channel, "EXP ALL timer has elapsed.");
             }
         }
 

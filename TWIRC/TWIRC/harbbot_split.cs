@@ -877,9 +877,12 @@ namespace TWIRC
                                     if (exp_allTimer.Enabled)
                                     {
                                         expTime += tempVar1;
+                                        expTimeEnd += tempVar1;
+                                        luaServer.send_to_all("EXPON", "" + (expTimeEnd - getNow()));
                                     }else
                                     {
-                                        luaServer.send_to_all("EXPON", "");
+                                        luaServer.send_to_all("EXPON", ""+tempVar1);
+                                        expTimeEnd = getNow() + tempVar1;
                                         exp_allTimer.Dispose();
                                         exp_allTimer = new System.Timers.Timer(tempVar1*1000);
                                         exp_allTimer.AutoReset = false;
