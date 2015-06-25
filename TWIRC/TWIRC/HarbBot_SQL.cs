@@ -391,7 +391,7 @@ namespace TWIRC
 
         public bool delBias(string keyword)
         {
-            SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keywords LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keyword LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
             if (sql.Read())
             {
                 string numbers = sql.GetString(1);
