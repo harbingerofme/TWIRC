@@ -64,7 +64,7 @@ namespace TWIRC
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
-        public bool backgrounds_enabled = false;
+        public bool backgrounds_enabled = true;
 
         public Thread one;
 
@@ -184,7 +184,7 @@ namespace TWIRC
                 {
                     voteStatus = 1;
                     voteTimer2.Start();
-                    sendMess(channel, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                    sendMess(channel, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokedollars)");
                 }
                 if (sender == voteTimer2)
                 {

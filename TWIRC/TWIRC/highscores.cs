@@ -20,7 +20,7 @@ namespace TWIRC
         public List<intStr> data = new List<intStr>();
         System.Timers.Timer timer;
         double res;
-        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
+        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokeDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
         int defaultWidth, defaultHeight;
         Font labelFont;
         HarbBot hb;

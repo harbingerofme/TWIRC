@@ -633,11 +633,11 @@ namespace TWIRC
                             }
                             else if (tempVar1 == 1 || tempVar1 == -1)
                             {
-                                tempVar2 = tempVar1 + " PokéDollar";
+                                tempVar2 = tempVar1 + " PokeDollar";
                             }
                             else
                             {
-                                tempVar2 = tempVar1 + " PokéDollars";
+                                tempVar2 = tempVar1 + " PokeDollars";
                             }
                             tempVar1 = getAllTime(user);
                             sendMess(channel, User + ", your balance is " + tempVar2 + ". (" + tempVar1 + ")");
@@ -650,7 +650,7 @@ namespace TWIRC
                             }
                             break;
                         case "!check":
-                            sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + " pokédollars. (" + getAllTime(str[1]) + ")");
+                            sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + " PokeDollars. (" + getAllTime(str[1]) + ")");
                             break;
 
                         case "!addlog":
@@ -669,7 +669,7 @@ namespace TWIRC
                                 if (voteStatus == -1)
                                 {
                                     voteStatus = 1;
-                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your PokeDollars)");
                                     voteTimer2.Start();
                                 }
                                 else
@@ -767,7 +767,7 @@ namespace TWIRC
                                 {
                                     addPoints(user, int.Parse(str[1]) * -2, "Money to game");
                                     luaServer.send_to_all("ADDMONEY", str[1]);
-                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokéDollar for ?birja.");
+                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for ?birja.");
                                     givemoneysucces = true;
                                 }
                                 else
@@ -835,12 +835,12 @@ namespace TWIRC
                                                 if (!succeeded)
                                                 {
 
-                                                    sendMess(channel, "Something went wrong, no PokéDollars deducted.");
+                                                    sendMess(channel, "Something went wrong, no PokeDollars deducted.");
                                                 }
                                                 else
                                                 {
                                                     addPoints(user, -500, "background");
-                                                    sendMess(channel, User + " changed the background of the stream for 500 PokéDollars!");
+                                                    sendMess(channel, User + " changed the background of the stream for 500 PokeDollars!");
                                                 }
                                             }
                                             else
