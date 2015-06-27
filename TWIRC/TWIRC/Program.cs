@@ -16,6 +16,7 @@ namespace SayingsBot
         public static Logger RNGLogger;
         public static RNGWindow mainWindow;
         public static HarbBot HarbBot;
+        public static NetComm.Host Server;
         //static DBHandler RNGDB;
         
 
@@ -23,7 +24,7 @@ namespace SayingsBot
         [STAThread] static void Main()
         {
 
-
+            Server = new NetComm.Host(8523);
 
             RNGLogger = new Logger();
             RNGLogger.addLog("Main()", 0, "Logger object created");
@@ -32,7 +33,7 @@ namespace SayingsBot
 #endif
 
 #if !OFFLINE
-            HarbBot = new HarbBot(RNGLogger);
+            HarbBot = new HarbBot(RNGLogger, Server);
 #endif
 
             //RNGDB = new DBHandler("rngppbot.sqlite", RNGLogger);

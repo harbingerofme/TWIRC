@@ -1,0 +1,9 @@
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Debug\Sayingsbot Remote.exe
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Debug\Sayingsbot Remote.pdb
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Debug\NetComm.dll
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot Remote.csprojResolveAssemblyReference.cache
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot_Remote.frmMain.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot_Remote.Properties.Resources.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot Remote.csproj.GenerateResource.Cache
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot Remote.exe
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Debug\Sayingsbot Remote.pdb

@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
-
 namespace SayingsBot
 {
     public class HarbBot
@@ -56,9 +55,11 @@ namespace SayingsBot
         ProfanityFilter pf;
 
         public bool shouldRebuildProf = false;
+        NetComm.Host Server;
 
-        public HarbBot(Logger logLogger)
+        public HarbBot(Logger logLogger, NetComm.Host netCommServer)
         {
+            Server = netCommServer;
             logger = logLogger;
             irc.Encoding = System.Text.Encoding.UTF8;//twitch's encoding
             irc.SendDelay = 1500;
@@ -81,13 +82,13 @@ namespace SayingsBot
             //LoadCommands
             if (logLevel != 0)
             {
-                logger.WriteLine("IRC: Booting up, shouldn't take long!");
+                writeLogger("IRC: Booting up, shouldn't take long!");
             }
             if (!File.Exists("db.sqlite"))
             {
                 if (logLevel != 0)
                 {
-                    logger.WriteLine("IRC: First time setup detected, making database");
+                    writeLogger("IRC: First time setup detected, making database");
                 }
                 bot_name = "sayingsbot";
                 channels = "#rngplayspokemon";
@@ -183,7 +184,7 @@ namespace SayingsBot
             }
             if (logLevel != 0)
             {
-                logger.WriteLine("IRC: Loaded " + comlist.Count() + " commands!");
+                writeLogger("IRC: Loaded " + comlist.Count() + " commands!");
             }
 
             rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
@@ -195,7 +196,7 @@ namespace SayingsBot
             }
             if (logLevel != 0)
             {
-                logger.WriteLine("IRC: Loaded " + aliList.Count() + " aliases!");
+                writeLogger("IRC: Loaded " + aliList.Count() + " aliases!");
             }
 
             rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
@@ -288,7 +289,7 @@ namespace SayingsBot
 
             if (logLevel != 0)
             {
-                logger.WriteLine("IRC: Loaded " + swearList.Count() + " profaine sayings!");
+                writeLogger("IRC: Loaded " + swearList.Count() + " profaine sayings!");
             }
 
             try
@@ -296,6 +297,31 @@ namespace SayingsBot
                 irc.Connect("irc.twitch.tv", 6667);
             }
             catch { }
+
+            Server.StartConnection();
+            Server.onConnection += new NetComm.Host.onConnectionEventHandler(Server_onConnection);
+            Server.lostConnection += new NetComm.Host.lostConnectionEventHandler(Server_lostConnection);
+            Server.DataReceived += new NetComm.Host.DataReceivedEventHandler(Server_DataReceived);
+        }
+        void Server_DataReceived(string ID, byte[] Data)
+        {
+            string rcvdData = ASCIIEncoding.ASCII.GetString(Data);
+            string recived = (ID + ": " + rcvdData);
+            writeLogger("Sayingsbot Remote: " + recived); //Updates the log when a new message arrived, converting the Data bytes to a string
+            if (rcvdData.StartsWith("CHAT:"))
+            {
+                rcvdData = rcvdData.Remove(0, 5);
+                this.say(rcvdData);
+            }
+
+        }
+        void Server_lostConnection(string id)
+        {
+            
+        }
+        void Server_onConnection(string id)
+        {
+            
         }
         /// <summary>
         /// The time that randomly changes SayingsBot's Colour
@@ -356,7 +382,7 @@ namespace SayingsBot
         {
             if (!irc.IsConnected)
             {
-                logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                writeLogger("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
                 doReconnect();
             }
 
@@ -475,7 +501,7 @@ namespace SayingsBot
         {
             if (logLevel > 0)
             {
-                logger.WriteLine("IRC: ->" + channel + ": " + message);
+                writeLogger("IRC: ->" + channel + ": " + message);
             }
             if (!silence)
             {
@@ -555,12 +581,12 @@ namespace SayingsBot
         public void doDisconnect()
         {
 
-            logger.Write("IRC Disconnecting");
+            writeLogger("IRC Disconnecting");
             reconTimer.Stop();
             colourTimer.Stop();
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... already disconnected.");
+                writeLogger("... already disconnected.");
                 return;
             }
 
@@ -570,12 +596,12 @@ namespace SayingsBot
             }
             catch (Exception ex)
             {
-                logger.WriteLine("... IRC DISCONNECT FAILED: " + ex.Message);
+                writeLogger("... IRC DISCONNECT FAILED: " + ex.Message);
             }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... disconnected.");
+                writeLogger("... disconnected.");
                 return;
             }
 
@@ -584,26 +610,26 @@ namespace SayingsBot
         {
 
 
-            logger.Write("IRC Connecting ");
+            writeLogger("IRC Connecting ");
             reconTimer.Start();
             colourTimer.Start();
 
             if (irc.IsConnected)
             {
-                logger.WriteLine("...  already connected.");
+                writeLogger("...  already connected.");
                 return;
             }
 
             try { irc.Connect("irc.twitch.tv", 6667); }
-            catch (Exception ex) { logger.WriteLine("IRC CONNECT FAILED: " + ex.Message); }
+            catch (Exception ex) { writeLogger("IRC CONNECT FAILED: " + ex.Message); }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: ");
+                writeLogger("... IRC seems to have failed to connect :( ;~; D: ");
             }
             else
             {
-                logger.WriteLine("... Connected! Timers resuming...");
+                writeLogger("... Connected! Timers resuming...");
                 reconTimer.Start();
 
             }
@@ -619,7 +645,7 @@ namespace SayingsBot
         }
         public void ircConnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnecting()");
+            writeLogger("ircConnecting()");
             try
             {
                 one.Abort();
@@ -630,24 +656,24 @@ namespace SayingsBot
             one.Name = "SAYINGSBOT IRC CONNECTION";
             one.IsBackground = true;
 
-            logger.WriteLine("Thread \"one\" recreated...");
+            writeLogger("Thread \"one\" recreated...");
 
         }
         public void ircConnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnected()");
-            logger.WriteLine("IRC: Joining Twitch chat");
+            writeLogger("ircConnected()");
+            writeLogger("IRC: Joining Twitch chat");
             irc.Login(bot_name, "SAYINGSBOT", 0, bot_name, oauth);
             one.Start();
         }
         public void ircDisconnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnecting()");
+            writeLogger("ircDisconnecting()");
 
         }
         public void ircDisconnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnected()");
+            writeLogger("ircDisconnected()");
             try
             {
                 one.Abort();
@@ -666,18 +692,18 @@ namespace SayingsBot
         {
             if (logLevel == 3)
             {
-                logger.WriteLine("IRC RAW:<- " + e.Data.RawMessage);
+                writeLogger("IRC RAW:<- " + e.Data.RawMessage);
             }
         }
         public void ircNotice(object sender, IrcEventArgs e)
         {
             if (logLevel < 3 && logLevel > 0)
             {
-                logger.WriteLine("IRC NOTICE: " + e.Data.Message);
+                writeLogger("IRC NOTICE: " + e.Data.Message);
             }
             if (e.Data.Message == "Error logging in")
             {
-                logger.WriteLine("IRC: SEVERE: Unsuccesful login, please check the username and oauth.");
+                writeLogger("IRC: SEVERE: Unsuccesful login, please check the username and oauth.");
             }
         }
         public void ircChanMess(object sender, IrcEventArgs e)
@@ -692,7 +718,7 @@ namespace SayingsBot
             if (message.StartsWith("!")) { } else { commands.addPoints(nick, 2); commands.addAllTime(nick, 2); }
             try
             {
-                if (logLevel == 2) { logger.WriteLine(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
+                if (logLevel == 2) { writeLogger(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
                 message = message.TrimEnd();
                 if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
                 if (!a)
@@ -711,7 +737,7 @@ namespace SayingsBot
             }
             catch (Exception eee)
             {
-                logger.WriteLine("IRC: Crisis adverted: <"+nick+"> "+message);
+                writeLogger("IRC: Crisis adverted: <" + nick + "> " + message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
                 Console.Write(eee);
             }
@@ -726,7 +752,7 @@ namespace SayingsBot
             commands.addPoints(nick, 2); commands.addAllTime(nick, 2);
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
+            if (logLevel == 2) { writeLogger("<-" + channel + ": " + nick + " " + message); }
         }
         public void ircQuery(object sender, IrcEventArgs e)
         {
@@ -902,6 +928,19 @@ namespace SayingsBot
                 }
                 shouldRebuildProf = true;
             }
+        }
+        public void serverMessage(string send)
+        {
+            if (Server.Listening)
+            {
+                Server.Brodcast(ASCIIEncoding.ASCII.GetBytes(send));
+            }
+            
+        }
+        public void writeLogger(string write)
+        {
+            logger.WriteLine(write);
+            serverMessage(write);
         }
     }
 

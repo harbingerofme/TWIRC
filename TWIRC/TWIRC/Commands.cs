@@ -43,7 +43,7 @@ namespace SayingsBot
                     {
                         done = true;
                         str = h.returnPars(message);
-                        if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + "> " + message); }
+                        if (logLevel == 1) { hb.writeLogger("IRC:<- <" + user + "> " + message); }
 
                         if (h.returnKeyword() != "!sbgetuseraliases")
                         {
@@ -578,7 +578,7 @@ namespace SayingsBot
                             if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                             {
                                 done = true;
-                                if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
+                                if (logLevel == 1) { hb.writeLogger("IRC:<- <" + user + ">" + message); }
                                 str = c.getResponse(message, user);
                                 c.addCount(1);
                                 SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
@@ -598,7 +598,7 @@ namespace SayingsBot
                         {
                             if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                             {
-                                if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
+                                if (logLevel == 1) { hb.writeLogger("IRC:<- <" + user + ">" + message); }
                                 str = c.getResponse(message, user);
                                 c.addCount(1);
                                 SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
