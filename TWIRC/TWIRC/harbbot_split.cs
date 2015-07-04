@@ -903,7 +903,75 @@ namespace TWIRC
                                 break;
                         case "!reloadSettings": loadSettings(); break;
                         case "!changesetting": if (setSetting(str[1], str[2], str[3])) { sendMess(channel, "Setting changed! Reloading settings.."); loadSettings(); } else { sendMess(channel, "Setting not found!"); }; break;
+                        case "!poll": switch (str[1].ToLower())
+                            {
+                                case "open": 
+                                    if (!poll_active)
+                                    {
+                                        if (str[2] != "")
+                                        {
+                                            tempVar3 = str[2].Split('|');
+                                            poll_name = tempVar3[0];
+                                            tempVar2 = User + " opened a poll for: '" + poll_name + "', with the options:";
+                                            poll = new string[tempVar3.Length - 1];
+                                            for (int i = 1; i < tempVar3.Length; i++)
+                                            {
+                                                poll[i - 1] = tempVar3[i];
+                                                tempVar2 += " (" + i + ") '" + tempVar3[i] + "'.";
+                                            }
+                                            tempVar2 += " Use !vote X to cast your vote!";
+                                            pollOpen();
+                                            poll_active = true;
+                                            sendMess(channel, tempVar2);
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel, "The poll for '" + poll_name + "' has been re-opened! Type !vote X to vote!");
+                                            poll_active = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, User + ", there's already a poll going for '" + poll_name + "', try closing that one first.");
+                                    }
+
+                                    break;
+                                case "close": poll_active = false; sendMess(channel, "Poll has been closed.");sendMess(channel,"Results were: "+pollResults()); break;
+                                case "results": if (poll_active) { sendMess(channel, "Current results are: " + pollResults()); } else { sendMess(channel, "Results were: " + pollResults()); } break;
                             }
+                            break;
+                        case "!vote": 
+                            if (poll_active)
+                            {
+                                if(int.TryParse(str[1], out tempVar1))
+                                {
+                                    if(tempVar1 <= poll.Length)
+                                    {
+                                        if (pollVote(user, tempVar1))
+                                        {
+                                            sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel, User + ", you've already cast your vote for this option.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, "Not a valid option");
+                                    }
+                                }
+                                else
+                                {
+                                    sendMess(channel, "Not a valid option");
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "No poll active.");
+                            }
+                            break;
+                    }
                     break;
 
 
@@ -954,10 +1022,33 @@ namespace TWIRC
 
         }
 
+        public string pollResults()
+        {
+            int[] tally = new int[poll.Length];
+            foreach(intStr s in poll_votes)
+            {
+                tally[s.i()-1]++;
+            }
+            string str = "";
+            for(int i=0; i<poll.Length;i++)
+            {
+                str += " '" + poll[i] + "' received " + tally[i];
+                if(tally[i]!=1)
+                {
+                    str += " votes.";
+                }
+                else
+                {
+                    str += " vote.";
+                }
+            }
+            return str;
+        }
+
         public void addVote(string user, Bias b, int amount)
         {
-            var money = 0;
-            var x = -1;
+            var money = 0;//amount to be deducted/added
+            var x = -1;//index of person who voted
             for(int a = 0; a<votingList.Count; a++)
             {
                 if (votingList[a].Str == user.ToLower())
@@ -966,20 +1057,20 @@ namespace TWIRC
                     break;
                 }
             }
-            if(x>-1)
+            if(x>-1)//this user already voted
             {
-                money -= (votingList[x].Int - 1) * moneyPerVote;
-                votingList.RemoveAt(x);
-                votinglist.RemoveAt(x);
+                money += (votingList[x].Int - 1) * moneyPerVote;//add (their amount of votes minus one (to compensate for the free vote)) * the money_per_vote
+                votingList.RemoveAt(x);//remove the vote
+                votinglist.RemoveAt(x);//remove it from the otherlist as well
             }
             if(amount!=0){
-                money += ((1 - amount) * moneyPerVote);
-                votingList.Add(new intStr(user, amount));
-                votinglist.Add(b);
-                if(x == -1)
+                money += ((1 - amount) * moneyPerVote);//money is (1 vote - amount of votes) * moneyPerVote; so 1 vote =0, 2 votes -50, etc.
+                votingList.Add(new intStr(user, amount));//add these
+                votinglist.Add(b);//do it
+                if(x == -1)//if it was a new vote
                 {
-                    money += moneyPerVote;
-                    addAllTime(user, moneyPerVote);
+                    money += moneyPerVote;//give the user his money
+                    addAllTime(user, moneyPerVote);//add some money
                 }
             }
             addPoints(user, money, "vote");

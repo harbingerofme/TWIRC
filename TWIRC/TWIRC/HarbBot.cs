@@ -59,8 +59,9 @@ namespace TWIRC
         public List<Bias> votinglist = new List<Bias>();
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
-        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null;
+        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
         public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
+        public string poll_name = ""; public string[] poll = null; public bool poll_active; public List<intStr> poll_votes = new List<intStr>();
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
@@ -141,6 +142,20 @@ namespace TWIRC
                 biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 
                 irc.RfcPrivmsg(channel, ".mods");
+            }
+        }
+
+        void pollTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (poll_active)
+            {
+                string str = "There's currently a poll running for: ' " + poll_name+"'. The options are:";
+                for (int i = 1; i < poll.Length; i++)
+                {
+                    str += " (" + i + ") '" + poll[i] + "'.";
+                }
+                str += " Use !vote X to cast your vote!";
+                say(str);
             }
         }
 

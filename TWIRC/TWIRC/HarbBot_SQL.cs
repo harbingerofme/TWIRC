@@ -28,6 +28,7 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE IF NOT EXISTS 'poll' ('name' TEXT(25), 'choice' INTEGER(1));", dbConn).ExecuteNonQuery();
 
                 //new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','" + logLevel + "','" + progressLogPATH + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')", dbConn).ExecuteNonQuery();
@@ -62,6 +63,7 @@ namespace TWIRC
                 insertIntoSettings("commandsurl", "string", @"https://dl.dropboxusercontent.com/u/273135957/commands.html");
                 insertIntoSettings("commandspath", "string", @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html");
                 insertIntoSettings("biaspointspread", "string", "10:10:10:10:9:8:6.5");
+                insertIntoSettings("poll", "string", "");
 
                 loadSettings();
 
@@ -113,7 +115,13 @@ namespace TWIRC
                     case "commandsurl": commandsURL = sqldr.GetString(2); break;
                     case "commandspath": commandsPATH = sqldr.GetString(2); break;
                     case "biaspointspread": tempDoubleArray = new List<double>(); tempStringArray = sqldr.GetString(2).Split(':'); foreach (string s in tempStringArray) { tempDoubleArray.Add(double.Parse(s)); } tempDoubleArray.CopyTo(newBias,0); break;
+                    case "poll": if (sqldr.GetString(2) != "") { tempStringArray = sqldr.GetString(2).Split('|'); poll_name = tempStringArray[0]; poll = new string[tempStringArray.Length - 1]; for (int i = 1; i < tempStringArray.Length; i++) { poll[i - 1] = tempStringArray[i]; } } break;
                 }
+            }
+            sqldr = new SQLiteCommand("SELECT name,choice FROM poll;", dbConn).ExecuteReader();
+            while (sqldr.Read())
+            {
+                poll_votes.Add(new intStr(sqldr.GetInt32(1), sqldr.GetString(0)));
             }
         }
 
@@ -267,6 +275,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!repel", 3, 1));
             hardList.Add(new hardCom("!reloadsettings", 3, 0));
             hardList.Add(new hardCom("!changesetting", 5, 2));
+            hardList.Add(new hardCom("!poll", 3, 1));
+            hardList.Add(new hardCom("!vote", 0, 1,3));
 
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -325,6 +335,11 @@ namespace TWIRC
             exp_allTimer = new System.Timers.Timer(1);
             exp_allTimer.AutoReset = false;
             exp_allTimer.Enabled = false;
+
+            pollTimer = new System.Timers.Timer(1000 * 60 * 60 * 2);
+            pollTimer.AutoReset = true;
+            pollTimer.Elapsed += pollTimer_Elapsed;
+            pollTimer.Start();
         }
 
         public void loadAliases()
@@ -539,6 +554,47 @@ namespace TWIRC
                 }
             }
             return 0;
+        }
+
+        public void pollOpen()
+        {
+            string temp = poll_name + "|";
+            foreach (string s in poll)
+            {
+                temp += s + "|";
+            }
+            temp = temp.Substring(0, temp.Length - 1);//remove last delimiter
+            setSetting("poll", "string", temp, true);
+
+            new SQLiteCommand("DELETE FROM poll",dbConn);
+            poll_votes.Clear();
+        }
+
+        public bool pollVote(string user, int value)
+        {
+            user = user.ToLower();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT choice FROM poll WHERE name='" + user + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                int a = sqldr.GetInt32(0);
+                if (sqldr.GetInt32(0) == value)
+                {
+                    return false;
+                }
+                else
+                {
+                    new SQLiteCommand("UPDATE poll SET choice = "+value+" WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                    poll_votes.Remove(new intStr(sqldr.GetInt32(0), user));
+                    poll_votes.Add(new intStr(value, user));
+                    return true;
+                }
+            }
+            else
+            {
+                new SQLiteCommand("INSERT INTO poll (name,choice) VALUES ('" + user + "','" + value + "');", dbConn).ExecuteNonQuery();
+                poll_votes.Add(new intStr(value, user));
+                return true;
+            }
         }
 
         public bool isNew(string user)
