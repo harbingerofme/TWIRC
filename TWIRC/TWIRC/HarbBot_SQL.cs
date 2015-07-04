@@ -566,7 +566,7 @@ namespace TWIRC
             temp = temp.Substring(0, temp.Length - 1);//remove last delimiter
             setSetting("poll", "string", temp, true);
 
-            new SQLiteCommand("DELETE FROM poll",dbConn);
+            new SQLiteCommand("DELETE FROM poll WHERE 1=1;", dbConn).ExecuteNonQuery();
             poll_votes.Clear();
         }
 
@@ -577,14 +577,15 @@ namespace TWIRC
             if (sqldr.Read())
             {
                 int a = sqldr.GetInt32(0);
-                if (sqldr.GetInt32(0) == value)
+                if (a == value)
                 {
                     return false;
                 }
                 else
                 {
-                    new SQLiteCommand("UPDATE poll SET choice = "+value+" WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
-                    poll_votes.Remove(new intStr(sqldr.GetInt32(0), user));
+                    int index = poll_votes.FindIndex(delegate(intStr InSt) { return InSt.Str == user; });
+                    poll_votes.RemoveAt(index);
+                    new SQLiteCommand("UPDATE poll SET choice = '"+value+"' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
                     poll_votes.Add(new intStr(value, user));
                     return true;
                 }
