@@ -943,13 +943,14 @@ namespace TWIRC
                         case "!vote": 
                             if (poll_active)
                             {
-                                if(int.TryParse(str[1], out tempVar1))
+                                if(int.TryParse(str[1], out tempVar1) && str[1] != "")
                                 {
-                                    if(tempVar1 <= poll.Length)
+                                    if(tempVar1 <= poll.Length&&tempVar1>0)
                                     {
                                         if (pollVote(user, tempVar1))
                                         {
                                             sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
+                                            h.cdlist.Add(new intStr(user, 5));
                                         }
                                         else
                                         {
@@ -963,7 +964,13 @@ namespace TWIRC
                                 }
                                 else
                                 {
-                                    sendMess(channel, "Not a valid option");
+                                    tempVar2 = "There's currently a poll running for: ' " + poll_name + "'. The options are:";
+                                    for (int i = 0; i < poll.Length; i++)
+                                    {
+                                        tempVar2 += " (" + (i+1) + ") '" + poll[i] + "'.";
+                                    }
+                                    tempVar2 += " Use !vote X to cast your vote!";
+                                    sendMess(channel,tempVar2);
                                 }
                             }
                             else

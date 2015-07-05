@@ -276,7 +276,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!reloadsettings", 3, 0));
             hardList.Add(new hardCom("!changesetting", 5, 2));
             hardList.Add(new hardCom("!poll", 3, 1));
-            hardList.Add(new hardCom("!vote", 0, 1,3));
+            hardList.Add(new hardCom("!vote", 0, 0));
 
             /*
             //sayingsbot overrides, we might add these eventually            

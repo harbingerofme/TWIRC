@@ -150,9 +150,9 @@ namespace TWIRC
             if (poll_active)
             {
                 string str = "There's currently a poll running for: ' " + poll_name+"'. The options are:";
-                for (int i = 1; i < poll.Length; i++)
+                for (int i = 0; i < poll.Length; i++)
                 {
-                    str += " (" + i + ") '" + poll[i] + "'.";
+                    str += " (" + (i+1) + ") '" + poll[i] + "'.";
                 }
                 str += " Use !vote X to cast your vote!";
                 say(str);
