@@ -23,8 +23,11 @@ namespace SayingsBot
 
         [STAThread] static void Main()
         {
-
+#if DEBUG
+            Server = new NetComm.Host(8524);
+#else
             Server = new NetComm.Host(8523);
+#endif
 
             RNGLogger = new Logger();
             RNGLogger.addLog("Main()", 0, "Logger object created");

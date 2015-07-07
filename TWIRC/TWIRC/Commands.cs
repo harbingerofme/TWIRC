@@ -415,7 +415,7 @@ namespace SayingsBot
                                 string function = str[1];
                                 string quser = str[2];
                                 string fParam = str[3];
-                                Boolean success = false;
+                                bool success = false;
                                 SQLiteDataReader quotesReader;
                                 SQLiteCommand quotesCommand;
                                 quser = quser.ToLower();

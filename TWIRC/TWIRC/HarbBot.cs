@@ -223,7 +223,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbaddalias", 3, 2));//addalias
             hardList.Add(new hardCom("!sbdelalias", 3, 1));//delete alias
             
-            hardList.Add(new hardCom("!sbset", 2, 2));//elevate another user
+            hardList.Add(new hardCom("!sbset", 3, 2));//elevate another user
             hardList.Add(new hardCom("!sbeditcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
