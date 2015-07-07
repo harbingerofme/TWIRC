@@ -38,13 +38,12 @@
             // txtMain
             // 
             this.txtMain.Cursor = System.Windows.Forms.Cursors.Default;
-            this.txtMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtMain.Location = new System.Drawing.Point(0, 0);
             this.txtMain.Multiline = true;
             this.txtMain.Name = "txtMain";
             this.txtMain.ReadOnly = true;
             this.txtMain.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtMain.Size = new System.Drawing.Size(415, 410);
+            this.txtMain.Size = new System.Drawing.Size(415, 370);
             this.txtMain.TabIndex = 0;
             // 
             // txtBoxSend
@@ -79,6 +78,8 @@
             this.Name = "frmMain";
             this.Text = "Sayingsbot Remote";
             this.Load += new System.EventHandler(this.frmMain_Load);
+            this.SizeChanged += this.frmMain_SizeChanged;
+            this.FormClosed += frmMain_FormClosed;
             this.ResumeLayout(false);
             this.PerformLayout();
 

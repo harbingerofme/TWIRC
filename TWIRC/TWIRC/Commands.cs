@@ -174,7 +174,7 @@ namespace SayingsBot
                                 if (!Regex.Match(str[1].ToLower(), @"^[a-z0-9_]+$").Success) { sendMess("I'm sorry, " + User + ". That's not a valid name."); }
                                 else
                                 {
-                                    if (Regex.Match(str[2], "^([0-" + auth + "])|(-1)$").Success)//look at that, checking if it's a number, and checking if the user is allowed to do so in one moment.
+                                    if (int.TryParse(str[2], out tempVar1) && tempVar1 < auth && hb.pullAuth(str[1]) < auth && tempVar1 > -2 && tempVar1 < 6)
                                     {
                                         hb.setAuth(str[1].ToLower(), int.Parse(str[2]));
                                         sendMess(user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".");

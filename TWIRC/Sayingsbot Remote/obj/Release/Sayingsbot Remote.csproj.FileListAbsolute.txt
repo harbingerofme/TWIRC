@@ -1,0 +1,8 @@
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Release\Sayingsbot Remote.exe
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Release\Sayingsbot Remote.pdb
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\bin\Release\NetComm.dll
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot_Remote.frmMain.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot_Remote.Properties.Resources.resources
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.csproj.GenerateResource.Cache
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.exe
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.pdb

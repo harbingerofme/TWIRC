@@ -23,6 +23,7 @@ namespace Sayingsbot_Remote
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            this.Text = "Sayingsbot Remote " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
             log.setLogControl(txtMain);
             log.addLog("Success, i guess");
             client = new NetComm.Client();
@@ -32,6 +33,17 @@ namespace Sayingsbot_Remote
             client.Disconnected += new NetComm.Client.DisconnectedEventHandler(client_Disconnected);
             client.DataReceived += new NetComm.Client.DataReceivedEventHandler(client_DataReceived);
 
+        }
+
+        void frmMain_SizeChanged(object sender, System.EventArgs e)
+        {
+            txtMain.Width = this.Width - 16;
+            txtMain.Height = this.Height - 78;
+        }
+
+        void frmMain_FormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)
+        {
+            Application.Exit();
         }
 
         void connectClient()
