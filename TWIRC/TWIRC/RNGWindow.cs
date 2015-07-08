@@ -68,6 +68,8 @@ namespace SayingsBot
                 HB.Close();
             }
             catch { }
+
+            Application.Exit(); //The process is still running after closing the window(on WinXP), so maybe this will help?
             
         }
 
