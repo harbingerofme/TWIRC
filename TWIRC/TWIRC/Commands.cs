@@ -16,7 +16,7 @@ namespace SayingsBot
         List<command> comlist;
         List<ali> aliList;
         Logger logger;
-        Int32 logLevel;
+        int logLevel;
 
         public Commands(HarbBot hb, SQLiteConnection dbConn, List<hardCom> hardList, List<command> comlist, List<ali> aliList, int logLevel, Logger logger)
         {
@@ -234,6 +234,8 @@ namespace SayingsBot
                                 string text = "";
                                 switch (auth)
                                 {
+                                    case -2: text = "in the negitive for points"; break;
+                                    case -1: text = "a bot"; break;
                                     case 0: text = "an user"; break;
                                     case 1: text = "a regular"; break;
                                     case 2: text = "trusted"; break;
@@ -271,35 +273,20 @@ namespace SayingsBot
                                 sendMess(getClassicWhoIs(str[1]));
                                 break;
                             case "!whoisuser":
-                                SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                                userCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
-                                SQLiteDataReader userReader = userCommand.ExecuteReader();
-                                if (userReader.Read()) { sendMess(userReader.GetString(0)); } else { sendMess(str[1] + " does not have a !whoisuser."); }
+                                sendMess(getWhoIsUser(str[1]));
                                 break;
                             case "!editme":
                                 string newText = str[1];
                                 setWhoIsUser(user, newText);
-                                SQLiteCommand usersCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                                usersCommand.Parameters.AddWithValue("@par1", str[1].ToLower());
-                                SQLiteDataReader usersReader = usersCommand.ExecuteReader();
-                                if (usersReader.Read())
-                                {
-                                    sendMess(User + " your !whoisuser now reads as: " + usersReader.GetString(0));
-                                    hb.appendFile(hb.progressLogPATH, User + " your !whoisuser now reads as: " + usersReader.GetString(0));
-                                }
+                                sendMess(User + " your !whoisuser now reads as: " + getWhoIsUser(User));
+                                hb.appendFile(hb.progressLogPATH, User + " your !whoisuser now reads as: " + getWhoIsUser(User));
                                 break;
                             case "!edituser":
                                 string newUser = str[1];
                                 string newTextEU = str[2];
                                 setWhoIsUser(newUser, newTextEU);
-                                SQLiteCommand userssCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
-                                userssCommand.Parameters.AddWithValue("@par1", newUser.ToLower());
-                                SQLiteDataReader userssReader = userssCommand.ExecuteReader();
-                                if (userssReader.Read())
-                                {
-                                    sendMess(newUser + "'s !whoisuser now reads as: " + userssReader.GetString(0));
-                                    hb.appendFile(hb.progressLogPATH, User + " your !whoisuser now reads as: " + userssReader.GetString(0));
-                                }
+                                sendMess(newUser + "'s !whoisuser now reads as: " + getWhoIsUser(newUser));
+                                hb.appendFile(hb.progressLogPATH, newUser + "'s !whoisuser now reads as: " + getWhoIsUser(newUser));
                                 break;
                             case "!classic":
                                 //TODO: Need to SQL this
@@ -865,6 +852,16 @@ namespace SayingsBot
             {
                 new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES ('" + user + "','0','" + message + "');", dbConn).ExecuteNonQuery();
             }
+        }
+        /// <summary>
+        /// Get's the !whoisuser response.
+        /// </summary>
+        public string getWhoIsUser(string user)
+        {
+            SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
+            userCommand.Parameters.AddWithValue("@par1", user.ToLower());
+            SQLiteDataReader userReader = userCommand.ExecuteReader();
+            if (userReader.Read()) { return (userReader.GetString(0)); } else { return (user[1] + " does not have a !whoisuser."); }
         }
         #endregion
     }

@@ -15,6 +15,7 @@ namespace SayingsBot
 {
     public class HarbBot
     {
+        #region vars and stuff
         //really important stuff
         public static IrcClient irc = new IrcClient();
         public bool running = true;
@@ -56,7 +57,7 @@ namespace SayingsBot
 
         public bool shouldRebuildProf = false;
         NetComm.Host Server;
-
+        #endregion
         public HarbBot(Logger logLogger, NetComm.Host netCommServer)
         {
             Server = netCommServer;
@@ -228,7 +229,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!sbsilence",3,1));
-            hardList.Add(new hardCom("!sbrank", 0, 0,60));
+            hardList.Add(new hardCom("!sbrank", -5, 0,60));
             hardList.Add(new hardCom("!commands", 0, 0, 120));
           
             hardList.Add(new hardCom("!whoisuser",0,1,20));
@@ -303,6 +304,7 @@ namespace SayingsBot
             Server.lostConnection += new NetComm.Host.lostConnectionEventHandler(Server_lostConnection);
             Server.DataReceived += new NetComm.Host.DataReceivedEventHandler(Server_DataReceived);
         }
+        #region Sayingsbot Remote NetComm Server
         void Server_DataReceived(string ID, byte[] Data)
         {
             string rcvdData = ASCIIEncoding.ASCII.GetString(Data);
@@ -323,6 +325,21 @@ namespace SayingsBot
         {
             
         }
+        public void serverMessage(string send)
+        {
+            if (Server.Listening)
+            {
+                Server.Brodcast(ASCIIEncoding.ASCII.GetBytes(send));
+            }
+
+        }
+        public void writeLogger(string write)
+        {
+            logger.WriteLine(write);
+            serverMessage(write);
+        }
+        #endregion
+        #region Timers
         /// <summary>
         /// The time that randomly changes SayingsBot's Colour
         /// </summary>
@@ -387,6 +404,7 @@ namespace SayingsBot
             }
 
         }
+        #endregion
         void connection()
         {
             irc.RfcJoin(channels);
@@ -509,6 +527,7 @@ namespace SayingsBot
                 storeMessage(bot_name, message);
             }
         }
+        #region getNow
         public int getNow()
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
@@ -537,8 +556,12 @@ namespace SayingsBot
             str += DateTime.Now.Second;
             return str;
         }
+        #endregion
+        #region Auth
         public int pullAuth(string name)
         {
+            if (commands.getPoints(name) < 0) { return -2; }
+
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
             {
@@ -564,6 +587,7 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');", dbConn).ExecuteNonQuery();
             }
         }
+        #endregion
         public void storeMessage(string user, string message) {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
             cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
@@ -815,6 +839,7 @@ namespace SayingsBot
             // it escapes \r, \n, \x00, \x1a, baskslash, single quotes, double quotes and semi colons
             return Regex.Replace(usString, "([\\r\\n\\x00\\x1a\\\'\";])", "\\$1");
         }
+        #region Files
         public string[] FileLines(string path)
         {
             try
@@ -870,6 +895,8 @@ namespace SayingsBot
         {
             return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         }
+        #endregion
+        #region conversions
         /// <summary>
         /// Converts an int to a string.
         /// </summary>
@@ -884,7 +911,8 @@ namespace SayingsBot
         {
             return Convert.ToInt32(i);
         }
-
+        #endregion
+        #region profanity
         /// <summary>
         /// Checks for profanity, then subtracts points accordingly.
         /// </summary>
@@ -929,19 +957,8 @@ namespace SayingsBot
                 shouldRebuildProf = true;
             }
         }
-        public void serverMessage(string send)
-        {
-            if (Server.Listening)
-            {
-                Server.Brodcast(ASCIIEncoding.ASCII.GetBytes(send));
-            }
-            
-        }
-        public void writeLogger(string write)
-        {
-            logger.WriteLine(write);
-            serverMessage(write);
-        }
+        #endregion
+
     }
 
 }
