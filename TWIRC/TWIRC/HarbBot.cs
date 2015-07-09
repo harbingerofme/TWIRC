@@ -487,6 +487,7 @@ namespace TWIRC
                     if (moderator == bot_name)
                     {
                         isMod = true;
+                        irc.SendDelay = 60000 / 50;//if we are modded, we can send 50 messages a minute.
                     }
                     else
                     {
@@ -496,6 +497,7 @@ namespace TWIRC
                         }
                     }
                 }
+                if (!isMod) { irc.SendDelay = 60000 /20; }//We are allowed to send 20 messages a minute to channels we are not modded in.
             
             }
         }
