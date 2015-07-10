@@ -120,6 +120,10 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
         {
             return keyword;
         }
+        public int returnAuthLevel()
+        {
+            return authLevel;
+        }
         public void removeFromCD(string name)
         {
             foreach (intStr IS in cdlist)
@@ -136,7 +140,7 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
         protected int cooldown { get; set; }
         protected int lastTime { get; set; }
 
-        public command() { throw new ArgumentException(); }//CAUSE I CAN
+        public command() { /*throw new ArgumentException();*/ }//CAUSE I CAN
         public command(string fromString)
         {
             string[] a = fromString.Split(' ');
@@ -377,11 +381,10 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
     }
 
 
-    public class ali //these are actually replacement strings, poorly optimised, I'm kinda rushing them at this point, but I promise to make these better in a later update
+    public class ali
     {
         protected List<string> from = new List<string>();//since multiple paths can lead to rome, we allow that
         protected string to;//there's only 1 Rome (right?)
-        protected string keyword { get; set; }
         public ali(string fromString, string toString)
         {
             from.Add(fromString);
@@ -392,50 +395,13 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
             from.AddRange(fromStrings);
             to = toString;
         }
-        public bool doesMatch(string input)
-        {
-            string a = input.ToLower();
-            //string b = keyword.ToLower();
-            //if (a.StartsWith(keyword + " ") || a == keyword) { return true; }
-            return false;
-        }
-        public string[] getResponse(string input, string user)
-        {
-            command c = new command();
-            return c.getResponse(input, user);
-        }
-        public bool canTrigger()
-        {
-            command c = new command();
-            return c.canTrigger();
-        }
-        public int getAuth()
-        {
-            command c = new command();
-            return c.getAuth();
-        }
-        public int addCount(int amount)
-        {
-            command c = new command();
-            return c.addCount(amount);
-        }
-        public string getKey()
-        {
-            command c = new command();
-            return c.getKey();
-        }
-        public int getCount()
-        {
-            command c = new command();
-            return c.getCount();
-        }
         public string getTo()
         {
             return to;
         }
         public override string ToString()
         {
-            string result ="";
+            string result = "";
             foreach (string str1 in from)
             {
                 str1.Replace(" ", "<><>");//replace spaces with <><>
@@ -448,7 +414,7 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
 
         public ali(string rawString)
         {
-            List<string> splitted = rawString.Split(new String[] {" "},StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<string> splitted = rawString.Split(new String[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
             string str1;
             to = splitted[splitted.Count() - 1];
             splitted.Remove(to);
@@ -461,7 +427,8 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
 
         }
 
-        public void addFrom(string str1){
+        public void addFrom(string str1)
+        {
             from.Add(str1);
         }
         public void addFrom(string[] str1)
@@ -479,10 +446,11 @@ namespace SayingsBot//contains the com (, sub :  com) and ali classes
         public string filter(string input)
         {
             string result = input;
-            foreach(string str1 in from){
-                if (input.StartsWith(str1 + " ") || input == str1)
+            foreach (string str1 in from)
+            {
+                if (result.StartsWith(str1 + " ") || result == str1)
                 {
-                    result = Regex.Replace(input, "^" + str1, to);
+                    result = to + result.Substring(str1.Length);
                 }
             }
             return result;

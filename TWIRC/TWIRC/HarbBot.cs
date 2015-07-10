@@ -30,6 +30,7 @@ namespace SayingsBot
         public List<ali> aliList = new List<ali>();
         public List<hardCom> hardList = new List<hardCom>();
         public List<string> swearList = new List<string>();
+        public List<string> classicList = new List<string>();
         public int globalCooldown;
         public Commands commands;
 
@@ -54,6 +55,12 @@ namespace SayingsBot
         public Thread one;
 
         ProfanityFilter pf;
+
+#if DEBUG
+        string commandsPATH = @"D:\SBcommands.html";
+#else
+        string commandsPATH = @"C:\Documents and Settings\Administrator\My Documents\Dropbox\New Folder 2\SBcommands.html";
+#endif
 
         public bool shouldRebuildProf = false;
         NetComm.Host Server;
@@ -230,7 +237,6 @@ namespace SayingsBot
             hardList.Add(new hardCom("!unbanuser", 4, 1));
             hardList.Add(new hardCom("!sbsilence",3,1));
             hardList.Add(new hardCom("!sbrank", -5, 0,60));
-            hardList.Add(new hardCom("!commands", 0, 0, 120));
           
             hardList.Add(new hardCom("!whoisuser",0,1,20));
             hardList.Add(new hardCom("!classicwhoisuser", 0, 1, 20));
@@ -255,7 +261,6 @@ namespace SayingsBot
             hardList.Add(new hardCom("!nc", 0, 1));
             hardList.Add(new hardCom("!sbversion",0,0));
             hardList.Add(new hardCom("!sbleaderboard",0,0));
-            hardList.Add(new hardCom("!sqlquery",5,0));
             hardList.Add(new hardCom("sayingsbot",0,0,20));
             hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
             hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
@@ -269,10 +274,10 @@ namespace SayingsBot
             one.IsBackground = true;
 
             
-            //saveTimer = new System.Timers.Timer(5 * 60 * 1000);
-            //saveTimer.AutoReset = true;
-            //saveTimer.Elapsed += saveTimer_Elapsed;
-            //saveTimer.Start();
+            saveTimer = new System.Timers.Timer(60 *1000);
+            saveTimer.AutoReset = true;
+            saveTimer.Elapsed += saveTimer_Elapsed;
+            saveTimer.Start();
 
             colourTimer = new System.Timers.Timer(10000);
             colourTimer.AutoReset = true;
@@ -287,10 +292,13 @@ namespace SayingsBot
             commands = new Commands(this, this.dbConn, this.hardList, this.comlist, this.aliList, this.logLevel, logger);
             pf = new ProfanityFilter(this);
             this.loadProfanity();
+            commands.loadClassics(this.classicList);
 
             if (logLevel != 0)
             {
+                writeLogger("IRC: Loaded " + hardList.Count() + " hard-codded sayings!");
                 writeLogger("IRC: Loaded " + swearList.Count() + " profaine sayings!");
+                writeLogger("IRC: Loaded " + classicList.Count() + " classic sayings!");
             }
 
             try
@@ -303,6 +311,8 @@ namespace SayingsBot
             Server.onConnection += new NetComm.Host.onConnectionEventHandler(Server_onConnection);
             Server.lostConnection += new NetComm.Host.lostConnectionEventHandler(Server_lostConnection);
             Server.DataReceived += new NetComm.Host.DataReceivedEventHandler(Server_DataReceived);
+
+            saveTimer_Elapsed(null, null);
         }
         #region Sayingsbot Remote NetComm Server
         void Server_DataReceived(string ID, byte[] Data)
@@ -369,28 +379,117 @@ namespace SayingsBot
             
             
         }
-        [System.Obsolete("Unused")]
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            /*write here what you want to save, I've left the previous one here.
-             * 
-            writeFile(commandsPATH, "<DOCTYPE html><head><title>RNGPPBot commands</title><h1>RNGPPBot commands</h1></head>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.<table border='1px' cellspacing='0px'><tr><td><b>keyword</b></td><td><b>level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td><td><b>output<b></td></tr>");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n</head>\n<h1>Sayingsbot</h1>\nIf this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr>\n");
+            foreach (hardCom h in hardList)
+            {
+                #region  HardComm
+                string keyword = h.returnKeyword();
+                string response = null;
+                if (h.returnAuthLevel() < 5)
+                {
+                    if (keyword == "!sbset" || keyword == "!sbsilence" || keyword == "!delclassic" || keyword == "!count" || keyword == "!newcount"|| keyword == "!serpoints"|| keyword == "!addpoints") { }
+                    else
+                    {
+                        switch (keyword)
+                        {
+                            case "!sbaddcom":
+                                response = "Adds a command to SayingsBot.";
+                                break;
+                            case "!sbdelcom":
+                                response = "Deletes a command from SayingsBot.";
+                                break;
+                            case "!sbeditcom":
+                                response = "Edits a SayingsBot command.";
+                                break;
+                            case "!sbaddalias":
+                                response = "Adds a command alais to SayingsBot.";
+                                break;
+                            case "!sbdelalias":
+                                response = "Deletes a command alias from sayingsbot.";
+                                break;
+                            case "!sbeditcount":
+                                response = "Edit's the count of a SayingsBot command.";
+                                break;
+                            case "!banuser":
+                                response = "\"Ban\" a user, making them unable to use commands.\nThis also bans them from RNGPPBot. To only ban from SayingsBot, use \"!sbbanuser\"";
+                                break;
+                            case "!unbanuser":
+                                response = "\"UnBan\" a user, making them able to use commands again.\nThis also unbans them from RNGPPBot. To only unban from SayingsBot, use \"!sbunbanuser\"";
+                                break;
+                            case "!sbrank":
+                                response = "Returns the rank (Auth Level) SayingsBot reconises you as.";
+                                break;
+                            case "!whoisuser":
+                                response = "Returns a reponse of who a user is (if they, or a mod, have provided one).";
+                                break;
+                            case "!classicwhoisuser":
+                                response = "Returns a !whoisuser message from around April/May 2014.";
+                                break;
+                            case "!editme":
+                                response = "Edit your !whoisuser message.";
+                                break;
+                            case "!edituser":
+                                response = "Edit a user's !whoisuser message.";
+                                break;
+                            case "!classic":
+                                response = "Classic commands no longer on nightbot. See options bellow.";
+                                break;
+                            case "!addclassic":
+                                response = "Used to add responses to !classic.";
+                                break;
+                            case "!quotes":
+                                response = "";
+                                break;
+                            case "!points":
+                                response = "See how many points you have.";
+                                break;
+                            case "!seepoints":
+                                response = "See how many points another user has.";
+                                break;
+                            case "!sbadduseralias":
+                                response = "Adds a user alias.";
+                                break;
+                            case "!sbgetuseraliases":
+                                response = "Get's the aliases for a user.";
+                                break;
+                            case "!addswear":
+                                response = "Adds a swear to the swear jar.";
+                                break;
+                            default:
+                                try //Jut in case....
+                                {
+                                    response = commands.checkCommand(channels, "testuser", keyword + " testvar1 testvar2 testvar3");
+                                }
+                                catch
+                                {
+                                    response = "ERROR";
+                                }
+                                break;
+                        }
+                        appendFile(commandsPATH, "<tr>\n    <td>" + keyword + "</td>\n    <td>" + h.returnAuthLevel() + "</td>\n    <td>" + response + "</td>\n</tr>");
+                    }
+                }
+                #endregion
+            }
             foreach (command c in comlist)
             {
-                appendFile(commandsPATH, "<tr><td>" + c.getKey() + "</td><td>" + c.getAuth() + "</td><td>" + c.getResponse() + "</td></tr>");
+                appendFile(commandsPATH, "<tr>\n    <td>" + c.getKey() + "</td>\n    <td>" + c.getAuth() + "</td>\n    <td>" + c.getResponse() + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\nBOOTIFUL!");
-
-            string s = "INSERT INTO buttons (left,down,up,right,a,b,start) VALUES (";
-            foreach (int a in biasControl.stats)
+            appendFile(commandsPATH, "</table>\n<h2>Aliases</h2><table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Alias</b></td>\n    <td><b>Command<b></td>\n</tr>\n");
+            foreach (ali a in aliList)
             {
-                s += a + ",";
+                appendFile(commandsPATH, "<tr>\n    <td>" + a.getFroms()[0] + "</td>\n    <td>" + a.getTo() + "</td>\n</tr>");
             }
-            s = s.Substring(0, s.Length - 1);
-            s += ");";
-            new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
-            biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
-             */
+            appendFile(commandsPATH, "</table>\n<h2>Classics</h2>\nYou can't beat the classics!<table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Classic</b></td>\n    <td><b>Response<b></td>\n</tr>\n");
+            foreach (string s in classicList)
+            {
+                appendFile(commandsPATH, "<tr>\n    <td>" + s + "</td>\n    <td>" + commands.getClassic(s) + "</td>\n<tr>\n");
+            }
+            appendFile(commandsPATH, "</table>\n<h2>Quotes</h2><table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>User</b></td>\n    <td><b>Quote Number<b></td>\n    <td><b>Quote</b></td>\n</tr>\n");
+
+            appendFile(commandsPATH, "</table>\nBOOTIFUL!");
         }
         /// <summary>
         /// The timer that checks connection status and attempts to reconnect acordingly.
@@ -503,8 +602,11 @@ namespace SayingsBot
         }
         public void checkCommand(string channel, string user, string message)
         {
-            //Yup
-            commands.checkCommand(channel, user, message);
+            string response = commands.checkCommand(channel, user, message);
+            if (response != "ERROR" && response != null)
+            {
+                sendMess(channel, response);
+            }
         }
         public void Close()
         {

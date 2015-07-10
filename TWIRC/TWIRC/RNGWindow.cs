@@ -57,7 +57,8 @@ namespace SayingsBot
 
          private void RNGWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
-
+            Application.Exit(); //The process is still running after closing the window(on WinXP), so maybe this will help?
+             /*
             RNGLogger.setLogControl(null);
             RNGLogger.setStatusControl(null);
             RNGLogger.shuttingdown = true;
@@ -69,7 +70,7 @@ namespace SayingsBot
             }
             catch { }
 
-            Application.Exit(); //The process is still running after closing the window(on WinXP), so maybe this will help?
+            */
             
         }
 
