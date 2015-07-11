@@ -504,12 +504,12 @@ namespace SayingsBot
                                     if (quotesReader.Read())
                                     {
                                         length = quotesReader.GetInt32(0);
-                                        newLength = length + 1;
-                                        quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + newLength + "', @par1);", dbConn);
+                                        int nnewLength = length + 1;
+                                        quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '" + nnewLength + "', @par1);", dbConn);
                                         quotesCommand.Parameters.AddWithValue("@par1", quser);
                                         quotesCommand.ExecuteNonQuery();
-                                        hb.appendFile(hb.progressLogPATH, "Added " + quser + " to overall random list. They are user " + hb.cstr(newLength) + ".");
-                                        return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam + "  Also, Added " + quser + " to overall random list. They are user " + hb.cstr(newLength) + ".");
+                                        hb.appendFile(hb.progressLogPATH, "Added " + quser + " to overall random list. They are user " + hb.cstr(nnewLength) + ".");
+                                        return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam + "  Also, Added " + quser + " to overall random list. They are user " + hb.cstr(nnewLength) + ".");
                                     }
                                     break;
                                 }

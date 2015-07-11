@@ -384,7 +384,7 @@ namespace SayingsBot
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nIf this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
             foreach (hardCom h in hardList)
             {
                 #region  HardComm
