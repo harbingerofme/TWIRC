@@ -493,8 +493,8 @@ namespace SayingsBot
                                 quotesCommand.Parameters.AddWithValue("@par2", fParam);
                                 quotesCommand.ExecuteNonQuery();
                                 hb.appendFile(hb.progressLogPATH, "Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-                                return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam);
-                                
+
+                                hb.loadQuotesForHTML();
 
                                 //If it's the user's first quote
                                 //Originally addusertorandom
@@ -509,11 +509,11 @@ namespace SayingsBot
                                         quotesCommand.Parameters.AddWithValue("@par1", quser);
                                         quotesCommand.ExecuteNonQuery();
                                         hb.appendFile(hb.progressLogPATH, "Added " + quser + " to overall random list. They are user " + hb.cstr(newLength) + ".");
-                                        return ("Added " + quser + " to overall random list. They are user " + hb.cstr(newLength) + ".");
+                                        return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam + "  Also, Added " + quser + " to overall random list. They are user " + hb.cstr(newLength) + ".");
                                     }
                                     break;
                                 }
-                                else { break; }
+                                else { return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam); }
                             }
                             else if (function == "edit")
                             {

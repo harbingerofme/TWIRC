@@ -31,6 +31,7 @@ namespace SayingsBot
         public List<hardCom> hardList = new List<hardCom>();
         public List<string> swearList = new List<string>();
         public List<string> classicList = new List<string>();
+        public List<string[]> quotesList = new List<string[]>();
         public int globalCooldown;
         public Commands commands;
 
@@ -130,7 +131,7 @@ namespace SayingsBot
                 new SQLiteCommand("INSERT INTO users (name,rank,lastseen) VALUES ('"+bot_name+"','-1','"+getNowSQL()+"');",dbConn).ExecuteNonQuery();
                 //SayingsBot Data
                 new SQLiteCommand("INSERT INTO misc (ID, DATA) VALUES ('CountGame', '0');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES ('ExampleUser', '0', 'This is ExampleUser\'s !whoisuser message!');", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES ('ExampleUser', '0', 'This is ExampleUser !whoisuser message!');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('ExampleUser', '1', '1', 'This is an example quote from an example user!');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES ('overallRandom', '5', '1', 'ExampleUser');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO userdata (user, datatype, data) VALUES (swearJar, 6, 0);", dbConn).ExecuteNonQuery();
@@ -293,12 +294,14 @@ namespace SayingsBot
             pf = new ProfanityFilter(this);
             this.loadProfanity();
             commands.loadClassics(this.classicList);
+            this.loadQuotesForHTML();
 
             if (logLevel != 0)
             {
                 writeLogger("IRC: Loaded " + hardList.Count() + " hard-codded sayings!");
                 writeLogger("IRC: Loaded " + swearList.Count() + " profaine sayings!");
                 writeLogger("IRC: Loaded " + classicList.Count() + " classic sayings!");
+                writeLogger("IRC: Loaded " + quotesList.Count() + " quoted sayings!");
             }
 
             try
@@ -381,7 +384,7 @@ namespace SayingsBot
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n</head>\n<h1>Sayingsbot</h1>\nIf this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr>\n");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nIf this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
             foreach (hardCom h in hardList)
             {
                 #region  HardComm
@@ -477,18 +480,21 @@ namespace SayingsBot
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + c.getKey() + "</td>\n    <td>" + c.getAuth() + "</td>\n    <td>" + c.getResponse() + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Aliases</h2><table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Alias</b></td>\n    <td><b>Command<b></td>\n</tr>\n");
+            appendFile(commandsPATH, "</table>\n<h2>Aliases</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Alias</b></td>\n    <td><b>Command<b></td>\n</tr></thead>\n");
             foreach (ali a in aliList)
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + a.getFroms()[0] + "</td>\n    <td>" + a.getTo() + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Classics</h2>\nYou can't beat the classics!<table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>Classic</b></td>\n    <td><b>Response<b></td>\n</tr>\n");
+            appendFile(commandsPATH, "</table>\n<h2>Classics</h2>\nYou can't beat the classics!<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Classic</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
             foreach (string s in classicList)
             {
-                appendFile(commandsPATH, "<tr>\n    <td>" + s + "</td>\n    <td>" + commands.getClassic(s) + "</td>\n<tr>\n");
+                appendFile(commandsPATH, "<tr>\n    <td>" + s + "</td>\n    <td>" + commands.getClassic(s) + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Quotes</h2><table border='1px' cellspacing='0px'>\n<tr>\n    <td><b>User</b></td>\n    <td><b>Quote Number<b></td>\n    <td><b>Quote</b></td>\n</tr>\n");
-
+            appendFile(commandsPATH, "</table>\n<h2>Quotes</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Quote Number<b></td>\n    <td><b>Quote</b></td>\n</tr></thead>\n");
+            foreach (string[] q in quotesList)
+            {
+                appendFile(commandsPATH, "<tr>\n    <td>" + q[0] + "</td>\n    <td>" + q[1] + "</td>\n    <td>" + q[2] + "</td>\n</tr>");
+            }
             appendFile(commandsPATH, "</table>\nBOOTIFUL!");
         }
         /// <summary>
@@ -1061,7 +1067,38 @@ namespace SayingsBot
             }
         }
         #endregion
-
+        public void loadQuotesForHTML()
+        {
+            SQLiteDataReader quotesReader;
+            Random rnd = new Random();
+            quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = 'overallRandom' AND dataType = '5' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+            if (quotesReader.Read())
+            {
+                int ubound = quotesReader.GetInt32(0);
+                for (int i = 1; i <= ubound; i++ )
+                {
+                    quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user = 'overallRandom' AND dataType = '5' AND dataID='"+i+"';", dbConn).ExecuteReader();
+                    if (quotesReader.Read())
+                    {
+                        string user = quotesReader.GetString(0);
+                        quotesReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = '"+user+"' AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
+                        if (quotesReader.Read())
+                        {
+                            int userUbound = quotesReader.GetInt32(0);
+                            for (int j = 1; j <= userUbound; j++)
+                            {
+                                quotesReader = new SQLiteCommand("SELECT data FROM userdata WHERE user = '"+user+"' AND dataType = '1' AND dataID='" + j + "';", dbConn).ExecuteReader();
+                                if (quotesReader.Read())
+                                {
+                                    string quote = quotesReader.GetString(0);
+                                    quotesList.Add(new string[] { user, cstr(j), quote });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
