@@ -358,6 +358,8 @@ namespace SayingsBot
         /// </summary>
         void colourTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+#if DEBUG
+#else
             Random rnd = new Random();
             RNGWindow rngwin = Program.mainWindow;
             int I;
@@ -379,7 +381,7 @@ namespace SayingsBot
                     case 10: irc.RfcPrivmsg(channels, ".color Coral"); rngwin.setColourText("Coral"); break;
                 }
             }
-            
+#endif
             
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)

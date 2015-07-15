@@ -36,7 +36,6 @@ namespace SayingsBot
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
             user = user.ToLower();
-            message = message.ToLower();
             foreach (hardCom h in hardList)//hardcoded command
             {
                 if (h.hardMatch(user, message, auth))
@@ -236,7 +235,7 @@ namespace SayingsBot
                             {
                                 case -2: text = "in the negitive for points"; break;
                                 case -1: text = "a bot"; break;
-                                case 0: text = "an user"; break;
+                                case 0: text = "a user"; break;
                                 case 1: text = "a regular"; break;
                                 case 2: text = "trusted"; break;
                                 case 3: text = "a moderator"; break;
@@ -245,9 +244,6 @@ namespace SayingsBot
                                 default: text = "special"; break;
                             }
                             return (User + ", you are " + text + ".");
-                            break;
-                        case "!commands":
-                            return (User + " --> SayingsBot Commands at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#Commands");
                             break;
                         case "!givecake":
                             if (str[1].Contains("poolala"))
@@ -473,6 +469,10 @@ namespace SayingsBot
                             }
                             else if (function == "add")
                             {
+                                if (hb.pullAuth(user) < 2)
+                                {
+                                    return "You do not have the authority to add quotes.";
+                                }
                                 int length;
                                 int newLength;
                                 quotesCommand = new SQLiteCommand("SELECT dataID FROM userdata WHERE user = @par1 AND dataType = '1' ORDER BY dataID DESC LIMIT 1;", dbConn);
@@ -485,7 +485,7 @@ namespace SayingsBot
                                 }
                                 else
                                 {
-                                    //No quotes yet exsist
+                                    //No quotes yet exist
                                     newLength = 1;
                                 }
                                 quotesCommand = new SQLiteCommand("INSERT INTO userdata (user, datatype, dataID, data) VALUES (@par1, '1', '" + newLength + "',  @par2);", dbConn);
@@ -576,12 +576,6 @@ namespace SayingsBot
             }
             return "ERROR";
         }
-
-        /*void sendMess(string message)
-        {
-            hb.sendMess(hb.channels, message);
-        }
-        */
         #region Classic
         public string getClassic(string toGet)
         {
