@@ -32,6 +32,7 @@ namespace SayingsBot
         public List<string> swearList = new List<string>();
         public List<string> classicList = new List<string>();
         public List<string[]> quotesList = new List<string[]>();
+        public List<string[]> whoisList = new List<string[]>();
         public int globalCooldown;
         public Commands commands;
 
@@ -295,6 +296,7 @@ namespace SayingsBot
             this.loadProfanity();
             commands.loadClassics(this.classicList);
             this.loadQuotesForHTML();
+            this.loadWhoIsForHTML();
 
             if (logLevel != 0)
             {
@@ -302,6 +304,7 @@ namespace SayingsBot
                 writeLogger("IRC: Loaded " + swearList.Count() + " profaine sayings!");
                 writeLogger("IRC: Loaded " + classicList.Count() + " classic sayings!");
                 writeLogger("IRC: Loaded " + quotesList.Count() + " quoted sayings!");
+                writeLogger("IRC: Loaded " + whoisList.Count() + " !Whoisuser sayings!");
             }
 
             try
@@ -386,7 +389,7 @@ namespace SayingsBot
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<h2>Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<ul>\n    <li><a href=\"#commands\">Commands</a></li>\n    <li><a href=\"#aliases\">Aliases</a></li>\n    <li><a href=\"#classics\">Classics</a></li>\n    <li><a href=\"#quotes\">Quotes</a></li>\n    <li><a href=\"#leaderboard\">Leaderboard</a></li>\n    <li><a href=\"#whoisuser\">!whoisuser Responses</a></li>\n</ul>\n<h2 id=\"commands\">Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
             foreach (hardCom h in hardList)
             {
                 #region  HardComm
@@ -482,20 +485,34 @@ namespace SayingsBot
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + c.getKey() + "</td>\n    <td>" + c.getAuth() + "</td>\n    <td>" + c.getResponse() + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Aliases</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Alias</b></td>\n    <td><b>Command<b></td>\n</tr></thead>\n");
+            appendFile(commandsPATH, "</table>\n<h2 id=\"aliases\">Aliases</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Alias</b></td>\n    <td><b>Command<b></td>\n</tr></thead>\n");
             foreach (ali a in aliList)
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + a.getFroms()[0] + "</td>\n    <td>" + a.getTo() + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Classics</h2>\nYou can't beat the classics!<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Classic</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
+            appendFile(commandsPATH, "</table>\n<h2 id=\"classics\">Classics</h2>\nYou can't beat the classics!<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Classic</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
             foreach (string s in classicList)
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + s + "</td>\n    <td>" + commands.getClassic(s) + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2>Quotes</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Quote Number<b></td>\n    <td><b>Quote</b></td>\n</tr></thead>\n");
+            appendFile(commandsPATH, "</table>\n<h2 id=\"quotes\">Quotes</h2><table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Quote Number<b></td>\n    <td><b>Quote</b></td>\n</tr></thead>\n");
             foreach (string[] q in quotesList)
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + q[0] + "</td>\n    <td>" + q[1] + "</td>\n    <td>" + q[2] + "</td>\n</tr>");
+            }
+            appendFile(commandsPATH, "</table>\n<h2 id=\"leaderboard\">Leaderboard</h2>\nIf a user has less than 50 points, they will not be on this list.\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Points<b></td>\n</tr></thead>\n");
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC;", dbConn).ExecuteReader();
+            while (sqldr.Read())
+            {
+                if (!(sqldr.GetInt32(1) < 50))
+                {
+                    appendFile(commandsPATH, "<tr>\n    <td>" + sqldr.GetString(0) + "</td>\n    <td>" + cstr(sqldr.GetInt32(1)) + "</td>\n</tr>\n");
+                }
+            }
+            appendFile(commandsPATH, "</table>\n<h2 id=\"whoisuser\">!whoisuser responses</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
+            foreach (string[] w in whoisList)
+            {
+                appendFile(commandsPATH, "<tr>\n    <td>"+w[0]+"</td>\n    <td>"+w[1]+"</td>\n</tr>\n");
             }
             appendFile(commandsPATH, "</table>\nBOOTIFUL!");
         }
@@ -1099,6 +1116,14 @@ namespace SayingsBot
                         }
                     }
                 }
+            }
+        }
+        private void loadWhoIsForHTML()
+        {
+            SQLiteDataReader userReader = new SQLiteCommand("SELECT user,data FROM userdata WHERE datatype = '0';", dbConn).ExecuteReader();
+            while (userReader.Read())
+            {
+                this.whoisList.Add(new string[] { userReader.GetString(0), userReader.GetString(1)});
             }
         }
     }
