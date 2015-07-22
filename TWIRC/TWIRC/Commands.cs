@@ -851,6 +851,7 @@ namespace SayingsBot
             {
                 new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES ('" + user + "','0','" + message + "');", dbConn).ExecuteNonQuery();
             }
+            hb.loadWhoIsForHTML();
         }
         /// <summary>
         /// Get's the !whoisuser response.

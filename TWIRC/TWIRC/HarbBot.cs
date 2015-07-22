@@ -1118,7 +1118,7 @@ namespace SayingsBot
                 }
             }
         }
-        private void loadWhoIsForHTML()
+        public void loadWhoIsForHTML()
         {
             SQLiteDataReader userReader = new SQLiteCommand("SELECT user,data FROM userdata WHERE datatype = '0';", dbConn).ExecuteReader();
             while (userReader.Read())
