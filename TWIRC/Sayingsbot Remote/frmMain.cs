@@ -48,7 +48,11 @@ namespace Sayingsbot_Remote
 
         void connectClient()
         {
-            client.Connect("192.168.1.27", 8523, "Sayingsbot Remote");
+#if DEBUG
+            client.Connect("localhost", 8524, "Sayingsbot Remote");
+#else
+            client.Connect("192.168.1.14", 8523, "Sayingsbot Remote");
+#endif
         }
 
         private void client_DataReceived(byte[] Data, string ID)

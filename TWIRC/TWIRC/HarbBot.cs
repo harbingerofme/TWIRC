@@ -65,7 +65,7 @@ namespace SayingsBot
 #endif
 
         public bool shouldRebuildProf = false;
-        NetComm.Host Server;
+        public NetComm.Host Server;
         #endregion
         public HarbBot(Logger logLogger, NetComm.Host netCommServer)
         {
@@ -270,6 +270,8 @@ namespace SayingsBot
             hardList.Add(new hardCom("!nightbotisdown", 0, 0));
             hardList.Add(new hardCom("!logbotisdown", 0, 0));
             hardList.Add(new hardCom("!addswear", 0, 1));
+            hardList.Add(new hardCom("!lolcounter", 0, 0));
+            hardList.Add(new hardCom("!howmanytimes", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -389,7 +391,7 @@ namespace SayingsBot
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Aliases</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<ul>\n    <li><a href=\"#commands\">Commands</a></li>\n    <li><a href=\"#aliases\">Aliases</a></li>\n    <li><a href=\"#classics\">Classics</a></li>\n    <li><a href=\"#quotes\">Quotes</a></li>\n    <li><a href=\"#leaderboard\">Leaderboard</a></li>\n    <li><a href=\"#whoisuser\">!whoisuser Responses</a></li>\n</ul>\n<h2 id=\"commands\">Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Such</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<ul>\n    <li><a href=\"#commands\">Commands</a></li>\n    <li><a href=\"#aliases\">Aliases</a></li>\n    <li><a href=\"#classics\">Classics</a></li>\n    <li><a href=\"#quotes\">Quotes</a></li>\n    <li><a href=\"#leaderboard\">Leaderboard</a></li>\n    <li><a href=\"#whoisuser\">!whoisuser Responses</a></li>\n</ul>\n<h2 id=\"commands\">Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
             foreach (hardCom h in hardList)
             {
                 #region  HardComm
@@ -867,6 +869,24 @@ namespace SayingsBot
             message = message.ToLower();
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { commands.addPoints(nick, 2); commands.addAllTime(nick, 2); }
+#if DEBUG
+                if (logLevel == 2) { writeLogger(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
+                message = message.TrimEnd();
+                if (antispam) { if (isMod) { a = checkSpam(channel, nick, message); } };
+                if (!a)
+                {
+                    message = filter(message);
+                    if (Regex.Match(message, "^wh?at'?s?( is)? the point", RegexOptions.IgnoreCase).Success)
+                    {
+                        sendMess(channel, "No point, only play.");
+                    }
+                    else
+                    {
+                        this.checkProfanity(message, nick);
+                        this.checkCommand(channel, nick, message);
+                    }
+                }
+#else
             try
             {
                 if (logLevel == 2) { writeLogger(DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " IRC: <-" + channel + ": <" + nick + "> " + message); }
@@ -892,6 +912,7 @@ namespace SayingsBot
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
                 Console.Write(eee);
             }
+#endif
         }
         public void ircChanActi(object sender, IrcEventArgs e)
         {

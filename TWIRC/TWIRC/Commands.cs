@@ -96,7 +96,7 @@ namespace SayingsBot
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist[a].setResponse(tempVar3);
                                     comlist[a].setAuth(tempVar1);
-                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1 authlevel=@par3 WHERE keyword=@par2;", dbConn);
+                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1 AND authlevel=@par3 WHERE keyword=@par2;", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
                                     cmd.ExecuteNonQuery();
                                     hb.appendFile(hb.progressLogPATH, "Command \"" + str[1] + "\" has been edited.");
@@ -547,7 +547,22 @@ namespace SayingsBot
                             {
                                 return ("Something went wrong with adding the profanity...");
                             }
-
+                            break;
+                        case "!lolcounter":
+                            SQLiteDataReader lolread = new SQLiteCommand("SELECT COUNT(*) FROM messages WHERE name NOT LIKE '%bot' AND  message LIKE '%lol%';", hb.chatDbConn).ExecuteReader();
+                            if (lolread.Read())
+                            {
+                                return "\"lol\" has been said " + Convert.ToString(lolread.GetInt32(0)) + " times.";
+                            }
+                            break;
+                        case "!howmanytimes":
+                            SQLiteCommand hmtcmd = new SQLiteCommand("SELECT COUNT(*) FROM messages WHERE name NOT LIKE '%bot' AND  message LIKE @par1;", hb.chatDbConn);
+                            hmtcmd.Parameters.AddWithValue("@par1", "%"+str[1]+"%");
+                            SQLiteDataReader hmtRead = hmtcmd.ExecuteReader();
+                            if (hmtRead.Read())
+                            {
+                                return "\""+str[1]+"\" has been said " + Convert.ToString(hmtRead.GetInt32(0)) + " times.";
+                            }
                             break;
                         #endregion
                     }
@@ -842,15 +857,22 @@ namespace SayingsBot
         /// <param name="message">The message to set to the user.</param>
         public void setWhoIsUser(string user, string message)
         {
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM userdata WHERE user='" + user + "' AND datatype='0';", dbConn).ExecuteReader();
+            SQLiteCommand usersetcommand = new SQLiteCommand("SELECT * FROM userdata WHERE user=@par1 AND datatype='0';", dbConn);
+            usersetcommand.Parameters.AddWithValue("@par1", user);
+            SQLiteDataReader sqldr = usersetcommand.ExecuteReader();
+            SQLiteCommand usersetcommand2 = null;
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE userdata SET data='" + message + "' WHERE user='" + user + "' AND datatype='0';", dbConn).ExecuteNonQuery();
+                usersetcommand2 = new SQLiteCommand("UPDATE userdata SET data=@par2 WHERE user=@par1 AND datatype='0';", dbConn);
+                
             }
             else
             {
-                new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES ('" + user + "','0','" + message + "');", dbConn).ExecuteNonQuery();
+                usersetcommand2 = new SQLiteCommand("INSERT INTO userdata (user,dataType,data) VALUES (@par1,'0',@par2);", dbConn);
             }
+            usersetcommand2.Parameters.AddWithValue("@par1", user);
+            usersetcommand2.Parameters.AddWithValue("@par2", message);
+            usersetcommand2.ExecuteNonQuery();
             hb.loadWhoIsForHTML();
         }
         /// <summary>
@@ -861,7 +883,7 @@ namespace SayingsBot
             SQLiteCommand userCommand = new SQLiteCommand("SELECT data FROM userdata WHERE user=@par1 AND datatype = '0';", dbConn);
             userCommand.Parameters.AddWithValue("@par1", user.ToLower());
             SQLiteDataReader userReader = userCommand.ExecuteReader();
-            if (userReader.Read()) { return (userReader.GetString(0)); } else { return (user[1] + " does not have a !whoisuser."); }
+            if (userReader.Read()) { return (userReader.GetString(0)); } else { return (user + " does not have a !whoisuser."); }
         }
         #endregion
     }
