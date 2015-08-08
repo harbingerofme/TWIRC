@@ -88,6 +88,9 @@ namespace SayingsBot
             irc.OnRawMessage += ircRaw;
             irc.OnChannelAction += ircChanActi;
             irc.OnChannelMessage += ircChanMess;
+            irc.OnJoin += ircWhoJoined;
+            irc.OnPart += ircWhoParted;
+
 
             //LoadCommands
             if (logLevel != 0)
@@ -923,6 +926,21 @@ namespace SayingsBot
             message = message.Remove(message.Length - 1);
             if (logLevel == 2) { writeLogger("<-" + channel + ": " + nick + " " + message); }
         }
+
+        public void ircWhoJoined(object sender, IrcEventArgs e)
+        {
+            string channel = e.Data.Channel;
+            string nick = e.Data.Nick;
+            writeLogger("<-" + channel + ": " + nick + " " + " has JOINed");
+        }
+
+        public void ircWhoParted(object sender, IrcEventArgs e)
+        {
+            string channel = e.Data.Channel;
+            string nick = e.Data.Nick;
+            writeLogger("<-" + channel + ": " + nick + " " + " has PARTed");
+        }
+
         public void ircQuery(object sender, IrcEventArgs e)
         {
             string str = e.Data.Message;
