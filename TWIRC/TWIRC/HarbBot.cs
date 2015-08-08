@@ -534,6 +534,7 @@ namespace SayingsBot
         #endregion
         void connection()
         {
+            irc.WriteLine("TWITCHCLIENT 1", Priority.Critical);
             irc.RfcJoin(channels);
             irc.Listen();
 
