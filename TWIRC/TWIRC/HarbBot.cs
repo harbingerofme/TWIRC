@@ -534,7 +534,7 @@ namespace SayingsBot
         #endregion
         void connection()
         {
-            irc.WriteLine("TWITCHCLIENT 1", Priority.Critical);
+            irc.WriteLine("CAP REQ :twitch.tv/membership", Priority.Critical);
             irc.RfcJoin(channels);
             irc.Listen();
 
