@@ -502,14 +502,11 @@ namespace SayingsBot
             {
                 appendFile(commandsPATH, "<tr>\n    <td>" + q[0] + "</td>\n    <td>" + q[1] + "</td>\n    <td>" + q[2] + "</td>\n</tr>");
             }
-            appendFile(commandsPATH, "</table>\n<h2 id=\"leaderboard\">Leaderboard</h2>\nIf a user has less than 50 points, they will not be on this list.\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Points<b></td>\n</tr></thead>\n");
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC;", dbConn).ExecuteReader();
+            appendFile(commandsPATH, "</table>\n<h2 id=\"leaderboard\">Leaderboard</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Points<b></td>\n</tr></thead>\n");
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC LIMIT 25;", dbConn).ExecuteReader();
             while (sqldr.Read())
             {
-                if (!(sqldr.GetInt32(1) < 50))
-                {
-                    appendFile(commandsPATH, "<tr>\n    <td>" + sqldr.GetString(0) + "</td>\n    <td>" + cstr(sqldr.GetInt32(1)) + "</td>\n</tr>\n");
-                }
+                appendFile(commandsPATH, "<tr>\n    <td>" + sqldr.GetString(0) + "</td>\n    <td>" + cstr(sqldr.GetInt32(1)) + "</td>\n</tr>\n");
             }
             appendFile(commandsPATH, "</table>\n<h2 id=\"whoisuser\">!whoisuser responses</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
             foreach (string[] w in whoisList)
