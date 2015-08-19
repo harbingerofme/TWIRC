@@ -133,45 +133,45 @@ namespace TWIRC
 
             return new Calculation(!error, answer, end);
         }
-        private int getPrecedence(char i)//Yes I know the breaks are redundant, they are only still here to piss people off.
+        private int getPrecedence(char i)
         {
             switch (i)
             {
-                case '+': return 2; break;
-                case '-': return 2; break;
-                case '/': return 3; break;
-                case '*': return 3; break;
-                case '^': return 4; break;
-                case '√': return 5; break;
-                case 'Ⓣ': return 5; break;
-                case 'Ⓢ': return 5; break;
-                case 'Ⓒ': return 5; break;
-                case 'Ｔ': return 5; break;
-                case 'Ｓ': return 5; break;
-                case 'Ｃ': return 5; break;
-                default: return 0; break;//Wha?
+                case '+': return 2;
+                case '-': return 2;
+                case '/': return 3;
+                case '*': return 3;
+                case '^': return 4;
+                case '√': return 5;
+                case 'Ⓣ': return 5;
+                case 'Ⓢ': return 5; 
+                case 'Ⓒ': return 5; 
+                case 'Ｔ': return 5;
+                case 'Ｓ': return 5; 
+                case 'Ｃ': return 5; 
+                default: return 0; 
             }
         }
 
-        private int getAssociative(char i)//Screw everyone.
+        private int getAssociative(char i)
         {
             switch (i)
             {
-                case '+': return -1; break;
-                case '-': return -1; break;
-                case '/': return -1; break;
-                case '*': return -1; break;
-                case '^': return 1; break;
-                case '√': return 1; break; //correct?
-                case 'Ⓣ': return 1; break;
-                case 'Ⓢ': return 1; break;
-                case 'Ⓒ': return 1;break;
-                case 'Ｔ': return 1; break;
-                case 'Ｓ': return 1; break;
-                case 'Ｃ': return 1; break;
-                default: return -1; break;//Wha?
+                case '+': return -1;
+                case '-': return -1;
+                case '/': return -1;
+                case '*': return -1;
+                case '^': return 1; 
+                case '√': return 1; 
+                case 'Ⓣ': return 1;
+                case 'Ⓢ': return 1;
+                case 'Ⓒ': return 1;
+                case 'Ｔ': return 1; 
+                case 'Ｓ': return 1; 
+                case 'Ｃ': return 1; 
+                default: return -1; 
             }
-        }//YOLO
+        }
     }
 
     class Calculation

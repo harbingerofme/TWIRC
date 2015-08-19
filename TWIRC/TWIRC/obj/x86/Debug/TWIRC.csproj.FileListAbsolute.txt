@@ -17,6 +17,5 @@ C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\RNGBot.RNGWindow
 C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.Properties.Resources.resources
 C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.RNGWindow.resources
 C:\Users\Guido\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csproj.GenerateResource.Cache
-E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\RNGBot.RNGWindow.resources
 E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.Properties.Resources.resources
-E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\RNGBot.frmBias.resources
+E:\Github\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.frmBias.resources

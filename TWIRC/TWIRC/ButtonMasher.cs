@@ -63,7 +63,6 @@ namespace TWIRC
 
         public void setBias(double[] newbias)
         {
-            RNGLogger.WriteLine("New bias:" + Biases.printBias(newbias));
             try
             {
                 Array.Copy(newbias, thisBias, 7);
@@ -73,7 +72,7 @@ namespace TWIRC
         
         public void setDefaultBias(double[] newbias)
         {
-            RNGLogger.WriteLine("Setting default bias to:" + Biases.printBias(newbias));
+            RNGLogger.WriteLine("Setting default bias to:" + newbias);
             Array.Copy(newbias, defaultBias, 7 );
         }
         public double[] getDefaultBias()
@@ -97,7 +96,7 @@ namespace TWIRC
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
-            RNGLogger.WriteLine("Doing Decay! " + Biases.printBias(thisBias));
+            RNGLogger.WriteLine("Doing Decay! " +thisBias);
         }
 
 

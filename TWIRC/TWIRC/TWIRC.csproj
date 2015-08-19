@@ -68,7 +68,6 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="ButtonMasher.cs" />
-    <Compile Include="Biases.cs" />
     <Compile Include="Calculator.cs" />
     <Compile Include="frmBias.cs">
       <SubType>Form</SubType>
@@ -82,7 +81,6 @@
     <Compile Include="highscores.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="IRCClient.cs" />
     <Compile Include="IRCsubs.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LuaServer.cs" />
@@ -142,7 +140,6 @@
     <Compile Include="SmartIrc4net\IrcConnection\IrcProperties.cs" />
     <Compile Include="SmartIrc4net\IrcConnection\IrcTcpClient.cs" />
     <Compile Include="SmartIrc4net\Logger.cs" />
-    <Compile Include="VoteHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

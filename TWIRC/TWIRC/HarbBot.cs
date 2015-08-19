@@ -206,7 +206,7 @@ namespace TWIRC
                     string str = "Voting is over.";
                     double[] tobebias = biasControl.getDefaultBias();
                     double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
-                    string serverput = ""; int highest = 0, id = 0;
+                    string serverput = "";
                     if (votingList.Count > 0)
                     {
                         int a = 0;
