@@ -88,8 +88,9 @@ namespace SayingsBot
             irc.OnRawMessage += ircRaw;
             irc.OnChannelAction += ircChanActi;
             irc.OnChannelMessage += ircChanMess;
-            irc.OnJoin += ircWhoJoined;
-            irc.OnPart += ircWhoParted;
+            irc.OnJoin += new JoinEventHandler(ircWhoJoined);
+            irc.OnPart += new PartEventHandler(ircWhoParted);
+
 
 
             //LoadCommands
