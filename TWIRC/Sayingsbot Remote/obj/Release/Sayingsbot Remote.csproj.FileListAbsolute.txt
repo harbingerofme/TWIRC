@@ -6,3 +6,4 @@ C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Saying
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.csproj.GenerateResource.Cache
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.exe
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.pdb
+C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\Sayingsbot Remote\obj\Release\Sayingsbot Remote.csprojResolveAssemblyReference.cache

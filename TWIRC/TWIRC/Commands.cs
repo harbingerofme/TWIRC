@@ -59,7 +59,6 @@ namespace SayingsBot
                     {
                         #region Select case...
                         case "!dudesmagiccommand":
-                            new SQLiteCommand("INSERT INTO userdata VALUES ('swear', 7, 0, 'ass');", dbConn).ExecuteNonQuery();
                             return ("Done.");
                             break;
                         case "!sbaddcom":
@@ -81,6 +80,7 @@ namespace SayingsBot
                                 cmd.Parameters.AddWithValue("@par2", tempVar2);
                                 cmd.ExecuteNonQuery();
                                 hb.appendFile(hb.progressLogPATH, "Command \"" + str[1] + "\" added.");
+                                hb.serverMessage("NOTIFY:" + (User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.")); //Sayingsbot Remote
                                 return (User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                             }
                             break;
@@ -101,6 +101,7 @@ namespace SayingsBot
                                     cmd.ExecuteNonQuery();
                                     hb.appendFile(hb.progressLogPATH, "Command \"" + str[1] + "\" has been edited.");
                                     fail = false;
+                                    hb.serverMessage("NOTIFY:" + (User + "-> command \"" + str[1] + "\" has been edited.")); //Sayingsbot Remote
                                     return (User + "-> command \"" + str[1] + "\" has been edited.");
                                 }
                             }
@@ -121,6 +122,7 @@ namespace SayingsBot
                                     cmd.Parameters.AddWithValue("@par1", str[1]);
                                     cmd.ExecuteNonQuery();
                                     hb.appendFile(hb.progressLogPATH, "Command \"" + str[1] + "\" has been deleted.");
+                                    hb.serverMessage("NOTIFY:" + (User + "-> command \"" + str[1] + "\" has been deleted.")); //Sayingsbot Remote
                                     return (User + "-> command \"" + str[1] + "\" has been deleted.");
                                     break;
                                 }
@@ -149,6 +151,7 @@ namespace SayingsBot
                                 cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
                                 cmd.ExecuteNonQuery();
                                 hb.appendFile(hb.progressLogPATH, "Alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
+                                hb.serverMessage("NOTIFY:" + (User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.")); //Sayingsbot Remote
                                 return (User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                             }
                             break;
@@ -163,6 +166,7 @@ namespace SayingsBot
                                     hb.appendFile(hb.progressLogPATH, "Alias \"" + str[1] + "\" removed.");
                                     if (c.getFroms().Count() == 0) { aliList.Remove(c); }
                                     fail = false;
+                                    hb.serverMessage("NOTIFY:" + (user + " -> Alias \"" + str[1] + "\" removed.")); //Sayingsbot Remote
                                     return (user + " -> Alias \"" + str[1] + "\" removed.");
                                     break;
                                 }
@@ -177,6 +181,7 @@ namespace SayingsBot
                                 {
                                     hb.setAuth(str[1].ToLower(), int.Parse(str[2]));
                                     hb.appendFile(hb.progressLogPATH, str[1] + " was given auth level " + str[2] + ".");
+                                    hb.serverMessage("NOTIFY:" + (user + " -> \"" + str[1] + "\" was given auth level " + str[2] + ".")); //Sayingsbot Remote
                                     return (user + " -> \"" + str[1] + "\" was given auth level " + str[2] + "."); 
                                 }
                                 else
@@ -209,6 +214,7 @@ namespace SayingsBot
                             {
                                 hb.setAuth(str[1], -1);
                                 hb.appendFile(hb.progressLogPATH, str[1] + " has been banned from using bot commands.");
+                                hb.serverMessage("NOTIFY:" + (User + "-> \"" + str[1] + "\" has been banned from using bot commands.")); //Sayingsbot Remote
                                 return (User + "-> \"" + str[1] + "\" has been banned from using bot commands.");
                             }
 
@@ -218,6 +224,7 @@ namespace SayingsBot
                             {
                                 hb.setAuth(str[1], 0);
                                 hb.appendFile(hb.progressLogPATH, str[1] + "has been unbanned.");
+                                hb.serverMessage("NOTIFY:" + (User + "-> \"" + str[1] + "\" has been unbanned.")); //Sayingsbot Remote
                                 return (User + "-> \"" + str[1] + "\" has been unbanned.");
                             }
 
@@ -275,6 +282,7 @@ namespace SayingsBot
                             string newText = str[1];
                             setWhoIsUser(user, newText);
                             hb.appendFile(hb.progressLogPATH, User + " your !whoisuser now reads as: " + getWhoIsUser(User));
+                            hb.serverMessage("NOTIFY:" + (User + " your !whoisuser now reads as: " + getWhoIsUser(User))); //Sayingsbot Remote
                             return (User + " your !whoisuser now reads as: " + getWhoIsUser(User));
                             break;
                         case "!edituser":
@@ -282,6 +290,7 @@ namespace SayingsBot
                             string newTextEU = str[2];
                             setWhoIsUser(newUser, newTextEU);
                             hb.appendFile(hb.progressLogPATH, newUser + "'s !whoisuser now reads as: " + getWhoIsUser(newUser));
+                            hb.serverMessage("NOTIFY:" + (newUser + "'s !whoisuser now reads as: " + getWhoIsUser(newUser))); //Sayingsbot Remote
                             return (newUser + "'s !whoisuser now reads as: " + getWhoIsUser(newUser));
                             break;
                         case "!classic":
@@ -297,6 +306,7 @@ namespace SayingsBot
                             hb.appendFile(hb.progressLogPATH, "Classic command " + classicAdd + " added.");
                             hb.classicList.Clear();
                             this.loadClassics(hb.classicList);
+                            hb.serverMessage("NOTIFY:" + ("Classic command " + classicAdd + " added.")); //Sayingsbot Remote
                             return ("Classic command " + classicAdd + " appears as " + classicMessage);
                             break;
                         case "!kill":
@@ -333,6 +343,7 @@ namespace SayingsBot
                             break;
                         case "!setpoints":
                             setPoints(str[1], hb.cint(str[2]));
+                            hb.serverMessage("NOTIFY:" + (str[1] + "'s points set to " + str[2] + " points.")); //Sayingsbot Remote
                             return (str[1] + "'s points set to " + str[2] + " points.");
                             break;
                         case "!addpoints":
@@ -363,6 +374,7 @@ namespace SayingsBot
                             break;
                         case "!sbadduseralias":
                             setUserAlias(str[1], str[2]);
+                            hb.serverMessage("NOTIFY:" + ("Gave user " + str[1] + " the alias " + str[2] + ".")); //Sayingsbot Remote
                             return ("Gave user " + str[1] + " the alias " + str[2] + ".");
                             break;
                         case "!sbgetuseralias":
@@ -493,6 +505,7 @@ namespace SayingsBot
                                 quotesCommand.Parameters.AddWithValue("@par2", fParam);
                                 quotesCommand.ExecuteNonQuery();
                                 hb.appendFile(hb.progressLogPATH, "Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam);
+                                hb.serverMessage("NOTIFY:" + ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam)); //Sayingsbot Remote
 
                                 hb.loadQuotesForHTML();
 

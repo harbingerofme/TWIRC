@@ -14,6 +14,7 @@ namespace Sayingsbot_Remote
     {
         Logger log = null;
         NetComm.Client client;
+        NotifyIcon notification = new NotifyIcon();
 
         public frmMain(Logger getALogger)
         {
@@ -32,7 +33,17 @@ namespace Sayingsbot_Remote
             client.Connected += new NetComm.Client.ConnectedEventHandler(client_Connected);
             client.Disconnected += new NetComm.Client.DisconnectedEventHandler(client_Disconnected);
             client.DataReceived += new NetComm.Client.DataReceivedEventHandler(client_DataReceived);
+            notification.Text = this.Text;
+            notification.Icon = this.Icon;
+            notification.Visible = true;
+            notification.Click += notification_Click;
+            notification.BalloonTipClicked += notification_Click;
 
+        }
+
+        void notification_Click(object sender, EventArgs e)
+        {
+            this.Focus();
         }
 
         void frmMain_SizeChanged(object sender, System.EventArgs e)
@@ -43,6 +54,7 @@ namespace Sayingsbot_Remote
 
         void frmMain_FormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)
         {
+            client.Disconnect();
             Application.Exit();
         }
 
@@ -57,7 +69,14 @@ namespace Sayingsbot_Remote
 
         private void client_DataReceived(byte[] Data, string ID)
         {
-            log.addLog(ASCIIEncoding.ASCII.GetString(Data));
+            string tmp = ASCIIEncoding.ASCII.GetString(Data);
+            if (tmp.StartsWith("NOTIFY:"))
+            {
+                tmp = tmp.Remove(0, 7);
+                notification.ShowBalloonTip(5000, "Sayingsbot Remote", tmp, ToolTipIcon.Info);
+            }
+            else { log.addLog(tmp); }
+            
         }
 
         private void client_Disconnected()
@@ -68,6 +87,7 @@ namespace Sayingsbot_Remote
         private void client_Connected()
         {
             log.addLog("Connected!");
+            notification.ShowBalloonTip(2500, "Sayingsbot Remote", "Connected!", ToolTipIcon.Info);
         }
 
         private void txtBoxSend_KeyDown(object sender, KeyEventArgs e)
@@ -80,16 +100,6 @@ namespace Sayingsbot_Remote
         }
 
         private void button1_Click(object sender, EventArgs e)
-        {
-            connectClient();
-        }
-
-        private void statusStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-
-        }
-
-        private void button1_Click_1(object sender, EventArgs e)
         {
             connectClient();
         }
