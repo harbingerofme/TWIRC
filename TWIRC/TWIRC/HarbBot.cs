@@ -912,6 +912,7 @@ namespace SayingsBot
             {
                 writeLogger("IRC: Crisis adverted: <" + nick + "> " + message);
                 this.appendFile(progressLogPATH, "IRC: Crisis adverted: <" + nick + "> " + message);
+                this.appendFile(progressLogPATH, eee.ToString());
                 Console.Write(eee);
             }
 #endif

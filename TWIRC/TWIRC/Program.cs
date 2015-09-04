@@ -44,8 +44,12 @@ namespace SayingsBot
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             mainWindow = new RNGWindow(RNGLogger, HarbBot);
-
-            Application.Run(mainWindow);
+            try
+            {
+                Application.Run(mainWindow);
+            } catch (Exception EEE) {
+                HarbBot.appendFile(HarbBot.progressLogPATH, EEE.ToString());
+            }
         }
     }
 }

@@ -37,12 +37,21 @@ namespace Sayingsbot_Remote
             notification.Icon = this.Icon;
             notification.Visible = true;
             notification.Click += notification_Click;
+            notification.MouseDoubleClick += notification_MouseDoubleClick;
             notification.BalloonTipClicked += notification_Click;
 
         }
 
+        void notification_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+        }
+
         void notification_Click(object sender, EventArgs e)
         {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
             this.Focus();
         }
 
@@ -50,6 +59,12 @@ namespace Sayingsbot_Remote
         {
             txtMain.Width = this.Width - 16;
             txtMain.Height = this.Height - 78;
+
+            if (FormWindowState.Minimized == this.WindowState)
+            {
+                notification.ShowBalloonTip(2500, "Sayingsbot Remote", "Minimized to tray.", ToolTipIcon.None);
+                this.Hide();
+            }
         }
 
         void frmMain_FormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)

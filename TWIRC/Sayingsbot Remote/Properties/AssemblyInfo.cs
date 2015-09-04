@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Sayingsbot Remote")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Hewlett-Packard Company")]
+[assembly: AssemblyCompany("Kellersoft")]
 [assembly: AssemblyProduct("Sayingsbot Remote")]
-[assembly: AssemblyCopyright("Copyright © Hewlett-Packard Company 2015")]
+[assembly: AssemblyCopyright("©2015 Kellersoft")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3")]
-[assembly: AssemblyFileVersion("1.3")]
+[assembly: AssemblyVersion("1.3.1")]
+[assembly: AssemblyFileVersion("1.3.1")]
