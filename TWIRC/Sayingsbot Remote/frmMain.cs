@@ -67,6 +67,11 @@ namespace Sayingsbot_Remote
             }
         }
 
+        void frmMain_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        {
+            notification.Visible = false;
+        }
+
         void frmMain_FormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)
         {
             client.Disconnect();

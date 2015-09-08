@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.timerReconnect = new System.Windows.Forms.Timer(this.components);
             this.txtMain = new System.Windows.Forms.TextBox();
             this.txtBoxSend = new System.Windows.Forms.TextBox();
@@ -74,12 +75,14 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.txtBoxSend);
             this.Controls.Add(this.txtMain);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(431, 448);
             this.Name = "frmMain";
             this.Text = "Sayingsbot Remote";
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.SizeChanged += this.frmMain_SizeChanged;
-            this.FormClosed += frmMain_FormClosed;
+            this.FormClosed += this.frmMain_FormClosed;
+            this.FormClosing += this.frmMain_FormClosing;
             this.ResumeLayout(false);
             this.PerformLayout();
 

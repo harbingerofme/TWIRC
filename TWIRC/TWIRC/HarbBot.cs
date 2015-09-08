@@ -868,7 +868,7 @@ namespace SayingsBot
             string nick = e.Data.Nick;
             nick = nick.ToLower();
             string message = e.Data.Message;
-            message = message.ToLower();
+            //message = message.ToLower(); //Need to figure out something to lowercase usernames.
             storeMessage(nick, message);
             if (message.StartsWith("!")) { } else { commands.addPoints(nick, 2); commands.addAllTime(nick, 2); }
 #if DEBUG

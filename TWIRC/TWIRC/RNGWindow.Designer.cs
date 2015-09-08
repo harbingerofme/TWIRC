@@ -174,6 +174,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btn_RestartIRC);
             this.Controls.Add(this.btn_KillClients);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(431, 448);
             this.Name = "RNGWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
