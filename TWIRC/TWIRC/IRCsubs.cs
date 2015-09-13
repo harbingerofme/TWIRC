@@ -30,6 +30,11 @@ namespace TWIRC//contains the com (, sub :  com) and ali classes
             TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
             return (int)Math.Floor(diff.TotalSeconds);
         }
+
+        public override string ToString()
+        {
+            return keyword;
+        }
         
     }
     public class luaCom : com

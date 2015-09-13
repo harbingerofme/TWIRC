@@ -20,6 +20,7 @@ namespace TWIRC
         public bool running = true;
         SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
+        public Chat chatter;
         public ButtonMasher biasControl;
         public LuaServer luaServer;
 
@@ -45,9 +46,6 @@ namespace TWIRC
         public List<intStr> asCosts = new List<intStr>();
         public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>(),asWhitelist2 = new List<string>();
         List<List<string>> asResponses = new List<List<string>>();
-
-        //defines the output level of our connection
-        public int logLevel;
         
         //some settings
         public bool silence,isMod = false;
@@ -59,12 +57,13 @@ namespace TWIRC
         public List<Bias> votinglist = new List<Bias>();
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
-        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null;
+        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
         public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
+        public string poll_name = ""; public string[] poll = null; public bool poll_active; public List<intStr> poll_votes = new List<intStr>();
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
-        public bool backgrounds_enabled = false;
+        public bool backgrounds_enabled = true;
 
         public Thread one;
 
@@ -79,24 +78,24 @@ namespace TWIRC
             luaServer.send_to_all("REPELOFF", "");
 
             newBias = new double[7] { 10,10,10,10,9,8,6.5 };
+            log(0, "Created.");
+            setUpIRC(); log(1, "Done setting up parameters.");
 
-            setUpIRC(); log(1, "IRC: Done setting up irc parameters.");
+            initialiseDatabase(); log(1, "Loaded settings.");
+            initialiseChat(); log(1, "Chat database connection established.");
+            initialiseButtons(); log(1, "button database connection established.");
 
-            initialiseDatabase(); log(1, "IRC: Loaded settings.");
-            initialiseChat(); log(1, "IRC: chat database connection established.");
-            initialiseButtons(); log(1, "IRC: button database connection established.");
+            loadCommands(); log(1, "Loaded commands ("+comlist.Count.ToString()+").");
+            loadAliases(); log(1, "Loaded aliases (" + aliList.Count.ToString() + ").");
+            loadBiases(); log(1, "Loaded biases (" + biasList.Count.ToString() + ").");
 
-            loadCommands(); log(1, "IRC: Loaded commands ("+comlist.Count.ToString()+").");
-            loadAliases(); log(1, "IRC: Loaded aliases (" + aliList.Count.ToString() + ").");
-            loadBiases(); log(1, "IRC: Loaded biases (" + biasList.Count.ToString() + ").");
+            loadAntispam(); log(1, "Loaded antispam.");
 
-            loadAntispam(); log(1, "IRC: Loaded antispam.");
+            loadHardComs(); log(1, "Prepared " + hardList.Count + " hardcoded commands.");
 
-            loadHardComs(); log(1, "IRC: Prepared " + hardList.Count + " hardcoded commands.");
+            prepareTimers(); log(1, "Started timers.");
 
-            prepareTimers(); log(1, "IRC: Started timers.");
-
-            checkBackgrounds(); log(1, "IRC: All done, connecting now!");
+            checkBackgrounds(); log(1, "All done, connecting now!");
 
             try
             {
@@ -107,17 +106,8 @@ namespace TWIRC
 
         void log(int level, string message)
         {
-            log(level, 3, message);
+             logger.addLog("IRC", level, message);
         } 
-
-        void log(int minlevel, int maxlevel, string message)
-        {
-            if(logLevel >= minlevel && logLevel <= maxlevel)
-            {
-                logger.WriteLine(message);
-            }
-        }
-
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -144,6 +134,20 @@ namespace TWIRC
             }
         }
 
+        void pollTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (poll_active)
+            {
+                string str = "There's currently a poll running for: ' " + poll_name+"'. The options are:";
+                for (int i = 0; i < poll.Length; i++)
+                {
+                    str += " (" + (i+1) + ") '" + poll[i] + "'.";
+                }
+                str += " Use !vote X to cast your vote!";
+                say(str);
+            }
+        }
+
         void connection()
         {
             channels = new string[] {channel, bot_name};
@@ -152,9 +156,9 @@ namespace TWIRC
 
         }
 
-        public void say(string message)
+        public void say(string message, int type = 2)
         {   
-            sendMess(channel, message);
+            sendMess(channel, message, type);
             checkCommand(channel, channel.Substring(1), filter(message));//I guess?
         }
 
@@ -178,20 +182,20 @@ namespace TWIRC
             {
                 checkBackgrounds();
             }
-            if (voteStatus != -1)
+            if (voteStatus > -1)
             {
                 if (sender == voteTimer)
                 {
                     voteStatus = 1;
                     voteTimer2.Start();
-                    sendMess(channel, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokédollars)");
+                    sendMess(channel, "Voting for bias is now possible! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your pokedollars)");
                 }
                 if (sender == voteTimer2)
                 {
                     string str = "Voting is over.";
                     double[] tobebias = biasControl.getDefaultBias();
                     double[] values = new double[] { 0, 0, 0, 0, 0, 0, 0 };
-                    string serverput = ""; int highest = 0, id = 0;
+                    string serverput = "";
                     if (votingList.Count > 0)
                     {
                         int a = 0;
@@ -255,7 +259,7 @@ namespace TWIRC
         {
             if (!irc.IsConnected)
             {
-                logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                log(1,"NOT CONNECTED! RECONNECTING NOW!");
                 doReconnect();
             }
         
@@ -264,10 +268,11 @@ namespace TWIRC
         public void doDisconnect()
         {
 
-            logger.Write("IRC Disconnecting, vote timers paused ");
+            log(2, "Disconnecting.");
             //one.Abort();
 
-            voteStatus = -1;
+            if (voteStatus != -1) { voteStatus = -1; }
+            else voteStatus = -2;
             voteTimer.Stop();  // stop the vote timers while we're down
             voteTimer2.Stop();
 
@@ -277,7 +282,7 @@ namespace TWIRC
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... already disconnected.");
+                log(2,"Already disconnected.");
                 return;
             }
 
@@ -287,12 +292,12 @@ namespace TWIRC
             }
             catch (Exception ex)
             {
-                logger.WriteLine("... IRC DISCONNECT FAILED: " + ex.Message);
+                log(0,"DISCONNECT FAILED: " + ex.Message);
             }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... disconnected.");
+                log(1,"Disconnected.");
                 return;
             }
 
@@ -302,12 +307,12 @@ namespace TWIRC
         {
 
 
-            logger.Write("IRC Connecting ");
+            log(2,"Connecting ");
             reconTimer.Start();
 
             if (irc.IsConnected)
             {
-                logger.WriteLine("...  already connected.");   
+                log(2,"...  already connected.");   
                 return;
             }
 
@@ -316,18 +321,20 @@ namespace TWIRC
            // one.IsBackground = true;
 
             try                 { irc.Connect("irc.twitch.tv", 6667); }
-            catch (Exception ex){ logger.WriteLine("IRC CONNECT FAILED: " + ex.Message); }
+            catch (Exception ex){ log(0,"CONNECT FAILED: " + ex.Message); }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: (retrying in 5 seconds) ");
+                log(1,"Not connected: retrying in 5 seconds.");
             }
             else
             {
-                logger.WriteLine("... Connected! Vote timers resuming...");
+                log(1,"Connected! If enabled: vote timers resuming.");
 
-                voteStatus = 1;
-
+                if (voteStatus != -2)
+                    voteStatus = 1;
+                else
+                    voteStatus = -1;
                 voteTimer2.Start();
 
             }
@@ -391,7 +398,7 @@ namespace TWIRC
 
         public void ircConnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnecting()");
+            //logger.WriteLine("ircConnecting()");
             try
             {
                 one.Abort();
@@ -402,27 +409,27 @@ namespace TWIRC
             one.Name = "RNGPPBOT IRC CONNECTION";
             one.IsBackground = true;
               
-            logger.WriteLine("Thread \"one\" recreated...");
+            log(1,"Thread \"one\" recreated.");
 
         }
 
         public void ircConnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnected()");
-            logger.WriteLine("IRC: Joining Twitch chat");
+            //logger.WriteLine("ircConnected()");
+            log(0,"Connected.");
             irc.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             one.Start();
         }
 
         public void ircDisconnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnecting()");
+            //logger.WriteLine("ircDisconnecting()");
 
         }
         
         public void ircDisconnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnected()");
+           // logger.WriteLine("ircDisconnected()");
             try
             {
                 one.Abort();
@@ -433,29 +440,22 @@ namespace TWIRC
 
         public void ircConError(object sender, EventArgs e)
         {
-
+            log(0, "CONNECTION ERROR: " + e.ToString());
         }
 
         public void ircError(object sender, IrcEventArgs e)
         {
-            logger.WriteLine("IRC: error in connect: " + e.Data.RawMessage);
+            log(0,"ERROR IN CONNECT: " + e.Data.RawMessage);
         }
         public void ircRaw(object sender, IrcEventArgs e)
         {
-            if (logLevel == 3)
-            {
-                logger.WriteLine("IRC RAW:<- " + e.Data.RawMessage);
-            }
+                log(3,"IRC RAW:<- " + e.Data.RawMessage);
         }
         public void ircNotice(object sender, IrcEventArgs e)
         {
-            if (logLevel < 3 && logLevel > 0)
-            {
-                logger.WriteLine("IRC NOTICE: " + e.Data.Message);
-            }
             if (e.Data.Message == "Error logging in")
             {
-                logger.WriteLine("IRC: SEVERE: Unsuccesful login, please check the username and oauth.");
+                log(0,"SEVERE: Unsuccesful login, please check the username and oauth.");
             }
         }
 
@@ -472,6 +472,7 @@ namespace TWIRC
                     if (moderator == bot_name)
                     {
                         isMod = true;
+                        irc.SendDelay = 60000 / 50;//if we are modded, we can send 50 messages a minute.
                     }
                     else
                     {
@@ -481,8 +482,10 @@ namespace TWIRC
                         }
                     }
                 }
-            
+                if (!isMod) { irc.SendDelay = 60000 /20; }//We are allowed to send 20 messages a minute to channels we are not modded in.
+                log(2, "Moderators updated.");
             }
+            
         }
 
         public string[] FileLines(string path)

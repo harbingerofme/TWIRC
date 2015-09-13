@@ -28,6 +28,7 @@ namespace TWIRC
                 new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE IF NOT EXISTS 'poll' ('name' TEXT(25), 'choice' INTEGER(1));", dbConn).ExecuteNonQuery();
 
                 //new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','" + logLevel + "','" + progressLogPATH + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')", dbConn).ExecuteNonQuery();
@@ -62,6 +63,7 @@ namespace TWIRC
                 insertIntoSettings("commandsurl", "string", @"https://dl.dropboxusercontent.com/u/273135957/commands.html");
                 insertIntoSettings("commandspath", "string", @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html");
                 insertIntoSettings("biaspointspread", "string", "10:10:10:10:9:8:6.5");
+                insertIntoSettings("poll", "string", "");
 
                 loadSettings();
 
@@ -99,7 +101,6 @@ namespace TWIRC
                     case "silence": silence = bitToBool(a); break;
                     case "oauth": oauth = sqldr.GetString(2); break;
                     case "cooldown": globalCooldown = (int)a; break;
-                    case "loglevel": logLevel = (int)a; break;
                     case "logpath": progressLogPATH = sqldr.GetString(2); break;
                     case "timebetweenvote": timeBetweenVotes = (int)a; break;
                     case "timetovote": timeToVote = (int)a; break;
@@ -113,11 +114,17 @@ namespace TWIRC
                     case "commandsurl": commandsURL = sqldr.GetString(2); break;
                     case "commandspath": commandsPATH = sqldr.GetString(2); break;
                     case "biaspointspread": tempDoubleArray = new List<double>(); tempStringArray = sqldr.GetString(2).Split(':'); foreach (string s in tempStringArray) { tempDoubleArray.Add(double.Parse(s)); } tempDoubleArray.CopyTo(newBias,0); break;
+                    case "poll": if (sqldr.GetString(2) != "") { tempStringArray = sqldr.GetString(2).Split('|'); poll_name = tempStringArray[0]; poll = new string[tempStringArray.Length - 1]; for (int i = 1; i < tempStringArray.Length; i++) { poll[i - 1] = tempStringArray[i]; } } break;
                 }
+            }
+            sqldr = new SQLiteCommand("SELECT name,choice FROM poll;", dbConn).ExecuteReader();
+            while (sqldr.Read())
+            {
+                poll_votes.Add(new intStr(sqldr.GetInt32(1), sqldr.GetString(0)));
             }
         }
 
-        public bool setSetting(string variable, string type, string value, bool force=false)
+        bool setSetting(string variable, string type, string value, bool force=false)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable FROM newsettings WHERE variable='" + variable + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
@@ -136,7 +143,7 @@ namespace TWIRC
             }
         }
 
-        public bool bitToBool(double i)
+        bool bitToBool(double i)
         {
             if (i == 0)
             {
@@ -149,7 +156,7 @@ namespace TWIRC
             
         }
 
-        public void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.
+        void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.
         {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO newsettings (variable, type, value) VALUES ( @par0, '"+type+"', @par1);", dbConn);
             cmd.Parameters.AddWithValue("@par0", variable);
@@ -173,7 +180,7 @@ namespace TWIRC
             }
         }
 
-        public void initialiseTLDs()
+        void initialiseTLDs()
         {
             if (!File.Exists("TLDs.twirc"))
             {
@@ -182,7 +189,7 @@ namespace TWIRC
             asTLDs = FileLines("TLDs.twirc").ToList();
         }
 
-        public void initialiseChat()
+        void initialiseChat()
         {
             if(!File.Exists("chat.sqlite"))
             {
@@ -221,7 +228,7 @@ namespace TWIRC
             initialiseTLDs();
         }
 
-        public void loadHardComs()
+        void loadHardComs()
         {
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
 
@@ -267,6 +274,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!repel", 3, 1));
             hardList.Add(new hardCom("!reloadsettings", 3, 0));
             hardList.Add(new hardCom("!changesetting", 5, 2));
+            hardList.Add(new hardCom("!poll", 3, 1));
+            hardList.Add(new hardCom("!vote", 0, 0));
 
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -325,9 +334,14 @@ namespace TWIRC
             exp_allTimer = new System.Timers.Timer(1);
             exp_allTimer.AutoReset = false;
             exp_allTimer.Enabled = false;
+
+            pollTimer = new System.Timers.Timer(1000 * 60 * 60 * 2);
+            pollTimer.AutoReset = true;
+            pollTimer.Elapsed += pollTimer_Elapsed;
+            pollTimer.Start();
         }
 
-        public void loadAliases()
+        void loadAliases()
         {
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
             while (rdr.Read())
@@ -338,7 +352,7 @@ namespace TWIRC
             }
         }
 
-        public void loadCommands()
+       void loadCommands()
         {
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
             while (rdr.Read())
@@ -351,7 +365,7 @@ namespace TWIRC
             }
         }
 
-        public void loadBiases()
+       void loadBiases()
         {
             List<Bias> biases = new List<Bias>();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM biases;",dbConn).ExecuteReader();
@@ -366,7 +380,7 @@ namespace TWIRC
             biasList = biases;
         }
 
-        public bool addBias(string keyword, string numbers)
+        bool addBias(string keyword, string numbers)
         {
             SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE keyword LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
             if(sql.Read()){
@@ -389,9 +403,9 @@ namespace TWIRC
             }
         }
 
-        public bool delBias(string keyword)
+        bool delBias(string keyword)
         {
-            SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keywords LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keyword LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
             if (sql.Read())
             {
                 string numbers = sql.GetString(1);
@@ -422,20 +436,20 @@ namespace TWIRC
         }
 
 
-        public void notNew(string user)
+        void notNew(string user)
         {
             user = user.ToLower();
             new SQLiteCommand("UPDATE users SET isnew = 0 WHERE name = '" + user + "';", dbConn).ExecuteNonQuery();
         }
 
-        public int getNow()
+        int getNow()
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
             return (int)Math.Floor(diff.TotalSeconds);
         }
 
-        public string getNowSQL()
+        string getNowSQL()
         {
             string str = DateTime.Now.Year.ToString();
             if (DateTime.Now.DayOfYear < 100) { str += "0"; }
@@ -444,7 +458,7 @@ namespace TWIRC
             //(int)DateTime.Now.TimeOfDay.TotalSeconds;
             return str;
         }
-        public string getNowExtended()
+        string getNowExtended()
         {
             string str = DateTime.Now.Year.ToString();
             if (DateTime.Now.DayOfYear < 100) { str += "0"; }
@@ -541,7 +555,49 @@ namespace TWIRC
             return 0;
         }
 
-        public bool isNew(string user)
+        public void pollOpen()
+        {
+            string temp = poll_name + "|";
+            foreach (string s in poll)
+            {
+                temp += s + "|";
+            }
+            temp = temp.Substring(0, temp.Length - 1);//remove last delimiter
+            setSetting("poll", "string", temp, true);
+
+            new SQLiteCommand("DELETE FROM poll WHERE 1=1;", dbConn).ExecuteNonQuery();
+            poll_votes.Clear();
+        }
+
+        bool pollVote(string user, int value)
+        {
+            user = user.ToLower();
+            SQLiteDataReader sqldr = new SQLiteCommand("SELECT choice FROM poll WHERE name='" + user + "';", dbConn).ExecuteReader();
+            if (sqldr.Read())
+            {
+                int a = sqldr.GetInt32(0);
+                if (a == value)
+                {
+                    return false;
+                }
+                else
+                {
+                    int index = poll_votes.FindIndex(delegate(intStr InSt) { return InSt.Str == user; });
+                    poll_votes.RemoveAt(index);
+                    new SQLiteCommand("UPDATE poll SET choice = '"+value+"' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                    poll_votes.Add(new intStr(value, user));
+                    return true;
+                }
+            }
+            else
+            {
+                new SQLiteCommand("INSERT INTO poll (name,choice) VALUES ('" + user + "','" + value + "');", dbConn).ExecuteNonQuery();
+                poll_votes.Add(new intStr(value, user));
+                return true;
+            }
+        }
+
+        bool isNew(string user)
         {
             user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
@@ -563,7 +619,7 @@ namespace TWIRC
             }
         }
 
-        public int addAllTime(string name, int amount)
+        int addAllTime(string name, int amount)
         {
             int things, rank;
             name = name.ToLower();
@@ -583,7 +639,7 @@ namespace TWIRC
             }
         }
 
-        public int getAllTime(string name)
+        int getAllTime(string name)
         {
             name = name.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
@@ -600,7 +656,7 @@ namespace TWIRC
             }
         }
 
-        public void storeMessage(string user, string message)
+        void storeMessage(string user, string message,int type = 0)
         {
             user = user.ToLower();
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
@@ -613,6 +669,10 @@ namespace TWIRC
             else
             {
                 new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
+            }
+            if(chatter!=null)
+            {
+                chatter.Add(user, pullAuth(user), message, type);
             }
         }
     }

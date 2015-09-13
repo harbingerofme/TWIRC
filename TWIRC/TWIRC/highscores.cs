@@ -10,7 +10,7 @@ using System.Timers;
 
 namespace TWIRC
 {
-    class highscores : Form
+    class highscores : CHILDFORM
     {
         public List<Label> nameList = new List<Label>();
         public List<Label> dataList = new List<Label>();
@@ -20,7 +20,7 @@ namespace TWIRC
         public List<intStr> data = new List<intStr>();
         System.Timers.Timer timer;
         double res;
-        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokéDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
+        string[] typeText = new string[] { "Most $ earned (all time):", "Most Chat Lines:", "Most PokeDollars:","Most backgrounds purchased:", "Buttons pressed in last 24 hours:" };
         int defaultWidth, defaultHeight;
         Font labelFont;
         HarbBot hb;
@@ -275,7 +275,7 @@ namespace TWIRC
             int x2 = (int)(double)((w - 8) / 10) * 6;
             int y = (int)((h / 30 + h / 10+ h/12));
 
-                if (res >= (double)h / (double)w)//Heigth is the constraint
+                if (res >= (double)h / (double)w)//Height is the constraint
                 {
                     leaderboards.Font = new Font("Verdana", (float)(20 * ((double)h / (double)defaultHeight)));
                     leaderboardsType.Font = new Font("VerdanaPOKEDOLLAR", (float)(12 * ((double)h / (double)defaultHeight)));

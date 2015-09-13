@@ -17,9 +17,10 @@ namespace TWIRC
         static Logger RNGLogger;
         static LuaServer RNGLuaServer;
         static ButtonMasher RNGesus;
-        static RNGWindow mainWindow;
+        static MainWindow mainWindow;
         static HarbBot HarbBot;
-        //static DBHandler RNGDB;
+        static DatabaseConnector dbConn;
+        const string VERSION = "2.0.0";
         
 
 
@@ -29,7 +30,7 @@ namespace TWIRC
 
 
             RNGLogger = new Logger();
-            RNGLogger.addLog("Main()", 0, "Logger object created");
+            RNGLogger.addLog("PROGRAM", 0, "Logger object created");
 #if OFFLINE
             RNGLogger.addLog("Main()", 0, "Working in offline mode, no IRC connection will be made!");
 #endif
@@ -40,34 +41,16 @@ namespace TWIRC
             RNGLuaServer.Run();
 
             RNGesus = new ButtonMasher(RNGLogger, 7); // 6 buttons
-                              // LT   DN     UP     RT
-            double[] bias1 = { 2.25, 1.00, 2.25, 1.00, 0.96, 0.92, 0.82 };
-            double[] bias2 = { 1.00, 3.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
-            double[] bias3 = { 2.25, 1.00, 2.25, 2.25, 0.96, 0.92, 0.82 };
-            double[] bias4 = { 3.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
-            double[] bias5 = { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
-            double[] bias6 = { 1.00, 1.00, 1.00, 3.00, 0.96, 0.92, 0.82 };
-            double[] bias7 = { 1.00, 2.25, 1.00, 2.25, 0.96, 0.92, 0.82 };
-            double[] bias8 = { 1.00, 1.00, 3.00, 1.00, 0.96, 0.92, 0.82 };
-            double[] bias9 = { 1.00, 2.25, 1.00, 2.25, 0.96, 0.92, 0.82 };
 
-
-            RNGesus.setDefaultBias(bias5); //values to average against
-            RNGesus.setBias(bias5);
-
-#if !OFFLINE
             HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer);
-#endif
 
-            //RNGDB = new DBHandler("rngppbot.sqlite", RNGLogger);
+            dbConn = new DatabaseConnector(RNGLogger);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            frmBias biasWindow = new frmBias(RNGLogger,RNGesus);
-            mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus, biasWindow, HarbBot);
-
-            RNGesus.set_MainWindow(mainWindow);
+            //mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus, biasWindow, HarbBot);
+            mainWindow = new MainWindow(HarbBot, RNGLogger, dbConn, RNGLuaServer);
             
             Application.Run(mainWindow);
 

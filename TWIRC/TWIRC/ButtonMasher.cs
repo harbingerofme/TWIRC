@@ -17,7 +17,6 @@ namespace TWIRC
         double[] thisBias;
         double[] defaultBias;
         int numvals;
-        RNGWindow MainWindow;
         public int[] stats;
 
 
@@ -32,11 +31,6 @@ namespace TWIRC
             //RNGEmulators = clienttable;
             RNGLogger = thelogger;
 
-        }
-
-        public void set_MainWindow(RNGWindow NewMainWindow)
-        {
-            MainWindow = NewMainWindow;
         }
 
         Random RNGesus = new Random();
@@ -63,7 +57,6 @@ namespace TWIRC
 
         public void setBias(double[] newbias)
         {
-            RNGLogger.WriteLine("New bias:" + Biases.printBias(newbias));
             try
             {
                 Array.Copy(newbias, thisBias, 7);
@@ -73,7 +66,12 @@ namespace TWIRC
         
         public void setDefaultBias(double[] newbias)
         {
-            RNGLogger.WriteLine("Setting default bias to:" + Biases.printBias(newbias));
+            string s = "";
+            foreach(double d in newbias)
+            {
+                s += Math.Round(d, 4) + " ";
+            }
+            RNGLogger.addLog("RNGesus",1,"Setting default bias to: " + s);
             Array.Copy(newbias, defaultBias, 7 );
         }
         public double[] getDefaultBias()
@@ -97,7 +95,7 @@ namespace TWIRC
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
-            RNGLogger.WriteLine("Doing Decay! " + Biases.printBias(thisBias));
+            RNGLogger.WriteLine("Doing Decay! " +thisBias);
         }
 
 

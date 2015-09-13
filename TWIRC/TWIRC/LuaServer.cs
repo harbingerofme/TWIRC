@@ -54,19 +54,19 @@ namespace TWIRC
                 try
                 {
                     serverSocket.Start();
-                    RNGLogger.WriteLine("LuaServer Started on port " + luaPort);
+                    RNGLogger.addLog("LuaServer",0,"LuaServer Started on port " + luaPort);
                     started = true;
                 }
                 catch (SocketException SockEx)
                 {
-                    RNGLogger.WriteLine("LuaServer failed to start! ");
+                    RNGLogger.addLog("LuaServer",1,"LuaServer failed to start! ");
                     if (SockEx.ErrorCode == 10048)
                     {
-                    RNGLogger.WriteLine("Probably already running on port " + luaPort);
+                    RNGLogger.addLog("LuaServer",2,"Probably already running on port " + luaPort);
                     }
                     else
                     {
-                        RNGLogger.WriteLine(SockEx.ToString()); // something has gone horriby wrong.
+                        RNGLogger.addLog("LuaServer",0,"ERROR: "+SockEx.ToString()); // something has gone horriby wrong.
                     }
                     Thread.Sleep(5000);
                 }
@@ -93,7 +93,7 @@ namespace TWIRC
 
 
                 
-                RNGLogger.addLog("LuaServer", 0, "Client No:" + Convert.ToString(counter) + " starting!");
+                RNGLogger.addLog("LuaServer", 1, "Client No:" + Convert.ToString(counter) + " starting!");
                 
                 EmuClientHandler client = new EmuClientHandler();
                 client.startClient(clientSocket, Convert.ToString(counter), RNGEmulators, RNGLogger);
@@ -153,7 +153,7 @@ namespace TWIRC
                 this.clNo = clientNumber;
                 clientTable.Add(clientNumber, this);
 
-                RNGLogger.WriteLine("added a client");
+                RNGLogger.addLog("LuaClient " + clNo,1,"Hey, I exist now!");
                 Thread ctThread = new Thread(clientLoop);
                 ctThread.Name = "ctThread" + clientNumber;
                 ctThread.Start();
@@ -204,7 +204,7 @@ namespace TWIRC
                     }
                     catch (Exception ex)
                     {
-                        RNGLogger.WriteLine("Something went wrong with the socket; killing it::");
+                        RNGLogger.addLog("LuaClient "+clNo,0,"Something went wrong with the socket; killing it.");
                         RNGLogger.WriteLine(ex.Message);
                         clientTable.Remove(clNo); 
                         break;
