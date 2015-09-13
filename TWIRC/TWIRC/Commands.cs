@@ -522,11 +522,11 @@ namespace SayingsBot
                                         quotesCommand.Parameters.AddWithValue("@par1", quser);
                                         quotesCommand.ExecuteNonQuery();
                                         hb.appendFile(hb.progressLogPATH, "Added " + quser + " to overall random list. They are user " + hb.cstr(nnewLength) + ".");
-                                        return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam + "  Also, Added " + quser + " to overall random list. They are user " + hb.cstr(nnewLength) + ".");
+                                        return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added. Also, Added " + quser + " to overall random list. They are user " + hb.cstr(nnewLength) + ".");
                                     }
                                     break;
                                 }
-                                else { return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added as: " + fParam); }
+                                else { return ("Quote " + hb.cstr(newLength) + " for " + quser + " has been added."); }
                             }
                             else if (function == "edit")
                             {
