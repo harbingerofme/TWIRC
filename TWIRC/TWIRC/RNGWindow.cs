@@ -315,69 +315,6 @@ namespace TWIRC
             }
         }
 
-        private void btn_DownLeft_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.downLeft);
-            RNGLuaServer.send_to_all("SETBIAS", "DOWNLEFT");
-            RNGLogger.WriteLine("Manually set bias to DOWNLEFT");
-        }
-
-        private void btn_Down_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.down);
-            RNGLuaServer.send_to_all("SETBIAS", "DOWN");
-            RNGLogger.WriteLine("Manually set bias to DOWN");
-        }
-
-        private void btn_DownRight_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.downRight);
-            RNGLuaServer.send_to_all("SETBIAS", "DOWNRIGHT");
-            RNGLogger.WriteLine("Manually set bias to DOWNRIGHT");
-        }
-
-        private void btn_Left_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.left);
-            RNGLuaServer.send_to_all("SETBIAS", "LEFT");
-            RNGLogger.WriteLine("Manually set bias to LEFT");
-        }
-
-        private void btn_Neutral_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.neutral);
-            RNGLuaServer.send_to_all("SETBIAS", "NEUTRAL");
-            RNGLogger.WriteLine("Manually set bias to NEUTRAL");
-        }
-
-        private void btn_Right_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.getBias("right"));
-            RNGLuaServer.send_to_all("SETBIAS","RIGHT");
-            RNGLogger.WriteLine("Manually set bias to RIGHT");
-        }
-
-        private void btn_UpLeft_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.upLeft);
-            RNGLuaServer.send_to_all("SETBIAS", "UPLEFT");
-            RNGLogger.WriteLine("Manually set bias to UPLEFT");
-        }
-
-        private void btn_Up_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.up);
-            RNGLuaServer.send_to_all("SETBIAS","UP");
-            RNGLogger.WriteLine("Manually set bias to UP");
-        }
-
-        private void btn_UpRight_Click(object sender, EventArgs e)
-        {
-            RNGesus.setBias(Biases.upRight);
-            RNGLuaServer.send_to_all("SETBIAS", "UPRIGHT");
-            RNGLogger.WriteLine("Manually set bias to UPRIGHT");
-        }
-
         private void txt_Command_TextChanged(object sender, EventArgs e)
         {
 
@@ -505,8 +442,8 @@ namespace TWIRC
 
         private void btn_dumpBiases_Click(object sender, EventArgs e)
         {
-            RNGLogger.WriteLine("Default:" + Biases.printBias(RNGesus.getDefaultBias()));
-            RNGLogger.WriteLine("Current:" + Biases.printBias(RNGesus.getCurrentBias()));
+            RNGLogger.WriteLine("Default:" + RNGesus.getDefaultBias());
+            RNGLogger.WriteLine("Current:" + RNGesus.getCurrentBias());
         }
 
         private void timer_save_Tick(object sender, EventArgs e)
