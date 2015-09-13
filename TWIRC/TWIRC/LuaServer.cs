@@ -11,11 +11,13 @@ using System.Windows.Forms;
 
 namespace TWIRC
 {
-    public class LuaServer
+    public class LuaServer : IDisposable
     {
        // RNGWindow mainWindow;
         Logger RNGLogger;
         Thread lsThread;
+
+        bool _isDisposing;
 
         int luaPort;
         IPAddress luaAddr;
@@ -72,7 +74,7 @@ namespace TWIRC
                 }
             }
            
-            while (running == true)
+            while (!_isDisposing)
             {
                 counter += 1;
                 try
@@ -128,6 +130,13 @@ namespace TWIRC
                 }
             }
         }
+
+        public void Dispose()
+        {
+            this._isDisposing = true;
+            this.serverSocket.Stop();
+        }
+
 
         //Class to handle each client request separatly
         public class EmuClientHandler
