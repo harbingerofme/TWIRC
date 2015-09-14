@@ -329,8 +329,8 @@ namespace TWIRC
 
             luaServer.shutdown();
 
-            irc.doDisconnect();
-            irc.Close();
+             //irc.doDisconnect();
+             irc.Close();
         }
 
         void timeSaver_Elapsed(object sender, ElapsedEventArgs e)
