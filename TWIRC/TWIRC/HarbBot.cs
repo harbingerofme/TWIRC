@@ -216,7 +216,12 @@ namespace TWIRC
                             tobebias[i] += values[i];
                             
                         }
-                        str += " Processed " + a + " votes from " + votingList.Count + " users. ";
+                        str += " Processed " + a + " vote";
+                        if (a != 1) { str += "s"; }
+                        str += "from " + votingList.Count;
+                        
+                        if (votingList.Count != 1) str += " users. ";
+                        else str += "user. ";
                         biasControl.setBias(tobebias);
                         luaServer.send_to_all("SETBIAS",tobebias[0]+" "+tobebias[1]+" "+tobebias[2]+" "+tobebias[3]+" "+tobebias[4]+" "+tobebias[5]+" "+tobebias[6]);
                     }

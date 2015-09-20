@@ -2,6 +2,7 @@
 main
 Timer window resizable
 settings
+music window (add setting for file location)
 
 (also must, but lower priority)
 auto timeout when first message contains a link (dont'say hello either.)

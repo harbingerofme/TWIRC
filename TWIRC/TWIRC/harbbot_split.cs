@@ -577,25 +577,31 @@ namespace TWIRC
                                     catch
                                     {
                                         fail = true;
-                                        log(1,"Parsing error in bias vote, send more robots!");//has never happened, ever. Will be removed soon to improve code quality. --or not, I like this message.
+                                        log(1, "Parsing error in bias vote, send more robots!");//has never happened, ever. Will be removed soon to improve code quality. --or not, I like this message.
                                     }
                                 }
-                                if (tempVar3.Length > 6)//if the bias votes contrains enough words for a biasnumbers vote
+                                if (tempVar3.Length > 2)//if the bias votes contrains enough words for a biasnumbers vote
                                 {
                                     fail = false;
                                     double[] dbl = new double[7];
-                                    for (int a = 0; a < 7; a++)
+                                    int count = 0;
+                                    try
                                     {
-                                        if(Regex.Match(tempVar3[a],@"^(10|[0-9](\.[0-9]){0,1})$").Success)
+                                        for (int a = 0; a < 7; a++)
                                         {
-                                            dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
-                                        }
-                                        else
-                                        {
-                                            fail = true;
-                                            break;
+                                            if (Regex.Match(tempVar3[a], @"^(10|[0-9](\.[0-9]){0,1})$").Success)
+                                            {
+                                                dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
+                                                count++;
+                                            }
+                                            else
+                                            {
+                                                fail = true;
+                                                break;
+                                            }
                                         }
                                     }
+                                    catch { fail = true; }
                                     if (!fail)
                                     {
                                         q = new Bias("custom", dbl);
@@ -603,12 +609,30 @@ namespace TWIRC
                                         try
                                         {
                                             tempVar1 = int.Parse(tempVar3[7]);
-                                            if(tempVar1<1)
+                                            if (tempVar1 < 1)
                                             {
                                                 tempVar1 = 1;
                                             }
                                         }
                                         catch { };
+                                    }
+                                    else
+                                    {
+                                        if(count == 4)
+                                        {
+                                            for(int i =4; i<7; i++)
+                                            {
+                                                dbl[i] = 0;
+                                            }
+                                            q = new Bias("custom", dbl);
+                                            tempVar1 = 1;
+                                        }
+                                        else if( count>2)
+                                        {
+                                            q = null;
+                                            if(count != 3)
+                                            sendMess(channel, User + ", it seems you tried a custom bias, but failed.");
+                                        }
                                     }
 
                                 }
@@ -617,7 +641,7 @@ namespace TWIRC
                                     addVote(user, q, tempVar1);
                                 }
                             }
-                            if(voteStatus>-1)
+                            if(voteStatus==0)
                             {
                                 if (getNow() - lastVoteTime > 30)
                                 {
