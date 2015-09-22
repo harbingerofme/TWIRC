@@ -404,11 +404,11 @@ namespace TWIRC
             {
                 case "Timer":
                     List<object[]> li = dbConn.Read(dbConn.main,"SELECT varname,value FROM childWindows WHERE name = 'Timer' AND (varname = 'hours' OR varname = 'minutes' OR varname = 'seconds' OR varname = 'countdown' OR varname = 'countUpAfter');");
-                    int hours = 0,minutes = 0, seconds =0;
-                    bool countdown = false,countUp = false;
+                    int hours = 0,minutes = 0, seconds =0 , blackHeight=55;
+                    bool countdown = false,countUp = false, locked = false;
                     if(li.Count == 0)
                     {
-                        dbConn.Execute(dbConn.main, "INSERT INTO childWindows (name, varname, value) VALUES ('Timer', 'hours', 0), ('Timer', 'minutes', 0), ('Timer', 'seconds', 0), ('Timer', 'countdown', 'false'), ('Timer', 'countUpAfter', 'false');");
+                        dbConn.Execute(dbConn.main, "INSERT INTO childWindows (name, varname, value) VALUES ('Timer', 'blackHeight', 55), ('Timer', 'locked', 'false'), ('Timer', 'hours', 0), ('Timer', 'minutes', 0), ('Timer', 'seconds', 0), ('Timer', 'countdown', 'false'), ('Timer', 'countUpAfter', 'false');");
                     }
                     else
                     {
@@ -422,10 +422,12 @@ namespace TWIRC
                                 case "seconds": seconds = int.Parse((string)entry[1]); break;
                                 case "countdown": countdown = bool.Parse((string)entry[1]); break;
                                 case "countUpAfter": countUp = bool.Parse((string)entry[1]); break;
+                                case "blackHeight": blackHeight = int.Parse((string)entry[1]);break;
+                                case "locked": locked = bool.Parse((string)entry[1]); break;
                             }
                         }
                     }
-                    returnal = new timerWindow(hours, minutes, seconds, countdown,countUp);
+                    returnal = new timerWindow(hours, minutes, seconds, countdown,countUp,locked,blackHeight);
                     break;
                 case "VoteTimer":
                     returnal = new votetimer(irc);
@@ -459,6 +461,13 @@ namespace TWIRC
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
+
+                if(q.Name == "Timer")
+                {
+                    timerWindow tw = q as timerWindow;
+                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
+                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
+                }
             }
         }
 
@@ -598,6 +607,13 @@ namespace TWIRC
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
                 dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
+
+                if(q.Name == "Timer")
+                {
+                    timerWindow tw = q as timerWindow;
+                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
+                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
+                }
             }
         }
 

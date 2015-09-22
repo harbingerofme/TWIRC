@@ -1,6 +1,5 @@
 ﻿(must have)
 main
-Timer window resizable
 settings
 music window (add setting for file location)
 

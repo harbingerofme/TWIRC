@@ -10,7 +10,9 @@ namespace TWIRC
         //settings
         int window_height = 117;
         int window_width = 270;
-        int black_height = 55;//width is always equal to screen width
+        public int black_height = 55;//width is always equal to screen width
+        float font_size = 28.0f;
+        public bool locked;
 
         //some declarations
         Button toggle;
@@ -24,11 +26,14 @@ namespace TWIRC
         Label cntdwn_lbl;
         CheckBox cntup;
         Label cntup_lbl;
+        Label lck_lbl;
+        CheckBox lck;
 
         public bool running = false;//starting paused
         public bool maintenance = false;
         bool die = false;
         bool showMain = false;
+        bool startSet = false;
         public int tenthSeconds = 0;
         public int seconds = 0;
         public int minutes = 0;
@@ -36,14 +41,19 @@ namespace TWIRC
         public bool countdown = false;
         public bool countUpafter = false;
 
+        DateTime start, pause;
+
         //startup
-        public timerWindow(int _hours = 0, int _minutes = 0, int _seconds = 0, bool _countdown = false, bool _countUpAfterwards = false)
+        public timerWindow(int _hours = 0, int _minutes = 0, int _seconds = 0, bool _countdown = false, bool _countUpAfterwards = false, bool _locked = false, int _blackHeight = -1)
         {
             hours = _hours;
             seconds = _seconds;
             minutes = _minutes;
             countdown = _countdown;
             countUpafter = _countUpAfterwards;
+            locked = _locked;
+            if (_blackHeight != -1)
+                black_height = _blackHeight;
 
             this.Text = "Timer";
             this.StartPosition = FormStartPosition.Manual;
@@ -59,6 +69,7 @@ namespace TWIRC
             this.KeyPreview = true;//we apparently need this
             this.Paint += drawTimer;//binds drawtimer to the paintevent
             this.FormClosed += terminate;//make sure the thread closes as well
+            this.Resize += resizing;
 
         }//functions below this;
 
@@ -67,21 +78,21 @@ namespace TWIRC
             toggle = new Button();
             toggle.Text = "ᐅ";
             toggle.Size = new Size(40, 18);
-            toggle.Location = new Point(20, black_height + 5);
+
             toggle.MouseClick += toggle_animation;
             Controls.Add(toggle);
 
             mainten_but = new Button();
             mainten_but.Text = "M";
             mainten_but.Size = new Size(40, 18);
-            mainten_but.Location = new Point(120, black_height + 5);
+
             mainten_but.MouseClick += maintenanceMode;
             Controls.Add(mainten_but);
 
             timer = new Label();
             timer.Text = "0:00:0.0";
-            timer.Size = new Size(window_width - 15, black_height);//gives us some spaaaaaace from the edge
-            timer.TextAlign = ContentAlignment.MiddleRight;//assures us it's always alligned properly
+            timer.Size = new Size(ClientSize.Width, black_height);//gives us some spaaaaaace from the edge
+            timer.TextAlign = ContentAlignment.MiddleRight;
             timer.Location = new Point(5, 0);//gives us some spaaaaaace from the edge
             timer.ForeColor = Color.White;
             timer.BackColor = Color.Transparent;
@@ -90,7 +101,7 @@ namespace TWIRC
             hour = new TextBox();
             hour.Text = "0";
             hour.Font = new Font("Arial", 8);
-            hour.Location = new Point(5, black_height + 30);
+
             hour.Size = new Size(36, 10);
             hour.TextAlign = HorizontalAlignment.Right;
             Controls.Add(hour);
@@ -98,7 +109,7 @@ namespace TWIRC
             minute = new TextBox();
             minute.Text = "0";
             minute.Font = new Font("Arial", 8);
-            minute.Location = new Point(42, black_height + 30);
+
             minute.Size = new Size(18, 10);
             minute.TextAlign = HorizontalAlignment.Right;
             Controls.Add(minute);
@@ -106,7 +117,7 @@ namespace TWIRC
             second = new TextBox();
             second.Text = "0";
             second.Font = new Font("Arial", 8);
-            second.Location = new Point(61, black_height + 30);
+
             second.Size = new Size(18, 10);
             second.TextAlign = HorizontalAlignment.Right;
             Controls.Add(second);
@@ -114,45 +125,102 @@ namespace TWIRC
             but_changeTime = new Button();
             but_changeTime.Text = "GO";
             but_changeTime.Size = new Size(30, 18);
-            but_changeTime.Location = new Point(80, black_height + 30);
+
             but_changeTime.MouseClick += changeTime;
             Controls.Add(but_changeTime);
 
             cntdwn_lbl = new Label();
             cntdwn_lbl.Text = "CD?";
             cntdwn_lbl.Size = new Size(30, 20);
-            cntdwn_lbl.Location = new Point(111, black_height + 33);
+
             Controls.Add(cntdwn_lbl);
 
             cntup_lbl = new Label();
             cntup_lbl.Text = "UA?";
             cntup_lbl.Size = new Size(30, 20);
-            cntup_lbl.Location = new Point(153, black_height + 33);
+
             cntup_lbl.Visible = false;
             Controls.Add(cntup_lbl);
 
             cntdwn = new CheckBox();
             cntdwn.Checked = false;
-            cntdwn.Location = new Point(142, black_height + 30);
-            cntdwn.Size = new Size(10, 25);
+
+            cntdwn.Size = new Size(14, 25);
             cntdwn.Click += cntdwn_click;
             Controls.Add(cntdwn);
 
             cntup = new CheckBox();
             cntup.Checked = false;
             cntup.Visible = false;
-            cntup.Location = new Point(184, black_height + 30);
+            cntup.Size = new Size(14, 25);
             Controls.Add(cntup);
+
+            //🔒
+            lck_lbl = new Label();
+            lck_lbl.Text = "🔒";
+            lck_lbl.Size = new Size(15, 20);
+            Controls.Add(lck_lbl);
+
+            lck = new CheckBox();
+            lck.Checked = locked;
+            lck.CheckedChanged += lck_CheckedChanged;
+            Controls.Add(lck);
+
+            formLocator();
         }
 
+        void lck_CheckedChanged(object sender, EventArgs e)
+        {
+            locked = lck.Checked;
+        }
+
+        void formLocator()
+        {
+            toggle.Location = new Point(20, black_height + 5);
+            mainten_but.Location = new Point(120, black_height + 5);
+            hour.Location = new Point(5, black_height + 30);
+            minute.Location = new Point(42, black_height + 30);
+            second.Location = new Point(61, black_height + 30);
+            but_changeTime.Location = new Point(80, black_height + 30);
+            cntdwn_lbl.Location = new Point(111, black_height + 33);
+            cntup_lbl.Location = new Point(160, black_height + 33);
+            cntdwn.Location = new Point(142, black_height + 30);
+            cntup.Location = new Point(190, black_height + 30);
+            lck_lbl.Location = new Point(205, black_height + 30);
+            lck.Location = new Point(220, black_height + 30);
+        }
+
+        void resizing(object o, EventArgs e)
+        {
+            if (!locked)
+            {
+                black_height = ClientSize.Height - 60;
+                if (black_height < 55) black_height = 55;
+
+                font_size = min(((float)black_height / 2.0F), (float)ClientSize.Width / 9.0f);
+
+                timer.Size = new Size(ClientSize.Width, black_height);
+
+                formLocator();
+
+                Invalidate();
+            }
+        }
+
+        float min(float a, float b)
+        {
+            if (a > b)
+                return b;
+            return a;
+        }
 
         void drawTimer(object o, PaintEventArgs pea)
         {
             SolidBrush black = new SolidBrush(Color.Black);
-            pea.Graphics.FillRectangle(black, 0, 0, window_width, black_height);
+            pea.Graphics.FillRectangle(black, 0, 0, Width, black_height);
             if (!maintenance || !showMain)
             {
-                timer.Font = new Font("pokemon fireleaf", 30);
+                timer.Font = new Font("pokemon fireleaf", font_size);
                 string ts = "" + tenthSeconds;
                 string s = "";
                 if (seconds < 10) { s += "0"; }//make sure it's always 2 characters long
@@ -165,7 +233,7 @@ namespace TWIRC
             }
             else//maintenance
             {
-                timer.Font = new Font("pokemon fireleaf", 28);
+                timer.Font = new Font("pokemon fireleaf", (float)font_size * 0.7f);
                 timer.Text = "[MAINTENANCE]";
             }
         }
@@ -176,11 +244,15 @@ namespace TWIRC
             {
                 toggle.Text = "ᐅ";
                 running = false;
+                startSet = false;
             }
             else
             {
                 toggle.Text = "X";
                 running = true;
+                if (tenthSeconds + minutes + hours + seconds == 0) { countdown = false; }
+                start = calculateFixedNow(DateTime.Now);
+                startSet = true;
             }
             if (maintenance)
             {
@@ -188,6 +260,21 @@ namespace TWIRC
                 maintenance = false;
             }
         }
+
+        DateTime calculateFixedNow(DateTime now)
+        {
+            int mod = -1;
+            if (countdown)
+            {
+                mod = 1;
+            }
+            now = now.AddHours(mod * hours);
+            now = now.AddMinutes(mod * minutes);
+            now = now.AddSeconds(mod * seconds);
+            now = now.AddSeconds(mod * 0.1d * tenthSeconds);
+            return now;
+        }
+
 
         void cntdwn_click(object o, EventArgs e)
         {
@@ -248,6 +335,7 @@ namespace TWIRC
             {
                 maintenance = true;
                 running = false;
+                startSet = false;
                 mainten_but.Text = "P";
                 toggle.Text = "M";
             }
@@ -261,65 +349,33 @@ namespace TWIRC
             maintenance = false;
         }
 
+        int abs(int a)
+        {
+            return (int)Math.Abs(a);
+        }
+
         void count()
         {
             bool a = false;
             while (!die)//we do not want the thread to close itself
             {
-                if (tenthSeconds + minutes + hours + seconds == 0) { countdown = false; }
-                if (!countdown)
+                while (running && startSet)
                 {
-                    while (running)
+                    DateTime now = DateTime.Now;
+                    hours = abs((int)(now - start).TotalHours);
+                    minutes = abs((now - start).Minutes);
+                    seconds = abs((now - start).Seconds);
+                    tenthSeconds = abs((now - start).Milliseconds / 100);
+                    Invalidate();
+                    if (hours + minutes + seconds + tenthSeconds == 0 && countdown)
                     {
-                        tenthSeconds++;
-                        if (tenthSeconds > 9)
-                        {
-                            tenthSeconds = 0;
-                            seconds++;
-                            if (seconds > 59)//since this condition can only happen if a second is added, we will only check it then.
-                            {
-                                seconds = 0;
-                                minutes++;
-                                if (minutes > 59)
-                                {
-                                    minutes = 0;
-                                    hours++;
-                                }
-                            }
-                        }
-                        Invalidate();
-                        Thread.Sleep(100);//sleep is measured in 1/1000 of a sec. should be fine-ish, if we assume the time needed for above calculations is near zero
+                        running = false;
+                        a = true;
                     }
+                    else
+                        Thread.Sleep(50);
                 }
-                else
-                {
-                    while (running)
-                    {
-                        tenthSeconds--;
-                        if (tenthSeconds < 0)
-                        {
-                            tenthSeconds = 9;
-                            seconds--;
-                            if (seconds < 0)
-                            {
-                                seconds = 59;
-                                minutes--;
-                                if (minutes < 0)
-                                {
-                                    minutes = 59;
-                                    hours--;
-                                }
-                            }
-                        }
-                        Invalidate();
-                        Thread.Sleep(100);
-                        if (hours + minutes + seconds + tenthSeconds == 0)
-                        {
-                            running = false;
-                            a = true;
-                        }
-                    }
-                }
+
                 if (a)
                 {
                     a = false;
@@ -332,7 +388,7 @@ namespace TWIRC
                     Invalidate();
                     Thread.Sleep(1000);
                 }
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
         }
     }
