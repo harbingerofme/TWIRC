@@ -18,6 +18,7 @@ namespace TWIRC
         HarbBot irc;
         DatabaseConnector dbConn;
         LuaServer luaServer;
+        DatabaseScheduler dbSched;
 
         //tab0
 
@@ -44,11 +45,13 @@ namespace TWIRC
 
         #endregion
 
-        public MainWindow(HarbBot _irc, Logger _log, DatabaseConnector _dbconn, LuaServer _luaServer)
+        public MainWindow(HarbBot _irc, Logger _log, DatabaseConnector _dbconn, LuaServer _luaServer, DatabaseScheduler _dbsched)
         {
             irc = _irc;
             dbConn = _dbconn;
             luaServer = _luaServer;
+            dbSched = _dbsched;
+
             this.Text = "RNGPPBot - Starting Up";
             Width = width;
             Height = height;
@@ -340,11 +343,11 @@ namespace TWIRC
                 timerWindow tw = childWindows[0] as timerWindow;
                 if(tw.running && !tw.maintenance)
                 {
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.hours + "' where varname = 'hours' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.minutes + "' where varname = 'minutes' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.seconds + "' WHERE varname = 'seconds' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.countdown.ToString().ToLower() + "' WHERE varname = 'countdown' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.countUpafter.ToString().ToLower() + "' WHERE varname = 'countUpAfter' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.hours + "' where varname = 'hours' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.minutes + "' where varname = 'minutes' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.seconds + "' WHERE varname = 'seconds' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.countdown.ToString().ToLower() + "' WHERE varname = 'countdown' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.countUpafter.ToString().ToLower() + "' WHERE varname = 'countUpAfter' AND name = 'Timer';");
                 }
             }
         }
@@ -408,7 +411,7 @@ namespace TWIRC
                     bool countdown = false,countUp = false, locked = false;
                     if(li.Count == 0)
                     {
-                        dbConn.Execute(dbConn.main, "INSERT INTO childWindows (name, varname, value) VALUES ('Timer', 'blackHeight', 55), ('Timer', 'locked', 'false'), ('Timer', 'hours', 0), ('Timer', 'minutes', 0), ('Timer', 'seconds', 0), ('Timer', 'countdown', 'false'), ('Timer', 'countUpAfter', 'false');");
+                        dbSched.Add(dbConn.main, "INSERT INTO childWindows (name, varname, value) VALUES ('Timer', 'blackHeight', 55), ('Timer', 'locked', 'false'), ('Timer', 'hours', 0), ('Timer', 'minutes', 0), ('Timer', 'seconds', 0), ('Timer', 'countdown', 'false'), ('Timer', 'countUpAfter', 'false');");
                     }
                     else
                     {
@@ -457,16 +460,16 @@ namespace TWIRC
             CHILDFORM q  = sender as CHILDFORM;
             if(q.autoSave)
             {
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Height + "' WHERE name = '" + q.Name + "' AND varname = 'height';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Height + "' WHERE name = '" + q.Name + "' AND varname = 'height';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
 
                 if(q.Name == "Timer")
                 {
                     timerWindow tw = q as timerWindow;
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
                 }
             }
         }
@@ -603,16 +606,16 @@ namespace TWIRC
                childWindows[getChildID(q.Name)] = null;
             if (q.saveOnClose)
             {
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Height + "' WHERE name = '" + q.Name + "' AND varname = 'height';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
-                dbConn.Execute(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Height + "' WHERE name = '" + q.Name + "' AND varname = 'height';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Width + "' WHERE name = '" + q.Name + "' AND varname = 'width';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.X + "' WHERE name = '" + q.Name + "' AND varname = 'x';");
+                dbSched.Add(dbConn.main, "UPDATE childWindows SET value = '" + q.Location.Y + "' WHERE name = '" + q.Name + "' AND varname = 'y';");
 
                 if(q.Name == "Timer")
                 {
                     timerWindow tw = q as timerWindow;
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
-                    dbConn.Execute("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.locked.ToString().ToLower() + "' WHERE varname = 'locked' AND name = 'Timer';");
+                    dbSched.Add("UPDATE childWindows SET value = '" + tw.black_height + "' WHERE varname = 'blackHeight' AND name = 'Timer';");
                 }
             }
         }

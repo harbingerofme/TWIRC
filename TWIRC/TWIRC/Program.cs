@@ -20,6 +20,7 @@ namespace TWIRC
         static MainWindow mainWindow;
         static HarbBot HarbBot;
         static DatabaseConnector dbConn;
+        static DatabaseScheduler dbSched;
         const string VERSION = "2.0.0";
         
 
@@ -45,12 +46,13 @@ namespace TWIRC
             HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer);
 
             dbConn = new DatabaseConnector(RNGLogger);
+            dbSched = new DatabaseScheduler(dbConn);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             //mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus, biasWindow, HarbBot);
-            mainWindow = new MainWindow(HarbBot, RNGLogger, dbConn, RNGLuaServer);
+            mainWindow = new MainWindow(HarbBot, RNGLogger, dbConn, RNGLuaServer, dbSched);
             
             Application.Run(mainWindow);
 
