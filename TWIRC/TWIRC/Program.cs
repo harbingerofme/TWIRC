@@ -32,6 +32,7 @@ namespace TWIRC
 
             RNGLogger = new Logger();
             RNGLogger.addLog("PROGRAM", 0, "Logger object created");
+            RNGLogger.addLog("PROGRAM", 0, "Running TWIRC " + VERSION + ".");
 #if OFFLINE
             RNGLogger.addLog("Main()", 0, "Working in offline mode, no IRC connection will be made!");
 #endif

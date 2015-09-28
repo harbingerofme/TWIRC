@@ -4,16 +4,12 @@ settings
 music window (add setting for file location)
 
 (also must, but lower priority)
-auto timeout when first message contains a link (dont'say hello either.)
 Make definable constants
 
 (could have)
  create constraints
 
 (last) database
-
-(do whenever opportunity strikes (so top priority))
- make closing smooth and reliable (now takes up to 20 seconds)
 
 (do slightly later than that)
 Make luaclients have comprehensible names so we can communicate with them.

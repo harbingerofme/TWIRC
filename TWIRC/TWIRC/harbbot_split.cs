@@ -388,52 +388,6 @@ namespace TWIRC
                             sendMess(channel, User + ", you are " + text + ".");
                             break;
 
-                        case "!permit":
-                            if (antispam)
-                            {
-                                permits.Add(new intStr(str[1], getNow()));
-                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User + ". This permit expires in " + permitTime + " seconds.");
-                            }
-                            break;
-
-                        case "!whitelist":
-                            if (antispam)
-                            {
-                                if (auth == 3 && message.Split(' ').Count() >= 3)
-                                {
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aswhitelist (name,regex) VALUES (@par1,@par2) VALUES", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", message.Split(' ')[1]);
-                                    cmd.Parameters.AddWithValue("@par2", message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                    cmd.ExecuteNonQuery();
-                                    asWhitelist.Add(message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                    asWhitelist2.Add(message.Split(' ')[1]);
-                                    sendMess(channel, User + "-> I've added it to the whitelist, I can't guarantee any results.");
-                                }
-                                else
-                                {
-                                    if (asWhitelist.Count == 0)
-                                    {
-                                        tempVar2 = "There are no whitelisted links.";
-                                    }
-                                    if (asWhitelist.Count == 1)
-                                    {
-                                        tempVar2 = "The only whitelisted website is " + asWhitelist2[0];
-                                    }
-                                    if (asWhitelist.Count > 1)
-                                    {
-                                        tempVar2 = "Whitelisted websites are: ";
-                                        foreach (string tempStr1 in asWhitelist2)
-                                        {
-
-                                            tempVar2 += tempStr1 + ", ";
-                                        }
-                                        tempVar2 = tempVar2.Substring(0, tempVar2.Length - 2);
-                                        tempVar2 += ".";
-                                    }
-                                    sendMess(channel, tempVar2);
-                                }
-                            }
-                            break;
                         case "!calculate":
                             tempVar2 = str[1] + str[2];
                             Calculation calc = calculator.Parse(tempVar2);
