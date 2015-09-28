@@ -149,7 +149,7 @@ namespace TWIRC
                     case 4: returnMessage = "That makes " + totalbans +"."; break;
                     case 5: returnMessage = "HOM NOM NOM! (" + totalbans + ")"; break;
                 }
-                sendMess(channel, returnMessage+" (if you are a normal human being, go to my channel and say \"I'm not a bot\" there.)");
+                sendMess(channel, returnMessage+" (If you are a normal human being, go to my channel and say \"I'm not a bot\" there.)");
                 return true;
             }
             else
