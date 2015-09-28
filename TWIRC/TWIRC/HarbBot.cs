@@ -82,14 +82,13 @@ namespace TWIRC
             setUpIRC(); log(1, "Done setting up parameters.");
 
             initialiseDatabase(); log(1, "Loaded settings.");
+            channels = new string[] { channel, "#" + bot_name };
             initialiseChat(); log(1, "Chat database connection established.");
             initialiseButtons(); log(1, "button database connection established.");
 
             loadCommands(); log(1, "Loaded commands ("+comlist.Count.ToString()+").");
             loadAliases(); log(1, "Loaded aliases (" + aliList.Count.ToString() + ").");
             loadBiases(); log(1, "Loaded biases (" + biasList.Count.ToString() + ").");
-
-            loadAntispam(); log(1, "Loaded antispam.");
 
             loadHardComs(); log(1, "Prepared " + hardList.Count + " hardcoded commands.");
 
@@ -150,7 +149,7 @@ namespace TWIRC
 
         void connection()
         {
-            channels = new string[] {channel, bot_name};
+            channels = new string[] {channel, "#"+bot_name};
             irc.RfcJoin(channels);
             irc.Listen();
 

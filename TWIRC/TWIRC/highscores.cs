@@ -209,7 +209,7 @@ namespace TWIRC
                 {
                     dbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>499 AND not name like '%bot' ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>499 AND not name like '%bot' AND name not like '#%' ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));

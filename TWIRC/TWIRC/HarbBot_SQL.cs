@@ -33,19 +33,11 @@ namespace TWIRC
                 //new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','" + logLevel + "','" + progressLogPATH + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')", dbConn).ExecuteNonQuery();
                 SQLiteCommand cmd;
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('emote spam','3','Images say more than a thousand words, so stop writing essays.\nHow is a timeout for a twitch feature?\nI dislike emotes, they are all text to me.');", dbConn).ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1',@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!"); cmd.ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7',@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!"); cmd.ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what."); cmd.ExecuteNonQuery();
 
                 new SQLiteCommand("CREATE TABLE IF NOT EXISTS newsettings (variable VARCHAR(128), type VARCHAR(64), value VARCHAR(128));", dbConn).ExecuteNonQuery();
                 insertIntoSettings("name", "string", "rngppbot");
                 insertIntoSettings("channel", "string", "#harbbot");
-                insertIntoSettings("antispam", "bit", "0");
+                insertIntoSettings("antispam", "bit", "1");
                 insertIntoSettings("silence", "bit", "1");
                 insertIntoSettings("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
                 insertIntoSettings("cooldown", "int", "20");
@@ -180,15 +172,6 @@ namespace TWIRC
             }
         }
 
-        void initialiseTLDs()
-        {
-            if (!File.Exists("TLDs.twirc"))
-            {
-                writeFile("TLDs.twirc", "com\nnl\nde\nnet\nbiz\nuk");
-            }
-            asTLDs = FileLines("TLDs.twirc").ToList();
-        }
-
         void initialiseChat()
         {
             if(!File.Exists("chat.sqlite"))
@@ -205,27 +188,6 @@ namespace TWIRC
                 chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                 chatDbConn.Open();
             }
-        }
-
-        public void loadAntispam()
-        {
-            SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
-            while (rdr.Read())
-            {
-                asResponses.Add(new List<string>());
-                asCosts.Add(new intStr(rdr.GetString(0), rdr.GetInt32(1)));
-                asResponses[tempInt] = rdr.GetString(2).Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
-                tempInt++;
-            }
-
-            rdr = new SQLiteCommand("SELECT * FROM aswhitelist", dbConn).ExecuteReader();
-            while (rdr.Read())
-            {
-                asWhitelist2.Add(rdr.GetString(0));
-                asWhitelist.Add(rdr.GetString(1));
-            }
-
-            initialiseTLDs();
         }
 
         void loadHardComs()
@@ -276,16 +238,6 @@ namespace TWIRC
             hardList.Add(new hardCom("!changesetting", 5, 2));
             hardList.Add(new hardCom("!poll", 3, 1));
             hardList.Add(new hardCom("!vote", 0, 0));
-
-            /*
-            //sayingsbot overrides, we might add these eventually            
-            hardList.Add(new hardCom("!whois",0,1,20));
-            hardList.Add(new hardCom("!editme",1,1));
-            hardList.Add(new hardCom("!edituser",3,2));
-            hardList.Add(new hardCom("!classic",0,1,20));
-            hardList.Add(new hardCom("!addclassic",2,2));
-            hardList.Add(new hardCom("!delclassic",2,2));
-            */
         }
 
         void setUpIRC()

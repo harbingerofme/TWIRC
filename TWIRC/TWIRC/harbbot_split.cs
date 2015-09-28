@@ -77,27 +77,38 @@ namespace TWIRC
             try
             {
 #endif
+            if (channel != "#" + bot_name)
+            {
                 message = message.TrimEnd();
-                if (antispam && isMod) { b = checkSpam(channel, nick, message); };
+                if (level == 0 && isNew(nick))
+                {
+                    if (antispam && isMod)
+                        b = noBOTS(nick, message);
+                    if (!b)
+                    {
+                        newMessage(nick);
+                        notNew(nick);
+                    }
+                    else
+                        i = 5;
+                }
                 if (!b && level >= 0)
                 {
                     message = filter(message);
-                    a = checkCommand(channel, nick, message);
+                    if (checkCommand(channel, nick, message))
+                        i = 4;
                 }
-                if (a == false && level == 0 && isNew(nick))
+                if (!b)
+                    storeMessage(nick, message, i);
+            }
+            else//This is #rngppbot
+            {
+                if (level == -2 && message.ToLower().StartsWith("i'm not a bot"))
                 {
-                    newMessage(nick);
-                    notNew(nick);
+                    sendMess(channels[0], ".unban " + nick);
+                    storeMessage("SYSTEM", "Unbanned: " + nick, 3);
                 }
-                if(a)
-                {
-                    i = 4;
-                }
-                if(b)
-                {
-                    i = 5;
-                }
-                storeMessage(nick, message,i);
+            }
 #if !STRICT
             }
             catch (Exception exc)
@@ -107,83 +118,42 @@ namespace TWIRC
 #endif
         }
 
-
-
-
-        bool checkSpam(string channel, string user, string message)
+        private bool noBOTS(string nick, string message)
         {
-            List<asUser> temp = new List<asUser>(); List<intStr> temp2 = new List<intStr>();
-            foreach (asUser person in asUsers)
+            if (Regex.Match(message, @"[\w_\.-]+\.(\w){2,}\b").Success)
             {
-                if (person.lastUpdate < getNow() - asCooldown) { temp.Add(person); }
-                if (person.points < 1) { person.points = 2; }//resets the person's limit if they misused it, but keeps it within quick timeout range.
-            }
-            foreach (asUser person in temp)
-            {
-                asUsers.Remove(person);
-            }
-            foreach (intStr person in permits)
-            {
-                if (person.Int < getNow() - permitTime)
+                sendMess(channel, ".ban "+nick, 3);
+                
+                new SQLiteCommand("UPDATE users SET rank = -2 WHERE name = '" + nick + "' ;", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("DELETE FROM messages WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
+                new SQLiteCommand("DELETE FROM users WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET lines = lines + 1 WHERE name = '#autoBans';",chatDbConn).ExecuteNonQuery();
+                int totalbans = 1;
+                SQLiteDataReader sqldr = new SQLiteCommand("SELECT lines FROM users WHERE name = '#autoBans';",chatDbConn).ExecuteReader();
+                if(sqldr.Read())
                 {
-                    temp2.Add(person);
+                    totalbans = sqldr.GetInt32(0);
                 }
-            }
-            foreach (intStr person in temp2)
-            {
-                permits.Remove(person);
-            }
-
-            if (pullAuth(user) < 2)
-            {
-                int a = asUsers.FindIndex(x => x.name == user);
-                int type = -1;
-                if (a == -1)
+                else
                 {
-                    a = asUsers.Count;
-                    asUsers.Add(new asUser(user, pullAuth(user)));
+                    new SQLiteCommand("INSERT INTO users (name, lines) VALUES ('#autoBans',1);",chatDbConn).ExecuteNonQuery();
                 }
-                if (message != "")
+                int mType = new Random().Next(5);
+                string returnMessage ="";
+                switch(mType)
                 {
-                    message = message.ToLower();
-                    if (Regex.Match(message, @"^.$").Success || Regex.Match(message, @"([a-zA-Z])\1\1").Success || Regex.Match(message, @"([0-9])\1\1\1").Success || Regex.Match(message, @"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(asCosts[2].Int); type = 2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
-                    if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(asCosts[3].Int); type = 3; }
-
-                    MatchCollection mc = Regex.Matches(message, @"[^ ]+\.([a-z]{2,})[\/\?\#]?".ToLower());
-                    MatchCollection me = Regex.Matches(message, @"([^ ]+\.[a-z]{2,})[\/\?\#]?".ToLower());
-                    int b = mc.Count; int d = 0; ;
-                    if (b > 0)
-                    {
-                        foreach (Match c in mc)
-                        {
-                            if (asTLDs.Contains(c.Groups[1].Value.ToUpper())) { d++; }
-                        }
-                        foreach (Match c in me)
-                        {
-                            if (Regex.Match(message, @"twitch\.tv\/" + channel.Substring(1) + @"\/c\/").Success) { d--; continue; }
-                            foreach (string e in asWhitelist)
-                            {
-                                if (Regex.Match(c.Value, e).Success) { d--; continue; }
-
-                            }
-                        }
-                        foreach (intStr f in permits)
-                        {
-                            if (f.Str == user) { b = 0; permits.Remove(f); break; }
-                        }
-                        if (d > 0) { asUsers[a].update(asCosts[0].Int); type = 0; }
-                    }
+                    case 0: returnMessage = "And another one down, and another one down, another one bites the dust! (" + totalbans + ")"; break;
+                    case 1: returnMessage = "Piece of cake! (" + totalbans + ")"; break;
+                    case 2: returnMessage = "There's only room for so many bots here. (" + totalbans + ")"; break;
+                    case 3: returnMessage = "How about no? (" + totalbans + ")"; break;
+                    case 4: returnMessage = "That makes " + totalbans +"."; break;
+                    case 5: returnMessage = "HOM NOM NOM! (" + totalbans + ")"; break;
                 }
-                if (type != -1 && asUsers[a].points < 1)
-                {
-                    irc.RfcPrivmsg(channel, ".timeout " + user + " 1");//overrides the send delay (hopefully)
-                    int c = new Random().Next(0, 4);
-                    sendMess(channel, user + " -> " + asResponses[type][c] + " (" + asCosts[type].Str + ")");
-                    return true;
-                }
+                sendMess(channel, returnMessage+" (if you are a normal human being, go to my channel and say \"I'm not a bot\" there.)");
+                return true;
             }
-            if (user == "zackattack9909" && Regex.Match(message, "wix[1-4]").Success) { irc.RfcPrivmsg(channel, ".clear"); sendMess(channel, "Zack, please don't."); }
-            return false;
+            else
+                return false;
         }
 
         string filter(string message)
