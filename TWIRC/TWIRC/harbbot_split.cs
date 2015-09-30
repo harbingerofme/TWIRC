@@ -15,35 +15,6 @@ namespace TWIRC
 {
     public partial class HarbBot  //deals with text handling
     {
-        /// INDEX:
-        /// sendMess(string1,string2) --            Sends string2 to specified channel string1, DOES NOT CHECK IF CONNECTED
-        /// ircChanActi(object,IrcEventArgs) --     Eventhandler for channel actions (like "/me is amazing"), prints to console, then stores the message
-        /// ircChanMess(object,IrcEventArgs) --     Eventhandler for channel messages, 
-        ///   |                                     stores the message, prints it to console, 
-        ///   |                                     checks if it's spam (if bot = mod and antispam enabled),    (checkspam)
-        ///   |                                     otherwise, 
-        ///   |                                     if the user is not banned from bot commands, 
-        ///   |                                     checks for bot commands,                                   (checkCommands)
-        ///   |                                     if no matching commands founds, and the user does not have a rank and the user is new,
-        ///   |                                     display a welcome messssage.                                (newMessage)
-        ///   |__                                   IF any of these actions fail, it will print to console that it almost crashed. 
-        /// checkSpam(string1,string2,string3) --   Cleans up list of spammers and permits,   
-        ///   |                                     checks if it's a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row, if so, deduct aspoints
-        ///   |                                     checks if it's a single word of more than 40 characters, if so, deduct points
-        ///   |                                     check if it's an url, and check if it has a valid TLD, if so, remove permit OR deduct points(normally enough to instantly silence a user), excepts links to replays from current channel
-        ///   |                                     If the points from the user are less than 0 at this point, INSTANTLY send a timeout, and then normally sends a message with why they were timed out.
-        ///   |__                                   (if it's zack, and he does that god awful wix1,wix2,wix3,wix4 emote, clear the chat)
-        /// filter(string) --                       replaces the beginning of a message with it's alias if it has one. (If somehow a train of aliases is generated, they will be replacing each other in timestamp order)
-        /// checkCommand(string1,string2,string3) -- Check if it's a hardcoded command
-        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !addbias !delbias !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background !expall
-        ///   |                                      if no matches were found
-        ///   |                                      check if it's a softcommand, if so:
-        ///   |__                                    update it's count and lasttime (for cooldown purposes), and send response
-        /// newMessage(string) --                    Sends 1 of 3 welcome messages (chosen at random) to the chat.
-
-
-
-
         public void sendMess(string channel, string message, int type = 3)
         {
             log(3,"->" + channel + ": " + message);
@@ -54,7 +25,7 @@ namespace TWIRC
             }
         }
 
-        public void ircChanActi(object sender, IrcEventArgs e)
+        void ircChanActi(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
@@ -118,7 +89,7 @@ namespace TWIRC
 #endif
         }
 
-        private bool noBOTS(string nick, string message)
+        bool noBOTS(string nick, string message)
         {
             if (Regex.Match(message, @"[\w_\.-]+\.(\w){2,}\b").Success)
             {
@@ -149,7 +120,7 @@ namespace TWIRC
                     case 4: returnMessage = "That makes " + totalbans +"."; break;
                     case 5: returnMessage = "HOM NOM NOM! (" + totalbans + ")"; break;
                 }
-                sendMess(channel, returnMessage+" (If you are a normal human being, go to my channel and say \"I'm not a bot\" there.)");
+                sendMess(channel, returnMessage+" (If you are not a bot, say \"I'm not a bot\" in my channel.)");
                 return true;
             }
             else
@@ -161,7 +132,7 @@ namespace TWIRC
             string result = message;
             foreach (ali alias in aliList)
             {
-                result = alias.filter(result);//shouldn't matter much
+                result = alias.filter(result);
             }
             return result;
         }
@@ -723,7 +694,7 @@ namespace TWIRC
                                 {
                                     addPoints(user, int.Parse(str[1]) * -2, "Money to game");
                                     luaServer.send_to_all("ADDMONEY", str[1]);
-                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for ?birja.");
+                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for IA.");
                                     givemoneysucces = true;
                                 }
                                 else
@@ -746,7 +717,7 @@ namespace TWIRC
                             {
                                 addPoints(user, -1500, "ball to game");
                                 luaServer.send_to_all("ADDBALLS", "1");
-                                sendMess(channel, User + " gave ?birja a pokéball.");//HARB $playername
+                                sendMess(channel, User + " gave IA a pokéball.");//HARB $playername
                                 giveballsucces = true;
                             }
                             else

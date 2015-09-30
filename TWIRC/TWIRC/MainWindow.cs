@@ -10,7 +10,7 @@ namespace TWIRC
     {
         int selectedMenu = 0; int oldMenu = 1;
         int height = 400;
-        int width = 640;
+        int width = 660;
         Bitmap but_ac, but_inac;
         Label[] tabs_label; String[] tabs_text;
         Panel[] tabs;
@@ -28,7 +28,6 @@ namespace TWIRC
         System.Timers.Timer timeSaver;
         NumericUpDown windowTimerSaveInterval;
         //tab2
-
         //tab3
 
         //tab4
@@ -64,6 +63,13 @@ namespace TWIRC
                 tabs[i] = new Panel();
                 tabs[i].BackColor = Color.Transparent;
                 tabs[i].SuspendLayout();
+                tabs[i].Location = new Point(120, 0);
+                tabs[i].Size = new Size(width - 140, ClientSize.Height);
+                Controls.Add(tabs[i]);
+                tabs[i].ResumeLayout(false);
+                tabs[i].PerformLayout();
+                tabs[i].Enabled = false;
+                tabs[i].Visible = false;
             }
             
             #region tab0: MAIN
@@ -72,6 +78,7 @@ namespace TWIRC
 
 
             #endregion
+
             #region tab1: WINDOWS
             CheckBox multipleWindows = new CheckBox();
             tabs[1].Controls.Add(multipleWindows);
@@ -159,9 +166,37 @@ namespace TWIRC
             timeSaver.Elapsed += timeSaver_Elapsed;
             timeSaver.Start();
             #endregion
+
             #region tab2: SETTINGS
+            tabs[2].AutoScroll = true;
+            List<Control[]> settings = new List<Control[]>(); ;
+            settings.Add(createSetting("name", "Name of the bot", false, true));
+            settings.Add(createSetting("channel", "Channel we are connecting to", false, true));
+            settings.Add(createSetting("oauth", "Our oauth key", false, true));
+            settings.Add(createSetting("antispam", "Autoban people whose first message contains a link?", true, false));
+            settings.Add(createSetting("silence", "Must I be quiet?", true, false));
+            settings.Add(createSetting("logpath", "Path for !addlog"));
+            settings.Add(createSetting("backgroundspath", "Path to the backgrounds folder (may take up to 30 min to update)"));
+            settings.Add(createSetting("commandsurl", "The url to display when people use !rngppcommands"));
+            settings.Add(createSetting("commandspath", "The local path to the commandsfile"));
+            settings.Add(createSetting("timebetweenvote","Time between votes in seconds.",false,true));
+            settings.Add(createSetting("timetovote","Time to vote in seconds.",false,true));
+            settings.Add(createSetting("moneypervote", "Money awarded/deducted for each vote."));
+            settings.Add(createSetting("moneyconversionrate", "Rate for how much money the protagonist is awarded for !givemoney"));
+            settings.Add(createSetting("expallfunction", "Function to calculate cost for expAll. Use 'X' to denote money spend."));
+            settings.Add(createSetting("cooldown", "Cooldown before a softCommand can be repeated", true, true));
+            settings.Add(createSetting("welcomemessagecd", "Time in seconds after how long a new welcome message is shown."));
+            settings.Add(createSetting("defaultbias","Default bias, please use !setdefaultbias instead!",true,true));
+            settings.Add(createSetting("biasmaxdiff", "Maximum addition if full bias in one direction"));
+            settings.Add(createSetting("biaspointspread","Rate how much these votes matter (10 = normal, 0 = not at all)"));
 
 
+            for(int i = 0; i<settings.Count; i++)
+            {
+                settings[i][0].Location = new Point(0,i*25);
+                settings[i][1].Location = new Point(335,i*25);
+                settings[i][2].Location = new Point(440,i*25);
+            }
 
             #endregion
             
@@ -177,7 +212,7 @@ namespace TWIRC
             #endregion
             
             #region tab4: CHAT
-            Chatter = new Chat(4, 4, 495, 316);
+            Chatter = new Chat(4, 4, tabs[4].Width - 8, 316);
             tabs[4].Controls.Add(Chatter);
             irc.chatter = Chatter;
             chatMessages = new List<string>();
@@ -192,7 +227,7 @@ namespace TWIRC
 
             chatBox = new TextBox();
             tabs[4].Controls.Add(chatBox);
-            chatBox.Size = new Size(422, 23);
+            chatBox.Size = new Size(Chatter.Width - 69 - 4, 23);
             chatBox.Location = new Point(77, 323);
             chatBox.KeyDown += chatBox_KeyDown;
 
@@ -231,14 +266,14 @@ namespace TWIRC
 
             #region tab5: LOGS
             logLevelLastValue = 2;
-            logger = new formLogger(_log, 4, 4, 490, 320);
+            logger = new formLogger(_log, 4, 4, tabs[5].Width-8, 320);
             tabs[5].Controls.Add(logger);
             irc.logger = _log;
 
             TrackBar logSlider = new TrackBar();
             
             logSlider.Location = new Point(4, 323);
-            logSlider.Size = new Size(480, 15);
+            logSlider.Size = new Size(tabs[5].Width, 15);
             logSlider.Scroll += logSlider_Scroll;
             logSlider.Maximum = 3;
             logSlider.Minimum = 0;
@@ -253,23 +288,13 @@ namespace TWIRC
             {
                 logLabels[i] = new Label();
                 tabs[5].Controls.Add(logLabels[i]);
-                logLabels[i].Location = new Point(8 + (460/3) * i, 343);
+                logLabels[i].Location = new Point(8 + ((logSlider.Width-22)/3) * i, 343);
                 logLabels[i].Text = "" + i;
                 logLabels[i].Size = new Size(15, 14);
             }
             tabs[5].Controls.Add(logSlider);
             #endregion
 
-                for (int i = 0; i < 6; i++)
-                {
-                    tabs[i].Location = new Point(120, 0);
-                    tabs[i].Size = new Size(width - 120, height - 32);
-                    Controls.Add(tabs[i]);
-                    tabs[i].ResumeLayout(false);
-                    tabs[i].PerformLayout();
-                    tabs[i].Enabled = false;
-                    tabs[i].Visible = false;
-                }
             #region tabcode
             for (int i = 0; i < 6; i++)
             {
@@ -334,6 +359,102 @@ namespace TWIRC
 
              //irc.doDisconnect();
              irc.Close();
+        }
+
+        Control[] createSetting(string name, string showName = "NULL",bool reload = true,bool restartTimers = false)
+        {
+            if(showName == "NULL")
+                showName = name;
+            Control[] returnal = new Control[3];
+            returnal[0] = new Label();
+            returnal[0].Text = showName;
+            returnal[0].Width = 330;
+
+            List<object[]> data = dbConn.Read(dbConn.main, "SELECT type, value FROM newsettings WHERE variable like '"+name+"' ;");
+            if (!data[0][0].Equals(-1))
+            {
+                string type = data[0][0] as string;
+                switch (type)
+                {
+                    case "int":
+                        NumericUpDown nud = new NumericUpDown();
+                        nud.Value = int.Parse(data[0][1] as string);
+                        returnal[1] = nud;
+                        break;
+                    case "bit":
+                        ComboBox cb = new ComboBox();
+                        cb.Items.AddRange(new object[] { 0, 1 });
+                        cb.SelectedIndex = int.Parse(data[0][1] as string);
+                        returnal[1] = cb;
+                        break;
+                    default:
+                        TextBox tb = new TextBox();
+                        tb.Text = data[0][1] as string;
+                        returnal[1] = tb;
+                        break;
+
+                }
+                returnal[1].Width = 100;
+                returnal[1].Name = name;
+
+                returnal[2] = new callBackButton();
+                returnal[2].Text = "Save";
+                returnal[2].Width = 60;
+                returnal[2].Name = name;
+                callBackButton cbb = returnal[2] as callBackButton;
+                cbb.callBack = returnal[1];
+                returnal[2].Click += saveButton_Click;
+                if (reload)
+                    returnal[2].Click += saveButton_Reload;
+                if (restartTimers)
+                    returnal[2].Click += saveButton_Restart;
+                tabs[2].Controls.AddRange(returnal);
+            }
+            else
+            {
+                logger.parent.addLog("MainWindow", 0, "SEVERE: setting " + name + " not found! Can't create control!");
+                returnal = null;
+            }
+            
+            return returnal;
+        }
+
+        public void saveButton_Restart(object sender, EventArgs e)
+        {
+            Button but = sender as Button;
+            if(but.Name != "Confirm")
+            {
+                settingConfirm sC = new settingConfirm(this);
+                sC.Show();
+            }
+        }
+
+        private void saveButton_Reload(object sender, EventArgs e)
+        {
+            irc.loadSettings();
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            callBackButton cbb = sender as callBackButton;
+            object value = null;
+            if(cbb.callBack.GetType() == new NumericUpDown().GetType())
+            {
+                NumericUpDown dj = cbb.callBack as NumericUpDown;
+                value = dj.Value;
+            }
+            if(cbb.callBack.GetType() == new ComboBox().GetType())
+            {
+                ComboBox dj = cbb.callBack as ComboBox;
+                value = dj.SelectedIndex;
+            }
+            if(cbb.callBack.GetType() == new TextBox().GetType())
+            {
+                TextBox dj = cbb.callBack as TextBox;
+                value = dj.Text;
+            }
+
+            dbConn.safeExecute(dbConn.main, "UPDATE newsettings SET value = @par0 WHERE variable = '" + cbb.Name + "';",new object[] {value});
         }
 
         void timeSaver_Elapsed(object sender, ElapsedEventArgs e)
@@ -766,11 +887,47 @@ namespace TWIRC
             //gr.FillRectangle()
         }
 
+        private class callBackButton : Button
+        {
+            public Control callBack;
+        }
+
+        private class settingConfirm : Form
+        {
+            public settingConfirm(MainWindow parent)
+            {
+                Size = new Size(400, 115);
+                Text = "WARNING";
+
+                Label l1 = new Label();
+                l1.Text = "This setting won't be applied in runtime, and will need a restart to work.\n Blame Harb's horrible way of programming.\n(It's really his fault!)";
+                l1.Size = new Size(this.ClientSize.Width, 50);
+                l1.Location = new Point(0,0);
+                l1.TextAlign = ContentAlignment.MiddleCenter;
+
+                Button save = new Button();
+                save.Text = "Confirm";
+                save.Name = "Confirm";
+                save.Location = new Point((this.ClientSize.Width/2)-75/2, 50);
+                save.Click += parent.saveButton_Restart;
+                save.Click += button_Click;
+
+                Controls.AddRange(new Control[] { l1, save, no });
+            }
+
+            private void button_Click(object sender, EventArgs e)
+            {
+                this.Close();
+            }
+        }
     }
+
 
     public class CHILDFORM : Form
     {
         public bool saveOnClose;
         public bool autoSave;
     }
+
+
 }

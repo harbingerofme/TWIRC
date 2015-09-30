@@ -43,6 +43,32 @@ namespace TWIRC
             }
         }
 
+        public bool Execute(SQLiteCommand command)
+        {
+            try
+            {
+                string debug = command.CommandText + command.Parameters.Count;
+                command.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception e)
+            {
+                log.addLog(name, 0, "ERROR: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool safeExecute(SQLiteConnection conn, string text, object[] value)
+        {
+            SQLiteCommand cmd = Command(conn, text);
+            for(int i = 0; i< value.Length; i++)
+            {
+                cmd.Parameters.AddWithValue("@par" + i, value[i]);
+            }
+            return Execute(cmd);
+        }
+
+
         public bool Execute(string text)
         {
             return Execute(main, text);

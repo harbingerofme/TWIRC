@@ -18,12 +18,11 @@ namespace TWIRC
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
+                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0, isnew INTEGER DEFAULT 1);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE IF NOT EXISTS 'poll' ('name' TEXT(25), 'choice' INTEGER(1));", dbConn).ExecuteNonQuery();
@@ -38,7 +37,6 @@ namespace TWIRC
                 insertIntoSettings("silence", "bit", "1");
                 insertIntoSettings("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
                 insertIntoSettings("cooldown", "int", "20");
-                insertIntoSettings("loglevel", "int", "2");
                 insertIntoSettings("logpath", "string", @"C:\Users\Zack\Dropbox\Public\rnglog.txt");
                 insertIntoSettings("timebetweenvote", "calc", "15*60");
                 insertIntoSettings("timetovote", "calc", "4*60");
@@ -74,7 +72,7 @@ namespace TWIRC
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable, type ,value FROM newsettings GROUP BY variable;",dbConn).ExecuteReader();
             while (sqldr.Read())
             {
-                double a =0;
+                double a = 0; string debug = sqldr.GetString(0);
                 if(sqldr.GetString(1) == "calc"){
                     a = calculator.Parse(sqldr.GetString(2)).Answer;
                 }
@@ -160,6 +158,7 @@ namespace TWIRC
                 SQLiteConnection.CreateFile("buttons.sqlite");
                 butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
                 butDbConn.Open();
+                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", butDbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE buttons (id INT, left INT, down INT, up INT, right INT, a INT, b INT, start INT);", butDbConn).ExecuteNonQuery();
             }
             else
@@ -176,6 +175,7 @@ namespace TWIRC
             SQLiteConnection.CreateFile("chat.sqlite");
             chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
             chatDbConn.Open();
+            new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", chatDbConn).ExecuteNonQuery();
             new SQLiteCommand("CREATE TABLE messages (name VARCHAR(25) NOT NULL, message VARCHAR(1024) NOT NULL, time INT(13) NOT NULL);", chatDbConn).ExecuteNonQuery();
             new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, lines INT DEFAULT 1);", chatDbConn).ExecuteNonQuery();
         
@@ -607,6 +607,10 @@ namespace TWIRC
 
         void storeMessage(string user, string message,int type = 0)
         {
+            if (chatter != null)
+            {
+                chatter.Add(user, pullAuth(user), message, type);
+            }
             user = user.ToLower();
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
             cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
@@ -619,10 +623,7 @@ namespace TWIRC
             {
                 new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
             }
-            if(chatter!=null)
-            {
-                chatter.Add(user, pullAuth(user), message, type);
-            }
+
         }
     }
 }

@@ -16,7 +16,7 @@ namespace TWIRC
     public partial class HarbBot
     {
         //really important stuff
-        public static IrcClient irc = new IrcClient();
+        static IrcClient irc = new IrcClient();
         public bool running = true;
         SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
@@ -25,41 +25,38 @@ namespace TWIRC
         public LuaServer luaServer;
 
         //important stuff
-        public string bot_name, oauth, channel;
-        public string[] channels;
+        string bot_name, oauth, channel;
+        string[] channels;
 
         //commands and aliases
-        public List<command> comlist = new List<command>();
-        public List<ali> aliList = new List<ali>();
-        public List<hardCom> hardList = new List<hardCom>();
-        public List<luaCom> luaList = new List<luaCom>();
-        public List<Bias> biasList = new List<Bias>();
-        public int globalCooldown;
-        public int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
+        List<command> comlist = new List<command>();
+        List<ali> aliList = new List<ali>();
+        List<hardCom> hardList = new List<hardCom>();
+        List<luaCom> luaList = new List<luaCom>();
+        List<Bias> biasList = new List<Bias>();
+        int globalCooldown;
+        int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
 
         //Calculator (used for !calculate and expressions for money stuff.
         Calculator calculator =  new Calculator();
 
         //antispam
-        public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
-        public List<asUser> asUsers = new List<asUser>();
-        public List<intStr> asCosts = new List<intStr>();
-        public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>(),asWhitelist2 = new List<string>();
-        List<List<string>> asResponses = new List<List<string>>();
+        bool antispam;
         
         //some settings
-        public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
-        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
+        bool silence,isMod = false;
+        string progressLogPATH, backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
+        string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; string commandsPATH = @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
         //voting and bias related stuff.
-        public List<intStr> votingList = new List<intStr>();
-        public List<Bias> votinglist = new List<Bias>();
+        List<intStr> votingList = new List<intStr>();
+        List<Bias> votinglist = new List<Bias>();
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
-        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
-        public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
-        public string poll_name = ""; public string[] poll = null; public bool poll_active; public List<intStr> poll_votes = new List<intStr>();
+        public System.Timers.Timer voteTimer = null,voteTimer2 = null;
+        private System.Timers.Timer saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
+        double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
+        string poll_name = ""; private string[] poll = null;  bool poll_active;  List<intStr> poll_votes = new List<intStr>();
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
@@ -400,7 +397,7 @@ namespace TWIRC
 
  
 
-        public void ircConnecting(object sender, EventArgs e)
+        void ircConnecting(object sender, EventArgs e)
         {
             //logger.WriteLine("ircConnecting()");
             try
@@ -417,7 +414,7 @@ namespace TWIRC
 
         }
 
-        public void ircConnected(object sender, EventArgs e)
+        void ircConnected(object sender, EventArgs e)
         {
             //logger.WriteLine("ircConnected()");
             log(0,"Connected.");
@@ -425,13 +422,13 @@ namespace TWIRC
             one.Start();
         }
 
-        public void ircDisconnecting(object sender, EventArgs e)
+        void ircDisconnecting(object sender, EventArgs e)
         {
             //logger.WriteLine("ircDisconnecting()");
 
         }
         
-        public void ircDisconnected(object sender, EventArgs e)
+        void ircDisconnected(object sender, EventArgs e)
         {
            // logger.WriteLine("ircDisconnected()");
             try
@@ -442,20 +439,20 @@ namespace TWIRC
         }
 
 
-        public void ircConError(object sender, EventArgs e)
+        void ircConError(object sender, EventArgs e)
         {
             log(0, "CONNECTION ERROR: " + e.ToString());
         }
 
-        public void ircError(object sender, IrcEventArgs e)
+        void ircError(object sender, IrcEventArgs e)
         {
             log(0,"ERROR IN CONNECT: " + e.Data.RawMessage);
         }
-        public void ircRaw(object sender, IrcEventArgs e)
+        void ircRaw(object sender, IrcEventArgs e)
         {
                 log(3,"IRC RAW:<- " + e.Data.RawMessage);
         }
-        public void ircNotice(object sender, IrcEventArgs e)
+        void ircNotice(object sender, IrcEventArgs e)
         {
             if (e.Data.Message == "Error logging in")
             {
@@ -463,7 +460,7 @@ namespace TWIRC
             }
         }
 
-        public void ircQuery(object sender, IrcEventArgs e)
+        void ircQuery(object sender, IrcEventArgs e)
         {
             string str = e.Data.Message;
             if(str.StartsWith("The moderators"))
@@ -492,7 +489,7 @@ namespace TWIRC
             
         }
 
-        public string[] FileLines(string path)
+        string[] FileLines(string path)
         {
             try
             {
@@ -509,7 +506,7 @@ namespace TWIRC
             }
             catch { return null; }
         }
-        public bool writeFile(string path, string stuff)
+        bool writeFile(string path, string stuff)
         {
             try
             {
@@ -519,7 +516,7 @@ namespace TWIRC
             }
             catch { return false; }
         }
-        public bool appendFile(string path, string stuff)
+        bool appendFile(string path, string stuff)
         {
             try
             {
