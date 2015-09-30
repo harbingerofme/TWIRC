@@ -10,7 +10,7 @@ using System.Timers;
 
 namespace TWIRC
 {
-    class highscores : Form
+    class highscores : CHILDFORM
     {
         public List<Label> nameList = new List<Label>();
         public List<Label> dataList = new List<Label>();
@@ -209,7 +209,7 @@ namespace TWIRC
                 {
                     dbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
                     dbConn.Open();
-                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>499 AND not name like '%bot' ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
+                    sqldr = new SQLiteCommand("SELECT name,lines FROM users WHERE lines>499 AND not name like '%bot' AND name not like '#%' ORDER BY lines DESC,name LIMIT 7;", dbConn).ExecuteReader();
                     while (sqldr.Read())
                     {
                         data.Add(new intStr(sqldr.GetString(0), sqldr.GetInt32(1)));
@@ -275,7 +275,7 @@ namespace TWIRC
             int x2 = (int)(double)((w - 8) / 10) * 6;
             int y = (int)((h / 30 + h / 10+ h/12));
 
-                if (res >= (double)h / (double)w)//Heigth is the constraint
+                if (res >= (double)h / (double)w)//Height is the constraint
                 {
                     leaderboards.Font = new Font("Verdana", (float)(20 * ((double)h / (double)defaultHeight)));
                     leaderboardsType.Font = new Font("VerdanaPOKEDOLLAR", (float)(12 * ((double)h / (double)defaultHeight)));

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace TWIRC
 {
-    class votetimer : Form
+    class votetimer : CHILDFORM
     {
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
@@ -38,17 +38,17 @@ namespace TWIRC
 
         public votetimer(HarbBot bot)
         {
+            Height = h;
+            Width = w;
+            me = this;
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            BackColor = Color.Black;
+            DoubleBuffered = true;
+            Name = "votetimer";
+            Text = "VoteTimer";
             if (bot != null)
             {
-                me = this;
-                FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
                 HB = bot;
-                Height = h;
-                Width = w;
-                BackColor = Color.Black;
-                DoubleBuffered = true;
-                Name = "votetimer";
-                Text = "VoteTimer";
 
                 title = new Label();
                 title.Location = new Point(11, 6);
@@ -83,8 +83,6 @@ namespace TWIRC
                 one.Priority = ThreadPriority.Lowest;
                 one.Start();
 
-
-                StartPosition = FormStartPosition.Manual;
                 Location = Properties.Settings.Default.votetimer_pos;
                 MouseDown += votetimer_mouseDown;
                 LocationChanged += votetimer_LocationChanged;

@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Drawing;
 using System.Threading;
 
 #if DEBUG
@@ -15,12 +16,14 @@ namespace TWIRC
     {
         Mutex mutex_logging = new Mutex();
         delegate void SetTextCallback(string text);
-        const int LogMax = 1000;
+        const int LogMax = 2500;
+
+        public int logLevel;//everything below or equal to loglevel will be displayed :: 0 - ERRORS; 1 - Warnings and messages; 2 - Non important messages; 3 - DEBUG;
 
         int LogCount = 0; // true number of messages logged
 
         int LogClog = 0; // how backed up is the log? for dumping startup entities.
-        TextBox LogTextBox = null;
+        RichTextBox LogTextBox = null;
         ToolStripStatusLabel LogStatusLabel = null;
 
         public bool shuttingdown = false; 
@@ -45,10 +48,10 @@ namespace TWIRC
 
         public Logger()
         {
-
+            logLevel = 2;
         }
 
-        public void setLogControl(TextBox thisbox)
+        public void setLogControl(RichTextBox thisbox)
         {
             
             LogTextBox = thisbox;
@@ -93,6 +96,7 @@ namespace TWIRC
         }
         public void addLog(string name, int level, string text)
         {
+            
             if (!mutex_logging.WaitOne(200)) //crap code to abort on some lockup of yet unknown cause.
             {
                 System.Console.WriteLine("WHAT HAPPEN! AddLog Failed!");
@@ -113,7 +117,9 @@ namespace TWIRC
 
             if (LogTextBox != null)
             {
-                logAppendLine(name + "::" + level.ToString() + "::" + text );
+                if (level <= logLevel)
+                    logAppendLine(name + "::" + level + "::" + text );
+
             }
             else
             { 
@@ -125,6 +131,16 @@ namespace TWIRC
             mutex_logging.ReleaseMutex();
         }
 
+        public void Rewrite()
+        {
+            LogTextBox.Text = "";
+            for(int i = 0; i< logtable.Count ; i++)
+            {
+                LogEntry l = (LogEntry) logtable[i];
+                if (l.level <= logLevel)
+                    LogTextBox.Text += l.name + "::" + l.level + "::" + l.text;
+            }
+        }
 
 
         public void addText(string text)
@@ -211,6 +227,25 @@ namespace TWIRC
                 //ts_counter0.
                 //RNGWindow
             }
+        }
+
+    }
+    public class formLogger : RichTextBox
+    {
+        public Logger parent;
+
+        public formLogger(Logger log, int x, int y, int w, int h)
+            : base()
+        {
+            Location = new Point(x, y);
+            Size = new Size(w, h);
+            ReadOnly = true;
+            DetectUrls = true;
+            AcceptsTab = true;
+            Font = new System.Drawing.Font("Lucida Consolas", 9);
+            BackColor = Color.FromKnownColor(KnownColor.ControlLight);
+            parent = log;
+            log.setLogControl(this);
         }
 
     }

@@ -16,52 +16,53 @@ namespace TWIRC
     public partial class HarbBot
     {
         //really important stuff
-        public static IrcClient irc = new IrcClient();
+        static IrcClient irc = new IrcClient();
         public bool running = true;
         SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
+        public Chat chatter;
         public ButtonMasher biasControl;
         public LuaServer luaServer;
 
         //important stuff
-        public string bot_name, oauth, channel;
-        public string[] channels;
+        string bot_name, oauth, channel;
+        string[] channels;
 
         //commands and aliases
-        public List<command> comlist = new List<command>();
-        public List<ali> aliList = new List<ali>();
-        public List<hardCom> hardList = new List<hardCom>();
-        public List<luaCom> luaList = new List<luaCom>();
-        public List<Bias> biasList = new List<Bias>();
-        public int globalCooldown;
-        public int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
+        List<command> comlist = new List<command>();
+        List<ali> aliList = new List<ali>();
+        List<hardCom> hardList = new List<hardCom>();
+        List<luaCom> luaList = new List<luaCom>();
+        List<Bias> biasList = new List<Bias>();
+        int globalCooldown;
+        int welcomeMessageCD = 60,lastWelcomeMessageTime = 0;
 
         //Calculator (used for !calculate and expressions for money stuff.
         Calculator calculator =  new Calculator();
 
         //antispam
-        public bool antispam; public List<intStr> permits = new List<intStr>(); public int asCooldown = 60, permitTime = 300;
-        public List<asUser> asUsers = new List<asUser>();
-        public List<intStr> asCosts = new List<intStr>();
-        public List<string> asTLDs = new List<string>(), asWhitelist = new List<string>(),asWhitelist2 = new List<string>();
-        List<List<string>> asResponses = new List<List<string>>();
-
-        //defines the output level of our connection
-        public int logLevel;
+        bool antispam;
         
         //some settings
-        public bool silence,isMod = false;
-        public string progressLogPATH; public string backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
-        public string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; public string commandsPATH = @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
+        bool silence,isMod = false;
+        string progressLogPATH, backgroundPATH = @"C:\Users\Zack\Desktop\rngpp\backgrounds\"; int backgrounds;
+        string commandsURL = @"https://dl.dropboxusercontent.com/u/273135957/commands.html"; string commandsPATH = @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html";//@"C:\Users\Zack\Dropbox\Public\commands.html"
 
         //voting and bias related stuff.
-        public List<intStr> votingList = new List<intStr>();
-        public List<Bias> votinglist = new List<Bias>();
+        List<intStr> votingList = new List<intStr>();
+        List<Bias> votinglist = new List<Bias>();
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
+<<<<<<< HEAD
         public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
         public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
         public string poll_name = ""; public string[] poll = null; public bool poll_active; public List<intStr> poll_votes = new List<intStr>();
+=======
+        public System.Timers.Timer voteTimer = null,voteTimer2 = null;
+        private System.Timers.Timer saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
+        double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
+        string poll_name = ""; private string[] poll = null;  bool poll_active;  List<intStr> poll_votes = new List<intStr>();
+>>>>>>> PartialLayout
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
@@ -80,24 +81,23 @@ namespace TWIRC
             luaServer.send_to_all("REPELOFF", "");
 
             newBias = new double[7] { 10,10,10,10,9,8,6.5 };
+            log(0, "Created.");
+            setUpIRC(); log(1, "Done setting up parameters.");
 
-            setUpIRC(); log(1, "IRC: Done setting up irc parameters.");
+            initialiseDatabase(); log(1, "Loaded settings.");
+            channels = new string[] { channel, "#" + bot_name };
+            initialiseChat(); log(1, "Chat database connection established.");
+            initialiseButtons(); log(1, "button database connection established.");
 
-            initialiseDatabase(); log(1, "IRC: Loaded settings.");
-            initialiseChat(); log(1, "IRC: chat database connection established.");
-            initialiseButtons(); log(1, "IRC: button database connection established.");
+            loadCommands(); log(1, "Loaded commands ("+comlist.Count.ToString()+").");
+            loadAliases(); log(1, "Loaded aliases (" + aliList.Count.ToString() + ").");
+            loadBiases(); log(1, "Loaded biases (" + biasList.Count.ToString() + ").");
 
-            loadCommands(); log(1, "IRC: Loaded commands ("+comlist.Count.ToString()+").");
-            loadAliases(); log(1, "IRC: Loaded aliases (" + aliList.Count.ToString() + ").");
-            loadBiases(); log(1, "IRC: Loaded biases (" + biasList.Count.ToString() + ").");
+            loadHardComs(); log(1, "Prepared " + hardList.Count + " hardcoded commands.");
 
-            loadAntispam(); log(1, "IRC: Loaded antispam.");
+            prepareTimers(); log(1, "Started timers.");
 
-            loadHardComs(); log(1, "IRC: Prepared " + hardList.Count + " hardcoded commands.");
-
-            prepareTimers(); log(1, "IRC: Started timers.");
-
-            checkBackgrounds(); log(1, "IRC: All done, connecting now!");
+            checkBackgrounds(); log(1, "All done, connecting now!");
 
             try
             {
@@ -108,17 +108,8 @@ namespace TWIRC
 
         void log(int level, string message)
         {
-            log(level, 3, message);
+             logger.addLog("IRC", level, message);
         } 
-
-        void log(int minlevel, int maxlevel, string message)
-        {
-            if(logLevel >= minlevel && logLevel <= maxlevel)
-            {
-                logger.WriteLine(message);
-            }
-        }
-
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -161,15 +152,15 @@ namespace TWIRC
 
         void connection()
         {
-            channels = new string[] {channel, bot_name};
+            channels = new string[] {channel, "#"+bot_name};
             irc.RfcJoin(channels);
             irc.Listen();
 
         }
 
-        public void say(string message)
+        public void say(string message, int type = 2)
         {   
-            sendMess(channel, message);
+            sendMess(channel, message, type);
             checkCommand(channel, channel.Substring(1), filter(message));//I guess?
         }
 
@@ -193,7 +184,7 @@ namespace TWIRC
             {
                 checkBackgrounds();
             }
-            if (voteStatus != -1)
+            if (voteStatus > -1)
             {
                 if (sender == voteTimer)
                 {
@@ -227,7 +218,12 @@ namespace TWIRC
                             tobebias[i] += values[i];
                             
                         }
-                        str += " Processed " + a + " votes from " + votingList.Count + " users. ";
+                        str += " Processed " + a + " vote";
+                        if (a != 1) { str += "s"; }
+                        str += "from " + votingList.Count;
+                        
+                        if (votingList.Count != 1) str += " users. ";
+                        else str += "user. ";
                         biasControl.setBias(tobebias);
                         luaServer.send_to_all("SETBIAS",tobebias[0]+" "+tobebias[1]+" "+tobebias[2]+" "+tobebias[3]+" "+tobebias[4]+" "+tobebias[5]+" "+tobebias[6]);
                     }
@@ -270,7 +266,7 @@ namespace TWIRC
         {
             if (!irc.IsConnected)
             {
-                logger.WriteLine("HOLY AWEPRLFPVREA NOT CONNECTED.. RECONNECTING NOW!~");
+                log(1,"NOT CONNECTED! RECONNECTING NOW!");
                 doReconnect();
             }
         
@@ -279,10 +275,11 @@ namespace TWIRC
         public void doDisconnect()
         {
 
-            logger.Write("IRC Disconnecting, vote timers paused ");
+            log(2, "Disconnecting.");
             //one.Abort();
 
-            voteStatus = -1;
+            if (voteStatus != -1) { voteStatus = -1; }
+            else voteStatus = -2;
             voteTimer.Stop();  // stop the vote timers while we're down
             voteTimer2.Stop();
 
@@ -292,7 +289,7 @@ namespace TWIRC
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... already disconnected.");
+                log(2,"Already disconnected.");
                 return;
             }
 
@@ -302,12 +299,12 @@ namespace TWIRC
             }
             catch (Exception ex)
             {
-                logger.WriteLine("... IRC DISCONNECT FAILED: " + ex.Message);
+                log(0,"DISCONNECT FAILED: " + ex.Message);
             }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... disconnected.");
+                log(1,"Disconnected.");
                 return;
             }
 
@@ -317,12 +314,12 @@ namespace TWIRC
         {
 
 
-            logger.Write("IRC Connecting ");
+            log(2,"Connecting ");
             reconTimer.Start();
 
             if (irc.IsConnected)
             {
-                logger.WriteLine("...  already connected.");   
+                log(2,"...  already connected.");   
                 return;
             }
 
@@ -331,18 +328,20 @@ namespace TWIRC
            // one.IsBackground = true;
 
             try                 { irc.Connect("irc.twitch.tv", 6667); }
-            catch (Exception ex){ logger.WriteLine("IRC CONNECT FAILED: " + ex.Message); }
+            catch (Exception ex){ log(0,"CONNECT FAILED: " + ex.Message); }
 
             if (!irc.IsConnected)
             {
-                logger.WriteLine("... IRC seems to have failed to connect :( ;~; D: (retrying in 5 seconds) ");
+                log(1,"Not connected: retrying in 5 seconds.");
             }
             else
             {
-                logger.WriteLine("... Connected! Vote timers resuming...");
+                log(1,"Connected! If enabled: vote timers resuming.");
 
-                voteStatus = 1;
-
+                if (voteStatus != -2)
+                    voteStatus = 1;
+                else
+                    voteStatus = -1;
                 voteTimer2.Start();
 
             }
@@ -404,9 +403,9 @@ namespace TWIRC
 
  
 
-        public void ircConnecting(object sender, EventArgs e)
+        void ircConnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnecting()");
+            //logger.WriteLine("ircConnecting()");
             try
             {
                 one.Abort();
@@ -417,27 +416,27 @@ namespace TWIRC
             one.Name = "RNGPPBOT IRC CONNECTION";
             one.IsBackground = true;
               
-            logger.WriteLine("Thread \"one\" recreated...");
+            log(1,"Thread \"one\" recreated.");
 
         }
 
-        public void ircConnected(object sender, EventArgs e)
+        void ircConnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircConnected()");
-            logger.WriteLine("IRC: Joining Twitch chat");
+            //logger.WriteLine("ircConnected()");
+            log(0,"Connected.");
             irc.Login(bot_name, "HARBBOT", 0, bot_name, oauth);
             one.Start();
         }
 
-        public void ircDisconnecting(object sender, EventArgs e)
+        void ircDisconnecting(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnecting()");
+            //logger.WriteLine("ircDisconnecting()");
 
         }
         
-        public void ircDisconnected(object sender, EventArgs e)
+        void ircDisconnected(object sender, EventArgs e)
         {
-            logger.WriteLine("ircDisconnected()");
+           // logger.WriteLine("ircDisconnected()");
             try
             {
                 one.Abort();
@@ -446,35 +445,28 @@ namespace TWIRC
         }
 
 
-        public void ircConError(object sender, EventArgs e)
+        void ircConError(object sender, EventArgs e)
         {
-
+            log(0, "CONNECTION ERROR: " + e.ToString());
         }
 
-        public void ircError(object sender, IrcEventArgs e)
+        void ircError(object sender, IrcEventArgs e)
         {
-            logger.WriteLine("IRC: error in connect: " + e.Data.RawMessage);
+            log(0,"ERROR IN CONNECT: " + e.Data.RawMessage);
         }
-        public void ircRaw(object sender, IrcEventArgs e)
+        void ircRaw(object sender, IrcEventArgs e)
         {
-            if (logLevel == 3)
-            {
-                logger.WriteLine("IRC RAW:<- " + e.Data.RawMessage);
-            }
+                log(3,"IRC RAW:<- " + e.Data.RawMessage);
         }
-        public void ircNotice(object sender, IrcEventArgs e)
+        void ircNotice(object sender, IrcEventArgs e)
         {
-            if (logLevel < 3 && logLevel > 0)
-            {
-                logger.WriteLine("IRC NOTICE: " + e.Data.Message);
-            }
             if (e.Data.Message == "Error logging in")
             {
-                logger.WriteLine("IRC: SEVERE: Unsuccesful login, please check the username and oauth.");
+                log(0,"SEVERE: Unsuccesful login, please check the username and oauth.");
             }
         }
 
-        public void ircQuery(object sender, IrcEventArgs e)
+        void ircQuery(object sender, IrcEventArgs e)
         {
             string str = e.Data.Message;
             if(str.StartsWith("The moderators"))
@@ -498,11 +490,16 @@ namespace TWIRC
                     }
                 }
                 if (!isMod) { irc.SendDelay = 60000 /20; }//We are allowed to send 20 messages a minute to channels we are not modded in.
+<<<<<<< HEAD
             
+=======
+                log(2, "Moderators updated.");
+>>>>>>> PartialLayout
             }
+            
         }
 
-        public string[] FileLines(string path)
+        string[] FileLines(string path)
         {
             try
             {
@@ -519,7 +516,7 @@ namespace TWIRC
             }
             catch { return null; }
         }
-        public bool writeFile(string path, string stuff)
+        bool writeFile(string path, string stuff)
         {
             try
             {
@@ -529,7 +526,7 @@ namespace TWIRC
             }
             catch { return false; }
         }
-        public bool appendFile(string path, string stuff)
+        bool appendFile(string path, string stuff)
         {
             try
             {

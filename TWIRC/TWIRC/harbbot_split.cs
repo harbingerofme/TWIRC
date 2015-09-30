@@ -15,184 +15,130 @@ namespace TWIRC
 {
     public partial class HarbBot  //deals with text handling
     {
-        /// INDEX:
-        /// sendMess(string1,string2) --            Sends string2 to specified channel string1, DOES NOT CHECK IF CONNECTED
-        /// ircChanActi(object,IrcEventArgs) --     Eventhandler for channel actions (like "/me is amazing"), prints to console, then stores the message
-        /// ircChanMess(object,IrcEventArgs) --     Eventhandler for channel messages, 
-        ///   |                                     stores the message, prints it to console, 
-        ///   |                                     checks if it's spam (if bot = mod and antispam enabled),    (checkspam)
-        ///   |                                     otherwise, 
-        ///   |                                     if the user is not banned from bot commands, 
-        ///   |                                     checks for bot commands,                                   (checkCommands)
-        ///   |                                     if no matching commands founds, and the user does not have a rank and the user is new,
-        ///   |                                     display a welcome messssage.                                (newMessage)
-        ///   |__                                   IF any of these actions fail, it will print to console that it almost crashed. 
-        /// checkSpam(string1,string2,string3) --   Cleans up list of spammers and permits,   
-        ///   |                                     checks if it's a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row, if so, deduct aspoints
-        ///   |                                     checks if it's a single word of more than 40 characters, if so, deduct points
-        ///   |                                     check if it's an url, and check if it has a valid TLD, if so, remove permit OR deduct points(normally enough to instantly silence a user), excepts links to replays from current channel
-        ///   |                                     If the points from the user are less than 0 at this point, INSTANTLY send a timeout, and then normally sends a message with why they were timed out.
-        ///   |__                                   (if it's zack, and he does that god awful wix1,wix2,wix3,wix4 emote, clear the chat)
-        /// filter(string) --                       replaces the beginning of a message with it's alias if it has one. (If somehow a train of aliases is generated, they will be replacing each other in timestamp order)
-        /// checkCommand(string1,string2,string3) -- Check if it's a hardcoded command
-        ///   |                                      in order: !ac !ec !dc !addalias !delalias !set !editcount !banuser !unbanuser !silence !rank !permit !whitelist [!addlua] [!dellua] !setbias !setdefaultbias !setbiasmaxdiff !addbias !delbias !bias !balance !setpoints !addlog !voting !save !rngppcommands !givemoney !giveball !background !expall
-        ///   |                                      if no matches were found
-        ///   |                                      check if it's a softcommand, if so:
-        ///   |__                                    update it's count and lasttime (for cooldown purposes), and send response
-        /// newMessage(string) --                    Sends 1 of 3 welcome messages (chosen at random) to the chat.
-
-
-
-
-        public void sendMess(string channel, string message)
+        public void sendMess(string channel, string message, int type = 3)
         {
-            if (logLevel > 0)
-            {
-                logger.WriteLine("IRC: ->" + channel + ": " + message);
-            }
-            if (!silence)
+            log(3,"->" + channel + ": " + message);
+            if (!silence || type == 1)
             {
                 irc.SendMessage(SendType.Message, channel, message);
-                storeMessage(bot_name, message);
+                storeMessage(bot_name, message,type);
             }
         }
 
-        public void ircChanActi(object sender, IrcEventArgs e)
+        void ircChanActi(object sender, IrcEventArgs e)
         {
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            if (logLevel == 2) { logger.WriteLine("<-" + channel + ": " + nick + " " + message); }
-            storeMessage(nick, "/me " + message);
+            storeMessage(nick, "/me " + message,0);
         }
 
 
-        public void ircChanMess(object sender, IrcEventArgs e)
+        void ircChanMess(object sender, IrcEventArgs e)
         {
-            bool a = false;
+            bool a = false, b = false; int i = 0;
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
             int level = pullAuth(nick);
-            storeMessage(nick, message);
+            
+#if !STRICT
             try
             {
-                if (logLevel == 2) { logger.WriteLine("IRC: <-" + channel + ": <" + nick + "> " + message); }
+#endif
+            if (channel != "#" + bot_name)
+            {
                 message = message.TrimEnd();
-                if (antispam && isMod) { a = checkSpam(channel, nick, message); };
-                if (!a && level >= 0)
+                if (level == 0 && isNew(nick))
                 {
-                    message = filter(message);
-                    a = checkCommand(channel, nick, message);
-                }
-                if (a == false && level == 0 && isNew(nick))
-                {
-                    if (!message.StartsWith("wtf"))
+                    if (antispam && isMod)
+                        b = noBOTS(nick, message);
+                    if (!b)
                     {
                         newMessage(nick);
+                        notNew(nick);
                     }
-                    notNew(nick);
+                    else
+                        i = 5;
                 }
+                if (!b && level >= 0)
+                {
+                    message = filter(message);
+                    if (checkCommand(channel, nick, message))
+                        i = 4;
+                }
+                if (!b)
+                    storeMessage(nick, message, i);
+            }
+            else//This is #rngppbot
+            {
+                if (level == -2 && message.ToLower().StartsWith("i'm not a bot"))
+                {
+                    sendMess(channels[0], ".unban " + nick);
+                    storeMessage("SYSTEM", "Unbanned: " + nick, 3);
+                }
+            }
+#if !STRICT
             }
             catch (Exception exc)
             {
-                logger.WriteLine("IRC: Crisis adverted: " + exc.Message + " :: Message: <" + nick + "> " + message);
+                log(0,"IRC: Crisis adverted: " + exc.Message + " :: Message: <" + nick + "> " + message);
             }
+#endif
         }
 
-
-
-
-        public bool checkSpam(string channel, string user, string message)
+        bool noBOTS(string nick, string message)
         {
-            List<asUser> temp = new List<asUser>(); List<intStr> temp2 = new List<intStr>();
-            foreach (asUser person in asUsers)
+            if (Regex.Match(message, @"[\w_\.-]+\.(\w){2,}\b").Success)
             {
-                if (person.lastUpdate < getNow() - asCooldown) { temp.Add(person); }
-                if (person.points < 1) { person.points = 2; }//resets the person's limit if they misused it, but keeps it within quick timeout range.
-            }
-            foreach (asUser person in temp)
-            {
-                asUsers.Remove(person);
-            }
-            foreach (intStr person in permits)
-            {
-                if (person.Int < getNow() - permitTime)
+                sendMess(channel, ".ban "+nick, 3);
+                
+                new SQLiteCommand("UPDATE users SET rank = -2 WHERE name = '" + nick + "' ;", dbConn).ExecuteNonQuery();
+                new SQLiteCommand("DELETE FROM messages WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
+                new SQLiteCommand("DELETE FROM users WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
+                new SQLiteCommand("UPDATE users SET lines = lines + 1 WHERE name = '#autoBans';",chatDbConn).ExecuteNonQuery();
+                int totalbans = 1;
+                SQLiteDataReader sqldr = new SQLiteCommand("SELECT lines FROM users WHERE name = '#autoBans';",chatDbConn).ExecuteReader();
+                if(sqldr.Read())
                 {
-                    temp2.Add(person);
+                    totalbans = sqldr.GetInt32(0);
                 }
-            }
-            foreach (intStr person in temp2)
-            {
-                permits.Remove(person);
-            }
-
-            if (pullAuth(user) < 2)
-            {
-                int a = asUsers.FindIndex(x => x.name == user);
-                int type = -1;
-                if (a == -1)
+                else
                 {
-                    a = asUsers.Count;
-                    asUsers.Add(new asUser(user, pullAuth(user)));
+                    new SQLiteCommand("INSERT INTO users (name, lines) VALUES ('#autoBans',1);",chatDbConn).ExecuteNonQuery();
                 }
-                if (message != "")
+                int mType = new Random().Next(5);
+                string returnMessage ="";
+                switch(mType)
                 {
-                    message = message.ToLower();
-                    if (Regex.Match(message, @"^.$").Success || Regex.Match(message, @"([a-zA-Z])\1\1").Success || Regex.Match(message, @"([0-9])\1\1\1").Success || Regex.Match(message, @"([^[0-9a-zA-Z]]){4}").Success) { asUsers[a].update(asCosts[2].Int); type = 2; }//either a single letter, 3 same letters in a row, 4 not alphanumerical characters in a row,
-                    if (message.Length > 40 && Regex.Match(message, @"^[^[a-zA-Z]]*$").Success) { asUsers[a].update(asCosts[3].Int); type = 3; }
-
-                    MatchCollection mc = Regex.Matches(message, @"[^ ]+\.([a-z]{2,})[\/\?\#]?".ToLower());
-                    MatchCollection me = Regex.Matches(message, @"([^ ]+\.[a-z]{2,})[\/\?\#]?".ToLower());
-                    int b = mc.Count; int d = 0; ;
-                    if (b > 0)
-                    {
-                        foreach (Match c in mc)
-                        {
-                            if (asTLDs.Contains(c.Groups[1].Value.ToUpper())) { d++; }
-                        }
-                        foreach (Match c in me)
-                        {
-                            if (Regex.Match(message, @"twitch\.tv\/" + channel.Substring(1) + @"\/c\/").Success) { d--; continue; }
-                            foreach (string e in asWhitelist)
-                            {
-                                if (Regex.Match(c.Value, e).Success) { d--; continue; }
-
-                            }
-                        }
-                        foreach (intStr f in permits)
-                        {
-                            if (f.Str == user) { b = 0; permits.Remove(f); break; }
-                        }
-                        if (d > 0) { asUsers[a].update(asCosts[0].Int); type = 0; }
-                    }
+                    case 0: returnMessage = "And another one down, and another one down, another one bites the dust! (" + totalbans + ")"; break;
+                    case 1: returnMessage = "Piece of cake! (" + totalbans + ")"; break;
+                    case 2: returnMessage = "There's only room for so many bots here. (" + totalbans + ")"; break;
+                    case 3: returnMessage = "How about no? (" + totalbans + ")"; break;
+                    case 4: returnMessage = "That makes " + totalbans +"."; break;
+                    case 5: returnMessage = "HOM NOM NOM! (" + totalbans + ")"; break;
                 }
-                if (type != -1 && asUsers[a].points < 1)
-                {
-                    irc.RfcPrivmsg(channel, ".timeout " + user + " 1");//overrides the send delay (hopefully)
-                    int c = new Random().Next(0, 4);
-                    sendMess(channel, user + " -> " + asResponses[type][c] + " (" + asCosts[type].Str + ")");
-                    return true;
-                }
+                sendMess(channel, returnMessage+" (If you are not a bot, say \"I'm not a bot\" in my channel.)");
+                return true;
             }
-            if (user == "zackattack9909" && Regex.Match(message, "wix[1-4]").Success) { irc.RfcPrivmsg(channel, ".clear"); sendMess(channel, "Zack, please don't."); }
-            return false;
+            else
+                return false;
         }
 
-        public string filter(string message)
+        string filter(string message)
         {
             string result = message;
             foreach (ali alias in aliList)
             {
-                result = alias.filter(result);//shouldn't matter much
+                result = alias.filter(result);
             }
             return result;
         }
 
 
-        public bool checkCommand(string channel, string user, string message)
+        bool checkCommand(string channel, string user, string message)
         {
             string[] str, tempVar3;
             bool done = false; int auth = pullAuth(user);
@@ -204,7 +150,6 @@ namespace TWIRC
                 {
                     done = true;
                     str = h.returnPars(message);
-                    if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + "> " + message); }
                     switch (h.returnKeyword())
                     {
                         case "!ac":
@@ -414,52 +359,6 @@ namespace TWIRC
                             sendMess(channel, User + ", you are " + text + ".");
                             break;
 
-                        case "!permit":
-                            if (antispam)
-                            {
-                                permits.Add(new intStr(str[1], getNow()));
-                                sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1) + ", you have been granted permission to post a link by " + User + ". This permit expires in " + permitTime + " seconds.");
-                            }
-                            break;
-
-                        case "!whitelist":
-                            if (antispam)
-                            {
-                                if (auth == 3 && message.Split(' ').Count() >= 3)
-                                {
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aswhitelist (name,regex) VALUES (@par1,@par2) VALUES", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", message.Split(' ')[1]);
-                                    cmd.Parameters.AddWithValue("@par2", message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                    cmd.ExecuteNonQuery();
-                                    asWhitelist.Add(message.Split(new string[] { " " }, 3, StringSplitOptions.None)[2]);
-                                    asWhitelist2.Add(message.Split(' ')[1]);
-                                    sendMess(channel, User + "-> I've added it to the whitelist, I can't guarantee any results.");
-                                }
-                                else
-                                {
-                                    if (asWhitelist.Count == 0)
-                                    {
-                                        tempVar2 = "There are no whitelisted links.";
-                                    }
-                                    if (asWhitelist.Count == 1)
-                                    {
-                                        tempVar2 = "The only whitelisted website is " + asWhitelist2[0];
-                                    }
-                                    if (asWhitelist.Count > 1)
-                                    {
-                                        tempVar2 = "Whitelisted websites are: ";
-                                        foreach (string tempStr1 in asWhitelist2)
-                                        {
-
-                                            tempVar2 += tempStr1 + ", ";
-                                        }
-                                        tempVar2 = tempVar2.Substring(0, tempVar2.Length - 2);
-                                        tempVar2 += ".";
-                                    }
-                                    sendMess(channel, tempVar2);
-                                }
-                            }
-                            break;
                         case "!calculate":
                             tempVar2 = str[1] + str[2];
                             Calculation calc = calculator.Parse(tempVar2);
@@ -573,25 +472,31 @@ namespace TWIRC
                                     catch
                                     {
                                         fail = true;
-                                        logger.WriteLine("IRC: parsing error in bias vote, send more robots!");//has never happened, ever. Will be removed soon to improve code quality.
+                                        log(1, "Parsing error in bias vote, send more robots!");//has never happened, ever. Will be removed soon to improve code quality. --or not, I like this message.
                                     }
                                 }
-                                if (tempVar3.Length > 6)//if the bias votes contrains enough words for a biasnumbers vote
+                                if (tempVar3.Length > 2)//if the bias votes contrains enough words for a biasnumbers vote
                                 {
                                     fail = false;
                                     double[] dbl = new double[7];
-                                    for (int a = 0; a < 7; a++)
+                                    int count = 0;
+                                    try
                                     {
-                                        if(Regex.Match(tempVar3[a],@"^(10|[0-9](\.[0-9]){0,1})$").Success)
+                                        for (int a = 0; a < 7; a++)
                                         {
-                                            dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
-                                        }
-                                        else
-                                        {
-                                            fail = true;
-                                            break;
+                                            if (Regex.Match(tempVar3[a], @"^(10|[0-9](\.[0-9]){0,1})$").Success)
+                                            {
+                                                dbl[a] = double.Parse(tempVar3[a]);//try to parse these numbers...
+                                                count++;
+                                            }
+                                            else
+                                            {
+                                                fail = true;
+                                                break;
+                                            }
                                         }
                                     }
+                                    catch { fail = true; }
                                     if (!fail)
                                     {
                                         q = new Bias("custom", dbl);
@@ -599,12 +504,30 @@ namespace TWIRC
                                         try
                                         {
                                             tempVar1 = int.Parse(tempVar3[7]);
-                                            if(tempVar1<1)
+                                            if (tempVar1 < 1)
                                             {
                                                 tempVar1 = 1;
                                             }
                                         }
                                         catch { };
+                                    }
+                                    else
+                                    {
+                                        if(count == 4)
+                                        {
+                                            for(int i =4; i<7; i++)
+                                            {
+                                                dbl[i] = 0;
+                                            }
+                                            q = new Bias("custom", dbl);
+                                            tempVar1 = 1;
+                                        }
+                                        else if( count>2)
+                                        {
+                                            q = null;
+                                            if(count != 3)
+                                            sendMess(channel, User + ", it seems you tried a custom bias, but failed.");
+                                        }
                                     }
 
                                 }
@@ -613,7 +536,7 @@ namespace TWIRC
                                     addVote(user, q, tempVar1);
                                 }
                             }
-                            else
+                            if(voteStatus==0)
                             {
                                 if (getNow() - lastVoteTime > 30)
                                 {
@@ -623,6 +546,10 @@ namespace TWIRC
                                 {
                                     sendMess(channel, "You just missed it, sorry!");
                                 }
+                            }
+                            if(voteStatus==-1)
+                            {
+                                sendMess(channel, "Voting is disabled.");
                             }
                             break;
                         case "!balance":
@@ -767,7 +694,11 @@ namespace TWIRC
                                 {
                                     addPoints(user, int.Parse(str[1]) * -2, "Money to game");
                                     luaServer.send_to_all("ADDMONEY", str[1]);
+<<<<<<< HEAD
                                     sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for ?birja.");
+=======
+                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for IA.");
+>>>>>>> PartialLayout
                                     givemoneysucces = true;
                                 }
                                 else
@@ -790,7 +721,7 @@ namespace TWIRC
                             {
                                 addPoints(user, -1500, "ball to game");
                                 luaServer.send_to_all("ADDBALLS", "1");
-                                sendMess(channel, User + " gave ?birja a pokéball.");
+                                sendMess(channel, User + " gave IA a pokéball.");//HARB $playername
                                 giveballsucces = true;
                             }
                             else
@@ -938,6 +869,7 @@ namespace TWIRC
                                     break;
                                 case "close": poll_active = false; sendMess(channel, "Poll has been closed.");sendMess(channel,"Results were: "+pollResults()); break;
                                 case "results": if (poll_active) { sendMess(channel, "Current results are: " + pollResults()); } else { sendMess(channel, "Results were: " + pollResults()); } break;
+<<<<<<< HEAD
                             }
                             break;
                         case "!vote": 
@@ -978,6 +910,48 @@ namespace TWIRC
                                 sendMess(channel, "No poll active.");
                             }
                             break;
+=======
+                            }
+                            break;
+                        case "!vote": 
+                            if (poll_active)
+                            {
+                                if(int.TryParse(str[1], out tempVar1) && str[1] != "")
+                                {
+                                    if(tempVar1 <= poll.Length&&tempVar1>0)
+                                    {
+                                        if (pollVote(user, tempVar1))
+                                        {
+                                            sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
+                                            h.cdlist.Add(new intStr(user, 5));
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel, User + ", you've already cast your vote for this option.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, "Not a valid option");
+                                    }
+                                }
+                                else
+                                {
+                                    tempVar2 = "There's currently a poll running for: ' " + poll_name + "'. The options are:";
+                                    for (int i = 0; i < poll.Length; i++)
+                                    {
+                                        tempVar2 += " (" + (i+1) + ") '" + poll[i] + "'.";
+                                    }
+                                    tempVar2 += " Use !vote X to cast your vote!";
+                                    sendMess(channel,tempVar2);
+                                }
+                            }
+                            else
+                            {
+                                sendMess(channel, "No poll active.");
+                            }
+                            break;
+>>>>>>> PartialLayout
                     }
                     break;
 
@@ -991,7 +965,6 @@ namespace TWIRC
                 {
                     if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                     {
-                        if (logLevel == 1) { logger.WriteLine("IRC:<- <" + user + ">" + message); }
                         done = true;
                         str = c.getResponse(message, user);
                         c.addCount(1);
@@ -1010,7 +983,7 @@ namespace TWIRC
         }
 
 
-        public void newMessage(string user)
+        void newMessage(string user)
         {
             string output = ""; string usr = user.Substring(0, 1).ToUpper() + user.Substring(1);
             int now = getNow();
@@ -1024,7 +997,7 @@ namespace TWIRC
                     case 1: output = "All welcome " + usr + " to the chat. (also, " + usr + ", try !what)"; break;
                     case 2: output = "Heyo, " + usr + ". This channel is a random number generator playing pokémon, very fancy team rocket science stuff. (try !what)."; break;
                 }
-                sendMess(channel, output);
+                sendMess(channel, output,2);
             }
 
         }
@@ -1052,7 +1025,11 @@ namespace TWIRC
             return str;
         }
 
+<<<<<<< HEAD
         public void addVote(string user, Bias b, int amount)
+=======
+        void addVote(string user, Bias b, int amount)
+>>>>>>> PartialLayout
         {
             var money = 0;//amount to be deducted/added
             var x = -1;//index of person who voted

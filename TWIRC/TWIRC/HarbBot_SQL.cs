@@ -18,38 +18,25 @@ namespace TWIRC
                 SQLiteConnection.CreateFile("db.sqlite");
                 dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
                 dbConn.Open();
+                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";",dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0, isnew INTEGER DEFAULT 1);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
                 new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
-                //new SQLiteCommand("CREATE TABLE settings (name VARCHAR(25) NOT NULL, channel VARCHAR(26) NOT NULL, antispam TINYINT(1) DEFAULT 1, silence TINYINT(1) DEFAULT 0, oauth VARCHAR(200), cooldown INT DEFAULT 20,loglevel TINYINT(1) DEFAULT 2,logPATH VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                //new SQLiteCommand("CREATE TABLE biassettings (timebetweenvote INT NOT NULL, timetovote INT NOT NULL,def VARCHAR(200) NOT NULL, maxdiff REAL NOT NULL,moneypervote INT DEFAULT 100);", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE ascostlist (type VARCHAR(25), costs INT DEFAULT 0, message VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE aswhitelist (name VARCHAR(50),regex VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE IF NOT EXISTS 'poll' ('name' TEXT(25), 'choice' INTEGER(1));", dbConn).ExecuteNonQuery();
 
-                //new SQLiteCommand("INSERT INTO settings (name,channel,antispam,silence,oauth,cooldown,loglevel,logPATH) VALUES ('" + bot_name + "','" + channel + "','" + temp2 + "',0,'" + oauth + "','" + globalCooldown + "','" + logLevel + "','" + progressLogPATH + "');", dbConn).ExecuteNonQuery();
                 new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')", dbConn).ExecuteNonQuery();
                 SQLiteCommand cmd;
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('link','5','Google Those Nudes!\nWe are not buying your shoes!\nThe stuff people would have to put up with...');", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('emote spam','3','Images say more than a thousand words, so stop writing essays.\nHow is a timeout for a twitch feature?\nI dislike emotes, they are all text to me.');", dbConn).ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('letter spam','1',@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "There's no need to type that way.\nI do not take kindly upon that.\nStop behaving like a spoiled little RNG!"); cmd.ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('ASCII','7',@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "Whatever that was, it's gone now.\nOak's words echo: This is not the time for that!\nWoah, you typed all of that? Who am I kidding, get out!"); cmd.ExecuteNonQuery();
-                cmd = new SQLiteCommand("INSERT INTO ascostlist (type,costs,message) VALUES ('tpp',2,@par1);", dbConn);
-                cmd.Parameters.AddWithValue("@par1", "Don't you love how people just tend to disregard the multiple texts, saying this isn't TPP?\nI'm not Twippy, stop acting like a slave to him.\nTry !what."); cmd.ExecuteNonQuery();
 
                 new SQLiteCommand("CREATE TABLE IF NOT EXISTS newsettings (variable VARCHAR(128), type VARCHAR(64), value VARCHAR(128));", dbConn).ExecuteNonQuery();
                 insertIntoSettings("name", "string", "rngppbot");
                 insertIntoSettings("channel", "string", "#harbbot");
-                insertIntoSettings("antispam", "bit", "0");
+                insertIntoSettings("antispam", "bit", "1");
                 insertIntoSettings("silence", "bit", "1");
                 insertIntoSettings("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
                 insertIntoSettings("cooldown", "int", "20");
-                insertIntoSettings("loglevel", "int", "2");
                 insertIntoSettings("logpath", "string", @"C:\Users\Zack\Dropbox\Public\rnglog.txt");
                 insertIntoSettings("timebetweenvote", "calc", "15*60");
                 insertIntoSettings("timetovote", "calc", "4*60");
@@ -85,7 +72,7 @@ namespace TWIRC
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable, type ,value FROM newsettings GROUP BY variable;",dbConn).ExecuteReader();
             while (sqldr.Read())
             {
-                double a =0;
+                double a = 0; string debug = sqldr.GetString(0);
                 if(sqldr.GetString(1) == "calc"){
                     a = calculator.Parse(sqldr.GetString(2)).Answer;
                 }
@@ -101,7 +88,6 @@ namespace TWIRC
                     case "silence": silence = bitToBool(a); break;
                     case "oauth": oauth = sqldr.GetString(2); break;
                     case "cooldown": globalCooldown = (int)a; break;
-                    case "loglevel": logLevel = (int)a; break;
                     case "logpath": progressLogPATH = sqldr.GetString(2); break;
                     case "timebetweenvote": timeBetweenVotes = (int)a; break;
                     case "timetovote": timeToVote = (int)a; break;
@@ -125,7 +111,7 @@ namespace TWIRC
             }
         }
 
-        public bool setSetting(string variable, string type, string value, bool force=false)
+        bool setSetting(string variable, string type, string value, bool force=false)
         {
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable FROM newsettings WHERE variable='" + variable + "';", dbConn).ExecuteReader();
             if (sqldr.Read())
@@ -144,7 +130,7 @@ namespace TWIRC
             }
         }
 
-        public bool bitToBool(double i)
+        bool bitToBool(double i)
         {
             if (i == 0)
             {
@@ -157,7 +143,7 @@ namespace TWIRC
             
         }
 
-        public void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.
+        void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.
         {
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO newsettings (variable, type, value) VALUES ( @par0, '"+type+"', @par1);", dbConn);
             cmd.Parameters.AddWithValue("@par0", variable);
@@ -172,6 +158,7 @@ namespace TWIRC
                 SQLiteConnection.CreateFile("buttons.sqlite");
                 butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
                 butDbConn.Open();
+                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", butDbConn).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE buttons (id INT, left INT, down INT, up INT, right INT, a INT, b INT, start INT);", butDbConn).ExecuteNonQuery();
             }
             else
@@ -181,22 +168,14 @@ namespace TWIRC
             }
         }
 
-        public void initialiseTLDs()
-        {
-            if (!File.Exists("TLDs.twirc"))
-            {
-                writeFile("TLDs.twirc", "com\nnl\nde\nnet\nbiz\nuk");
-            }
-            asTLDs = FileLines("TLDs.twirc").ToList();
-        }
-
-        public void initialiseChat()
+        void initialiseChat()
         {
             if(!File.Exists("chat.sqlite"))
             {
             SQLiteConnection.CreateFile("chat.sqlite");
             chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
             chatDbConn.Open();
+            new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", chatDbConn).ExecuteNonQuery();
             new SQLiteCommand("CREATE TABLE messages (name VARCHAR(25) NOT NULL, message VARCHAR(1024) NOT NULL, time INT(13) NOT NULL);", chatDbConn).ExecuteNonQuery();
             new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, lines INT DEFAULT 1);", chatDbConn).ExecuteNonQuery();
         
@@ -208,28 +187,7 @@ namespace TWIRC
             }
         }
 
-        public void loadAntispam()
-        {
-            SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM ascostlist", dbConn).ExecuteReader(); int tempInt = 0;
-            while (rdr.Read())
-            {
-                asResponses.Add(new List<string>());
-                asCosts.Add(new intStr(rdr.GetString(0), rdr.GetInt32(1)));
-                asResponses[tempInt] = rdr.GetString(2).Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
-                tempInt++;
-            }
-
-            rdr = new SQLiteCommand("SELECT * FROM aswhitelist", dbConn).ExecuteReader();
-            while (rdr.Read())
-            {
-                asWhitelist2.Add(rdr.GetString(0));
-                asWhitelist.Add(rdr.GetString(1));
-            }
-
-            initialiseTLDs();
-        }
-
-        public void loadHardComs()
+        void loadHardComs()
         {
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
 
@@ -277,6 +235,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!changesetting", 5, 2));
             hardList.Add(new hardCom("!poll", 3, 1));
             hardList.Add(new hardCom("!vote", 0, 0));
+<<<<<<< HEAD
 
             /*
             //sayingsbot overrides, we might add these eventually            
@@ -287,6 +246,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!addclassic",2,2));
             hardList.Add(new hardCom("!delclassic",2,2));
             */
+=======
+>>>>>>> PartialLayout
         }
 
         void setUpIRC()
@@ -342,7 +303,7 @@ namespace TWIRC
             pollTimer.Start();
         }
 
-        public void loadAliases()
+        void loadAliases()
         {
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
             while (rdr.Read())
@@ -353,7 +314,7 @@ namespace TWIRC
             }
         }
 
-        public void loadCommands()
+       void loadCommands()
         {
             SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
             while (rdr.Read())
@@ -366,7 +327,7 @@ namespace TWIRC
             }
         }
 
-        public void loadBiases()
+       void loadBiases()
         {
             List<Bias> biases = new List<Bias>();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM biases;",dbConn).ExecuteReader();
@@ -381,7 +342,7 @@ namespace TWIRC
             biasList = biases;
         }
 
-        public bool addBias(string keyword, string numbers)
+        bool addBias(string keyword, string numbers)
         {
             SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE keyword LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
             if(sql.Read()){
@@ -404,7 +365,7 @@ namespace TWIRC
             }
         }
 
-        public bool delBias(string keyword)
+        bool delBias(string keyword)
         {
             SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keyword LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
             if (sql.Read())
@@ -437,20 +398,20 @@ namespace TWIRC
         }
 
 
-        public void notNew(string user)
+        void notNew(string user)
         {
             user = user.ToLower();
             new SQLiteCommand("UPDATE users SET isnew = 0 WHERE name = '" + user + "';", dbConn).ExecuteNonQuery();
         }
 
-        public int getNow()
+        int getNow()
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
             return (int)Math.Floor(diff.TotalSeconds);
         }
 
-        public string getNowSQL()
+        string getNowSQL()
         {
             string str = DateTime.Now.Year.ToString();
             if (DateTime.Now.DayOfYear < 100) { str += "0"; }
@@ -459,7 +420,7 @@ namespace TWIRC
             //(int)DateTime.Now.TimeOfDay.TotalSeconds;
             return str;
         }
-        public string getNowExtended()
+        string getNowExtended()
         {
             string str = DateTime.Now.Year.ToString();
             if (DateTime.Now.DayOfYear < 100) { str += "0"; }
@@ -570,7 +531,11 @@ namespace TWIRC
             poll_votes.Clear();
         }
 
+<<<<<<< HEAD
         public bool pollVote(string user, int value)
+=======
+        bool pollVote(string user, int value)
+>>>>>>> PartialLayout
         {
             user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT choice FROM poll WHERE name='" + user + "';", dbConn).ExecuteReader();
@@ -598,7 +563,11 @@ namespace TWIRC
             }
         }
 
+<<<<<<< HEAD
         public bool isNew(string user)
+=======
+        bool isNew(string user)
+>>>>>>> PartialLayout
         {
             user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
@@ -620,7 +589,7 @@ namespace TWIRC
             }
         }
 
-        public int addAllTime(string name, int amount)
+        int addAllTime(string name, int amount)
         {
             int things, rank;
             name = name.ToLower();
@@ -640,7 +609,7 @@ namespace TWIRC
             }
         }
 
-        public int getAllTime(string name)
+        int getAllTime(string name)
         {
             name = name.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
@@ -657,8 +626,12 @@ namespace TWIRC
             }
         }
 
-        public void storeMessage(string user, string message)
+        void storeMessage(string user, string message,int type = 0)
         {
+            if (chatter != null)
+            {
+                chatter.Add(user, pullAuth(user), message, type);
+            }
             user = user.ToLower();
             SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
             cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
@@ -671,6 +644,7 @@ namespace TWIRC
             {
                 new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
             }
+
         }
     }
 }

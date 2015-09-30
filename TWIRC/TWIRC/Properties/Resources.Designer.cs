@@ -59,5 +59,14 @@ namespace TWIRC.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 2.0.0.
+        /// </summary>
+        internal static string VERSION {
+            get {
+                return ResourceManager.GetString("VERSION", resourceCulture);
+            }
+        }
     }
 }

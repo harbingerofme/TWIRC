@@ -10,6 +10,8 @@ using System.Timers;
 using System.Reflection;
 
 
+//Kept around for legacy purposes.
+
 namespace TWIRC
 {
     public partial class RNGWindow : Form
@@ -21,7 +23,6 @@ namespace TWIRC
         ButtonMasher RNGesus = null;
         Random randy = new Random();
 
-        frmBias biasWindow;
         highscores highWindow;
         votetimer timerWindow;
 
@@ -49,7 +50,7 @@ namespace TWIRC
         double[] bias9 = { 1.00, 1.00, 1.20, 1.20, 0.96, 0.92, 0.82 };
 
 
-        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string, LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher, frmBias newbiaswindow, HarbBot bot)
+        public RNGWindow(Logger newlogger, LuaServer newluaserver, Dictionary<string, LuaServer.EmuClientHandler> newrngemulators, ButtonMasher rngmasher, HarbBot bot)
         {
 
             RNGLogger = newlogger;
@@ -57,7 +58,6 @@ namespace TWIRC
             RNGEmulators = newrngemulators;
             RNGesus = rngmasher;
 
-            biasWindow = newbiaswindow;
 #if !OFFLINE
             highWindow = new highscores(bot);
             highWindow.Show();
@@ -74,7 +74,7 @@ namespace TWIRC
         private void RNGWindow_Load(object sender, EventArgs e)
         {
            RNGLogger.addLog("RNGWindow_Load", 0, "Success, i guess");
-           RNGLogger.setLogControl(text_log); // as this calls the log dumper, best not to add immediately afterwards, lest an unfortunate game of digital chicken occur.
+          // RNGLogger.setLogControl(text_log); // as this calls the log dumper, best not to add immediately afterwards, lest an unfortunate game of digital chicken occur.
            RNGLogger.setStatusControl(ts_counter0);
            this.StartPosition = FormStartPosition.Manual;
            this.Location = Properties.Settings.Default.mainwindow_pos;
@@ -435,10 +435,6 @@ namespace TWIRC
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            biasWindow.Show();
-        }
 
         private void btn_dumpBiases_Click(object sender, EventArgs e)
         {
