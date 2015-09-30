@@ -13,15 +13,16 @@ namespace TWIRC
     public class ButtonMasher
     {
         Logger RNGLogger;
-        //Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators;
+        LuaServer RNGLuaServer;
+        public System.Windows.Forms.Timer timer_RNG;
+        Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators;
         double[] thisBias;
         double[] defaultBias;
         int numvals;
         public int[] stats;
+        bool running;
 
-
-
-        public ButtonMasher(Logger thelogger, int this_numvals)//, Dictionary<string, LuaServer.EmuClientHandler> clienttable)
+        public ButtonMasher(Logger thelogger, int this_numvals, LuaServer whereToDump, Dictionary<string, LuaServer.EmuClientHandler> _RNGEmulators)//, Dictionary<string, LuaServer.EmuClientHandler> clienttable)
         {
             numvals = this_numvals;
             defaultBias = new double[] { 1.00, 1.00, 1.00, 1.00, 0.96, 0.92, 0.82 };
@@ -30,7 +31,67 @@ namespace TWIRC
             Array.Copy(defaultBias,thisBias,7);
             //RNGEmulators = clienttable;
             RNGLogger = thelogger;
+            RNGLuaServer = whereToDump;
+            RNGEmulators = _RNGEmulators;
 
+            timer_RNG = new System.Windows.Forms.Timer();
+            timer_RNG.Interval = 40;
+            timer_RNG.Tick += new System.EventHandler(workingMethod);
+
+        }
+
+        private void workingMethod(object obj, EventArgs e)
+        {
+            bool ishold = false;
+            string lasthold = "";
+            int holdtime = 0;
+            if (RNGLuaServer.get_client_count() == 0) return;
+            String cmd;
+            int nextRNG = doRNG();
+
+            if (!ishold && RNGesus.Next(8) == 3 && nextRNG < 4) // do we hold?
+            {
+                //RNGLogger.WriteLine("Doing hold: " + nextRNG);
+                ishold = true;
+                lasthold = nextRNG.ToString();
+                holdtime = 1 + RNGesus.Next(7);
+                cmd = "HOLD:";
+
+            }
+            else
+            {
+                cmd = "PRESS:";
+            }
+
+            if (ishold)
+            {
+                //RNGLogger.WriteLine("holding!" + holdtime + "     " + lasthold);
+                holdtime--;
+                cmd = "HOLD:" + lasthold;
+            }
+            else
+            {
+                cmd += nextRNG;
+            }
+
+            if (holdtime < 1)
+            {
+                ishold = false;
+            }
+            foreach (LuaServer.EmuClientHandler rngclient in RNGEmulators.Values.ToList())
+            {
+
+                //RNGLogger.addLog("RNG-manually", 0, "rngagege");
+                try
+                {
+                    rngclient.sendCommand(cmd);
+                }
+                catch (Exception ex)
+                {
+                    RNGLogger.addLog("Network", 0, "Regret, didn't rng:" + ex.Message);
+                }
+
+            }
         }
 
         Random RNGesus = new Random();
@@ -95,7 +156,6 @@ namespace TWIRC
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
-            RNGLogger.WriteLine("Doing Decay! " +thisBias);
         }
 
 

@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
 using System.Timers;
+using System.Linq;
 
 namespace TWIRC
 {
@@ -19,9 +20,12 @@ namespace TWIRC
         DatabaseConnector dbConn;
         LuaServer luaServer;
         DatabaseScheduler dbSched;
+        ButtonMasher biasControl;
+        Dictionary<string, LuaServer.EmuClientHandler> RNGEmulators;
 
         //tab0
-
+        bool running;
+        CheckBox sendOutMainMessage;
         //tab1
         bool multipleWindows;
         public CHILDFORM[] childWindows;
@@ -37,20 +41,25 @@ namespace TWIRC
         int chatLine;
         //tab5
         formLogger logger;//type,severity,time,message
-        int logLevelLastValue;
+        int logLevelLastValue;//Value is used, ignore warning!
 
         #region controls
 
 
         #endregion
 
-        public MainWindow(HarbBot _irc, Logger _log, DatabaseConnector _dbconn, LuaServer _luaServer, DatabaseScheduler _dbsched)
+        public MainWindow(HarbBot _irc, Logger _log, DatabaseConnector _dbconn, LuaServer _luaServer, DatabaseScheduler _dbsched, ButtonMasher _biasControl, Dictionary<string, LuaServer.EmuClientHandler> _RNGEmulators)
         {
+            #region parameters
             irc = _irc;
             dbConn = _dbconn;
             luaServer = _luaServer;
             dbSched = _dbsched;
+            biasControl = _biasControl;
+            RNGEmulators = _RNGEmulators;
+            #endregion
 
+            #region Startup
             this.Text = "RNGPPBot - Starting Up";
             Width = width;
             Height = height;
@@ -71,12 +80,32 @@ namespace TWIRC
                 tabs[i].Enabled = false;
                 tabs[i].Visible = false;
             }
-            
+            #endregion
+
             #region tab0: MAIN
+            Button mainButton = new Button();
+            mainButton.Text = "START!";
+            mainButton.Font = new Font("Arial", 30);
+            mainButton.Size = new Size(200,100);
+            mainButton.Location = new Point(tabs[0].Width / 2 - mainButton.Width/2, 20);
+            mainButton.Click += mainButton_Click;
+            tabs[0].Controls.Add(mainButton);
 
+            Label mainLabel = new Label();
+            mainLabel.Location = new Point(0, 300);
+            mainLabel.Text = "Planning to put all sorts of information here, but put off for now, will add soon!";
+            mainLabel.Size = new Size(tabs[0].Width, 50);
+            mainLabel.TextAlign = ContentAlignment.MiddleCenter;
+            tabs[0].Controls.Add(mainLabel);
 
-
-
+            sendOutMainMessage = new CheckBox();
+            sendOutMainMessage.Location = new Point(tabs[0].Width / 2 - 180, 125);
+            sendOutMainMessage.Text = "Send out maintenance message?";
+            sendOutMainMessage.Width = 360;
+            sendOutMainMessage.Height = 40;
+            sendOutMainMessage.TextAlign = ContentAlignment.TopCenter;
+            sendOutMainMessage.CheckAlign = ContentAlignment.TopCenter;
+            tabs[0].Controls.Add(sendOutMainMessage);
             #endregion
 
             #region tab1: WINDOWS
@@ -341,6 +370,54 @@ namespace TWIRC
             Text = "RNGPPBot";
         }
 
+        void mainButton_Click(object sender, EventArgs e)
+        {
+            running = !running;
+            Button but = sender as Button;
+            if(running)
+            {
+                if (childWindows[0] != null)
+                {
+                    timerWindow timer = childWindows[0] as timerWindow;
+                    timer.running = true;
+                    timer.maintenance = false;
+                }
+                if (irc.voteStatus != -2)
+                {
+                    irc.voteStatus = 1;
+                    if (sendOutMainMessage.Checked)
+                        irc.say("Maintenance is over, go vote! (yadda yadda !bias up etc. you know the drill)", 3);
+                    irc.voteTimer2.Start();
+                }
+                biasControl.timer_RNG.Enabled = true;
+                but.Text = "Maintenance";
+                but.Font = new Font("arial", 20);
+            }
+            else
+            {
+                if (childWindows[0] != null)
+                {
+                    timerWindow timer = childWindows[0] as timerWindow;
+                    timer.running = false;
+                    timer.maintenance = true;
+                }
+                if (irc.voteStatus != -1) { 
+                    irc.voteStatus = -1; 
+                    if(sendOutMainMessage.Checked)
+                        irc.say("Maintenance! Go picnic! (voting is stopped for the duration)", 3);
+                }
+                else
+                {
+                    irc.voteStatus = -2;
+                }
+                irc.voteTimer.Stop();  // stop the vote timers while we're down
+                irc.voteTimer2.Stop();
+                biasControl.timer_RNG.Enabled = false;
+                but.Text = "Resume!";
+                but.Font = new Font("arial", 30);
+            }
+        }
+
         void autosaveButton_clicked(object sender, EventArgs e)
         {
             timeSaver.Stop();
@@ -355,7 +432,18 @@ namespace TWIRC
             timeSaver.Stop();
             timeSaver.Dispose();
 
+            foreach (LuaServer.EmuClientHandler dyingclient in RNGEmulators.Values.ToList())
+            {
+                dyingclient.stopClient();
+                dyingclient.deadClient(luaServer.RNGEmulators);
+
+            }
+            logger.parent.setLogControl(null);
+            logger.parent.setStatusControl(null);
+            logger.parent.shuttingdown = true;
+
             luaServer.shutdown();
+            luaServer.serverSocket.Stop();
 
              //irc.doDisconnect();
              irc.Close();
@@ -912,7 +1000,7 @@ namespace TWIRC
                 save.Click += parent.saveButton_Restart;
                 save.Click += button_Click;
 
-                Controls.AddRange(new Control[] { l1, save, no });
+                Controls.AddRange(new Control[] { l1, save});
             }
 
             private void button_Click(object sender, EventArgs e)
