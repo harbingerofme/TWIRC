@@ -42,7 +42,7 @@ namespace TWIRC
             RNGLuaServer = new LuaServer(RNGLogger, RNGEmulators);
             RNGLuaServer.Run();
 
-            RNGesus = new ButtonMasher(RNGLogger, 7); // 6 buttons
+            RNGesus = new ButtonMasher(RNGLogger, 7,RNGLuaServer,RNGEmulators); // 6 buttons
 
             HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer);
 
@@ -53,7 +53,7 @@ namespace TWIRC
             Application.SetCompatibleTextRenderingDefault(false);
 
             //mainWindow = new RNGWindow(RNGLogger, RNGLuaServer, RNGEmulators, RNGesus, biasWindow, HarbBot);
-            mainWindow = new MainWindow(HarbBot, RNGLogger, dbConn, RNGLuaServer, dbSched);
+            mainWindow = new MainWindow(HarbBot, RNGLogger, dbConn, RNGLuaServer, dbSched, RNGesus, RNGEmulators);
             
             Application.Run(mainWindow);
 

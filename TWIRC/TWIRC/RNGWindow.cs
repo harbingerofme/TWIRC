@@ -10,6 +10,8 @@ using System.Timers;
 using System.Reflection;
 
 
+//Kept around for legacy purposes.
+
 namespace TWIRC
 {
     public partial class RNGWindow : Form

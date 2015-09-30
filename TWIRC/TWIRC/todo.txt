@@ -1,6 +1,4 @@
 ﻿(must have)
-main
-settings
 music window (add setting for file location)
 
 (also must, but lower priority)
@@ -13,9 +11,3 @@ Make definable constants
 
 (do slightly later than that)
 Make luaclients have comprehensible names so we can communicate with them.
-
-
-//Some text exceprt from the main menu
-
-You are running Twirc $(versionnumber).
-Do explore the menus, but don't change stuff if you don't know what it does.
