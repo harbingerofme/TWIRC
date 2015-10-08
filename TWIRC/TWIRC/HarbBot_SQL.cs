@@ -36,6 +36,7 @@ namespace TWIRC
                 insertIntoSettings("antispam", "bit", "1");
                 insertIntoSettings("silence", "bit", "1");
                 insertIntoSettings("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
+                insertIntoSettings("votingenabled", "bool", "0");
                 insertIntoSettings("cooldown", "int", "20");
                 insertIntoSettings("logpath", "string", @"C:\Users\Zack\Dropbox\Public\rnglog.txt");
                 insertIntoSettings("timebetweenvote", "calc", "15*60");
@@ -89,6 +90,7 @@ namespace TWIRC
                     case "oauth": oauth = sqldr.GetString(2); break;
                     case "cooldown": globalCooldown = (int)a; break;
                     case "logpath": progressLogPATH = sqldr.GetString(2); break;
+                    case "votingenabled": if (!irc.IsConnected) { voteStatus = ((int)a - 1); }; break;
                     case "timebetweenvote": timeBetweenVotes = (int)a; break;
                     case "timetovote": timeToVote = (int)a; break;
                     case "moneypervote": moneyPerVote = (int)a; break;
@@ -272,14 +274,27 @@ namespace TWIRC
 
         void prepareTimers()
         {
-            voteTimer = new System.Timers.Timer(timeBetweenVotes*1000);
-            voteTimer.Elapsed += voteTimer_Elapsed;
-            voteTimer.AutoReset = false;
-            voteTimer.Start();
+            
+            try
+            {
+                voteTimer.Stop();
+                voteTimer2.Stop();
+                saveTimer.Stop();
+                reconTimer.Stop();
+                exp_allTimer.Stop();
+            }
+            catch { }
+            if (voteStatus != -1)
+            {
+                voteTimer = new System.Timers.Timer(timeBetweenVotes * 1000);
+                voteTimer.Elapsed += voteTimer_Elapsed;
+                voteTimer.AutoReset = false;
 
-            voteTimer2 = new System.Timers.Timer(timeToVote*1000);
-            voteTimer2.AutoReset = false;
-            voteTimer2.Elapsed += voteTimer_Elapsed;
+                voteTimer2 = new System.Timers.Timer(timeToVote * 1000);
+                voteTimer2.AutoReset = false;
+                voteTimer2.Elapsed += voteTimer_Elapsed;
+                voteTimer2.Start();
+            }
 
             saveTimer_Elapsed(null, null);
 
