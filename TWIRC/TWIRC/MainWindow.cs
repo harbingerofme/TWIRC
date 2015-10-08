@@ -80,6 +80,8 @@ namespace TWIRC
                 tabs[i].Enabled = false;
                 tabs[i].Visible = false;
             }
+
+            logger = new formLogger(_log, 4, 4, tabs[5].Width - 8, 320);
             #endregion
 
             #region tab0: MAIN
@@ -208,6 +210,7 @@ namespace TWIRC
             settings.Add(createSetting("backgroundspath", "Path to the backgrounds folder (may take up to 30 min to update)"));
             settings.Add(createSetting("commandsurl", "The url to display when people use !rngppcommands"));
             settings.Add(createSetting("commandspath", "The local path to the commandsfile"));
+            settings.Add(createSetting("votingenabled", "Enable voting at startup?", false, false));
             settings.Add(createSetting("timebetweenvote","Time between votes in seconds.",false,true));
             settings.Add(createSetting("timetovote","Time to vote in seconds.",false,true));
             settings.Add(createSetting("moneypervote", "Money awarded/deducted for each vote."));
@@ -222,9 +225,12 @@ namespace TWIRC
 
             for(int i = 0; i<settings.Count; i++)
             {
-                settings[i][0].Location = new Point(0,i*25);
-                settings[i][1].Location = new Point(335,i*25);
-                settings[i][2].Location = new Point(440,i*25);
+                if (settings[i] != null)
+                {
+                    settings[i][0].Location = new Point(0, i * 25);
+                    settings[i][1].Location = new Point(335, i * 25);
+                    settings[i][2].Location = new Point(440, i * 25);
+                }
             }
 
             #endregion
@@ -295,7 +301,6 @@ namespace TWIRC
 
             #region tab5: LOGS
             logLevelLastValue = 2;
-            logger = new formLogger(_log, 4, 4, tabs[5].Width-8, 320);
             tabs[5].Controls.Add(logger);
             irc.logger = _log;
 
@@ -379,16 +384,16 @@ namespace TWIRC
                 if (childWindows[0] != null)
                 {
                     timerWindow timer = childWindows[0] as timerWindow;
-                    timer.running = true;
-                    timer.maintenance = false;
+                    timer.switchRunMain(2);
                 }
                 if (irc.voteStatus != -2)
                 {
-                    irc.voteStatus = 1;
                     if (sendOutMainMessage.Checked)
                         irc.say("Maintenance is over, go vote! (yadda yadda !bias up etc. you know the drill)", 3);
-                    irc.voteTimer2.Start();
+                    irc.toggleVoting(1);
                 }
+                else
+                    irc.voteStatus = -1;
                 biasControl.timer_RNG.Enabled = true;
                 but.Text = "Maintenance";
                 but.Font = new Font("arial", 20);
@@ -398,11 +403,10 @@ namespace TWIRC
                 if (childWindows[0] != null)
                 {
                     timerWindow timer = childWindows[0] as timerWindow;
-                    timer.running = false;
-                    timer.maintenance = true;
+                    timer.switchRunMain(1);
                 }
-                if (irc.voteStatus != -1) { 
-                    irc.voteStatus = -1; 
+                if (irc.voteStatus != -1) {
+                    irc.toggleVoting(2);
                     if(sendOutMainMessage.Checked)
                         irc.say("Maintenance! Go picnic! (voting is stopped for the duration)", 3);
                 }

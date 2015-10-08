@@ -238,6 +238,17 @@ namespace TWIRC
             }
         }
 
+        public void switchRunMain(int mode = 0)
+        {
+            if (running || mode ==1)
+            {
+                maintenanceMode(null, null);
+            }
+            else
+                if(!running || mode == 2)
+                toggle_animation(null, null);
+        }
+
         void toggle_animation(object o, EventArgs e)
         {
             if (running)

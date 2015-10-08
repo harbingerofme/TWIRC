@@ -103,7 +103,23 @@ namespace TWIRC
         void log(int level, string message)
         {
              logger.addLog("IRC", level, message);
-        } 
+        }
+ 
+        public void toggleVoting(int mode = 0)
+        {
+            if(voteStatus > 0 || mode == 2)//Voting will be disabled!
+            {
+                voteTimer.Stop();
+                voteTimer2.Stop();
+                voteStatus = -1;
+                mode = 2;
+            }
+            if(mode != 2)
+            {
+                voteStatus = 1;
+                voteTimer2.Start();
+            }
+        }
 
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -214,10 +230,10 @@ namespace TWIRC
                         }
                         str += " Processed " + a + " vote";
                         if (a != 1) { str += "s"; }
-                        str += "from " + votingList.Count;
+                        str += " from " + votingList.Count;
                         
                         if (votingList.Count != 1) str += " users. ";
-                        else str += "user. ";
+                        else str += " user. ";
                         biasControl.setBias(tobebias);
                         luaServer.send_to_all("SETBIAS",tobebias[0]+" "+tobebias[1]+" "+tobebias[2]+" "+tobebias[3]+" "+tobebias[4]+" "+tobebias[5]+" "+tobebias[6]);
                     }

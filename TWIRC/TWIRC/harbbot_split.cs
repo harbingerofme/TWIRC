@@ -30,9 +30,27 @@ namespace TWIRC
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
+            int level = pullAuth(nick);
+            bool b = false;
             message = message.Remove(0, 8);
             message = message.Remove(message.Length - 1);
-            storeMessage(nick, "/me " + message,0);
+            if (channel != "#" + bot_name)
+            {
+                message = message.TrimEnd();
+                if (level == 0 && isNew(nick))
+                {
+                    if (antispam)
+                        b = noBOTS(nick, message);
+                    if (!b)
+                    {
+                        newMessage(nick);
+                        notNew(nick);
+                        storeMessage(nick, "/me " + message, 0);
+                    }
+                }
+                else
+                    storeMessage(nick, "/me " + message, 0);
+            }
         }
 
 
@@ -53,7 +71,7 @@ namespace TWIRC
                 message = message.TrimEnd();
                 if (level == 0 && isNew(nick))
                 {
-                    if (antispam && isMod)
+                    if (antispam)
                         b = noBOTS(nick, message);
                     if (!b)
                     {
@@ -79,6 +97,10 @@ namespace TWIRC
                     sendMess(channels[0], ".unban " + nick);
                     storeMessage("SYSTEM", "Unbanned: " + nick, 3);
                 }
+                if (message.ToLower().StartsWith("is mod?"))
+                {
+                    sendMess(channels[1], isMod.ToString(), 2);
+                }
             }
 #if !STRICT
             }
@@ -91,7 +113,8 @@ namespace TWIRC
 
         bool noBOTS(string nick, string message)
         {
-            if (Regex.Match(message, @"[\w_\.-]+\.(\w){2,}\b").Success)
+            message = message.ToLower();
+            if (Regex.Match(message, @".*([\w_\.-]+\.[\w]{2,}|bit_ly)[/\w]*\b.*").Success)
             {
                 sendMess(channel, ".ban "+nick, 3);
                 
@@ -109,7 +132,9 @@ namespace TWIRC
                 {
                     new SQLiteCommand("INSERT INTO users (name, lines) VALUES ('#autoBans',1);",chatDbConn).ExecuteNonQuery();
                 }
-                int mType = new Random().Next(5);
+                int mType = new Random().Next(11);
+                if(mType == 8)
+                     mType = new Random().Next(11);
                 string returnMessage ="";
                 switch(mType)
                 {
@@ -118,7 +143,12 @@ namespace TWIRC
                     case 2: returnMessage = "There's only room for so many bots here. (" + totalbans + ")"; break;
                     case 3: returnMessage = "How about no? (" + totalbans + ")"; break;
                     case 4: returnMessage = "That makes " + totalbans +"."; break;
-                    case 5: returnMessage = "HOM NOM NOM! (" + totalbans + ")"; break;
+                    case 5: returnMessage = "OMN NOM NOM! (" + totalbans + ")"; break;
+                    case 6: returnMessage = "And out goes the " + totalbans + "th candle.";break;
+                    case 7: returnMessage = "I am having none of that. (" + totalbans + ")"; break;
+                    case 8: returnMessage = "My rule over this channel is supreme, you will not interfere. (" + totalbans + ")"; break;
+                    case 9: returnMessage = "Error 401: Access denied. (" + totalbans + ")"; break;
+                    case 10: returnMessage = "Nonintellligent life detected... Assuming hostile intend... Purged. (" + totalbans + ")"; break;
                 }
                 sendMess(channel, returnMessage+" (If you are not a bot, say \"I'm not a bot\" in my channel.)");
                 return true;

@@ -92,7 +92,7 @@ namespace TWIRC
             List<object[]> list = new List<object[]>();
             if(sqldr == null)
             {
-                list.Add(new object[] {-1});
+                list.Add(new object[] {-2});
                 return list;
             }
             
@@ -104,6 +104,10 @@ namespace TWIRC
                     obj[i] = sqldr.GetValue(i);
                 }
                 list.Add(obj);
+            }
+            if(list.Count == 0)
+            {
+                list.Add(new object[] { -1 });
             }
             return list;
         }
