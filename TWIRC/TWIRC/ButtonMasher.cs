@@ -127,16 +127,12 @@ namespace TWIRC
         
         public void setDefaultBias(double[] newbias)
         {
-<<<<<<< HEAD
-            RNGLogger.WriteLine("Setting default bias to:" + newbias);
-=======
             string s = "";
             foreach(double d in newbias)
             {
                 s += Math.Round(d, 4) + " ";
             }
             RNGLogger.addLog("RNGesus",1,"Setting default bias to: " + s);
->>>>>>> PartialLayout
             Array.Copy(newbias, defaultBias, 7 );
         }
         public double[] getDefaultBias()
@@ -160,10 +156,6 @@ namespace TWIRC
             {
                thisBias[i] = (4 * thisBias[i] + defaultBias[i]) / 5;
             }
-<<<<<<< HEAD
-            RNGLogger.WriteLine("Doing Decay! " +thisBias);
-=======
->>>>>>> PartialLayout
         }
 
 

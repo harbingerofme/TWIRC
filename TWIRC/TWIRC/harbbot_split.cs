@@ -724,11 +724,7 @@ namespace TWIRC
                                 {
                                     addPoints(user, int.Parse(str[1]) * -2, "Money to game");
                                     luaServer.send_to_all("ADDMONEY", str[1]);
-<<<<<<< HEAD
-                                    sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for ?birja.");
-=======
                                     sendMess(channel, User + " converted " + int.Parse(str[1]) * 2 + " of their funds into " + str[1] + " PokeDollar for IA.");
->>>>>>> PartialLayout
                                     givemoneysucces = true;
                                 }
                                 else
@@ -899,7 +895,6 @@ namespace TWIRC
                                     break;
                                 case "close": poll_active = false; sendMess(channel, "Poll has been closed.");sendMess(channel,"Results were: "+pollResults()); break;
                                 case "results": if (poll_active) { sendMess(channel, "Current results are: " + pollResults()); } else { sendMess(channel, "Results were: " + pollResults()); } break;
-<<<<<<< HEAD
                             }
                             break;
                         case "!vote": 
@@ -940,48 +935,6 @@ namespace TWIRC
                                 sendMess(channel, "No poll active.");
                             }
                             break;
-=======
-                            }
-                            break;
-                        case "!vote": 
-                            if (poll_active)
-                            {
-                                if(int.TryParse(str[1], out tempVar1) && str[1] != "")
-                                {
-                                    if(tempVar1 <= poll.Length&&tempVar1>0)
-                                    {
-                                        if (pollVote(user, tempVar1))
-                                        {
-                                            sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
-                                            h.cdlist.Add(new intStr(user, 5));
-                                        }
-                                        else
-                                        {
-                                            sendMess(channel, User + ", you've already cast your vote for this option.");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        sendMess(channel, "Not a valid option");
-                                    }
-                                }
-                                else
-                                {
-                                    tempVar2 = "There's currently a poll running for: ' " + poll_name + "'. The options are:";
-                                    for (int i = 0; i < poll.Length; i++)
-                                    {
-                                        tempVar2 += " (" + (i+1) + ") '" + poll[i] + "'.";
-                                    }
-                                    tempVar2 += " Use !vote X to cast your vote!";
-                                    sendMess(channel,tempVar2);
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "No poll active.");
-                            }
-                            break;
->>>>>>> PartialLayout
                     }
                     break;
 
@@ -1055,11 +1008,7 @@ namespace TWIRC
             return str;
         }
 
-<<<<<<< HEAD
-        public void addVote(string user, Bias b, int amount)
-=======
         void addVote(string user, Bias b, int amount)
->>>>>>> PartialLayout
         {
             var money = 0;//amount to be deducted/added
             var x = -1;//index of person who voted

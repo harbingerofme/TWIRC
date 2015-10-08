@@ -53,16 +53,10 @@ namespace TWIRC
         List<Bias> votinglist = new List<Bias>();
 
         public int timeBetweenVotes = 1800, lastVoteTime, voteStatus = 0,timeToVote = 300;
-<<<<<<< HEAD
-        public System.Timers.Timer voteTimer = null,voteTimer2 = null,saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
-        public double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
-        public string poll_name = ""; public string[] poll = null; public bool poll_active; public List<intStr> poll_votes = new List<intStr>();
-=======
         public System.Timers.Timer voteTimer = null,voteTimer2 = null;
         private System.Timers.Timer saveTimer = null,reconTimer = null, exp_allTimer = null, pollTimer = null;
         double[] newBias = new double[7]; double maxBiasDiff; int expTime = 0,expTimeEnd=0;
         string poll_name = ""; private string[] poll = null;  bool poll_active;  List<intStr> poll_votes = new List<intStr>();
->>>>>>> PartialLayout
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
@@ -506,11 +500,7 @@ namespace TWIRC
                     }
                 }
                 if (!isMod) { irc.SendDelay = 60000 /20; }//We are allowed to send 20 messages a minute to channels we are not modded in.
-<<<<<<< HEAD
-            
-=======
                 log(2, "Moderators updated.");
->>>>>>> PartialLayout
             }
             
         }

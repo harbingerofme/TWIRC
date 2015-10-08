@@ -237,19 +237,6 @@ namespace TWIRC
             hardList.Add(new hardCom("!changesetting", 5, 2));
             hardList.Add(new hardCom("!poll", 3, 1));
             hardList.Add(new hardCom("!vote", 0, 0));
-<<<<<<< HEAD
-
-            /*
-            //sayingsbot overrides, we might add these eventually            
-            hardList.Add(new hardCom("!whois",0,1,20));
-            hardList.Add(new hardCom("!editme",1,1));
-            hardList.Add(new hardCom("!edituser",3,2));
-            hardList.Add(new hardCom("!classic",0,1,20));
-            hardList.Add(new hardCom("!addclassic",2,2));
-            hardList.Add(new hardCom("!delclassic",2,2));
-            */
-=======
->>>>>>> PartialLayout
         }
 
         void setUpIRC()
@@ -546,11 +533,7 @@ namespace TWIRC
             poll_votes.Clear();
         }
 
-<<<<<<< HEAD
-        public bool pollVote(string user, int value)
-=======
         bool pollVote(string user, int value)
->>>>>>> PartialLayout
         {
             user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT choice FROM poll WHERE name='" + user + "';", dbConn).ExecuteReader();
@@ -578,11 +561,7 @@ namespace TWIRC
             }
         }
 
-<<<<<<< HEAD
-        public bool isNew(string user)
-=======
         bool isNew(string user)
->>>>>>> PartialLayout
         {
             user = user.ToLower();
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
