@@ -355,7 +355,7 @@ namespace SayingsBot
                             return (str[1] + "! Please change the color of your name, neon colors hurt some peoples eyes! (If you don't know how type \".color\")");
                             break;
                         case "!sbversion":
-                            return ("/me is currently HB" + Application.ProductVersion + " bassed off of SB2.8.2. Changelog at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#ChangeLog");
+                            return ("/me is currently HB" + Application.ProductVersion + " originally bassed off of SB2.8.2. Changelog at http://moddedbydude.net76.net/wiki/index.php/SayingsBot#ChangeLog");
                             break;
                         case "!sbleaderboard":
                             SQLiteDataReader sqldr;
@@ -396,6 +396,32 @@ namespace SayingsBot
                                 return ("There is currently " + tmpI + " points in the swear jar.");
                             }
                             break;
+                        case "!howfar":
+                            SQLiteDataReader howfarread = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC,name LIMIT 1 OFFSET 4;", dbConn).ExecuteReader();
+                            if (howfarread.Read())
+                            {
+                                string fifthplacename = howfarread.GetString(0);
+                                Int32 fifthplacepoints = howfarread.GetInt32(1);
+                                SQLiteCommand readcommand = new SQLiteCommand("SELECT alltime FROM users WHERE name=@par1;", dbConn);
+                                readcommand.Parameters.AddWithValue("@par1", user);
+                                SQLiteDataReader howfarread2 = readcommand.ExecuteReader();
+                                if (howfarread2.Read())
+                                {
+                                    Int32 userpoints = howfarread2.GetInt32(0);
+                                    Int32 difference = fifthplacepoints - userpoints;
+                                    return (user + " you are " + difference + " points away from " + fifthplacename + ", who is in fifth place.");
+                                }
+                                else
+                                {
+                                    return ("Something went wrong. Sorry.");
+                                }
+                            }
+                            else
+                            {
+                                return ("Something went wrong. Sorry.");
+                            }
+                            break;
+                        #region Quotes
                         case "!quotes":
                             Random rnd = new Random();
                             string function = str[1];
@@ -538,6 +564,7 @@ namespace SayingsBot
                                 return ("Incorrect use of !quotes.");
                                 break;
                             }
+                        #endregion
                         case "!nightbotisdown":
                             return ("I'm not logbot! I can't handle this!");
                             break;

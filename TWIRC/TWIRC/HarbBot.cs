@@ -276,6 +276,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!addswear", 0, 1));
             hardList.Add(new hardCom("!lolcounter", 0, 0));
             hardList.Add(new hardCom("!howmanytimes", 0, 0));
+            hardList.Add(new hardCom("!howfar", 0, 0));
 
             one = new Thread(connection);
             one.Name = "SAYINGSBOT IRC CONNECTION";
@@ -539,7 +540,6 @@ namespace SayingsBot
             irc.Listen();
 
         }
-        [System.Obsolete("Unused")]
         public void say(string message)
         {   
             sendMess(channels, message);

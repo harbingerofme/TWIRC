@@ -44,6 +44,7 @@
             this.text_log = new System.Windows.Forms.TextBox();
             this.txt_IRCManual = new System.Windows.Forms.TextBox();
             this.txt_Halp = new System.Windows.Forms.Button();
+            this.btnUpdateNotify = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -163,11 +164,23 @@
             this.txt_Halp.UseVisualStyleBackColor = true;
             this.txt_Halp.Click += new System.EventHandler(this.txt_Halp_Click);
             // 
+            // btnUpdateNotify
+            // 
+            this.btnUpdateNotify.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUpdateNotify.Location = new System.Drawing.Point(175, 363);
+            this.btnUpdateNotify.Name = "btnUpdateNotify";
+            this.btnUpdateNotify.Size = new System.Drawing.Size(76, 22);
+            this.btnUpdateNotify.TabIndex = 37;
+            this.btnUpdateNotify.Text = "Update";
+            this.btnUpdateNotify.UseVisualStyleBackColor = true;
+            this.btnUpdateNotify.Click += new System.EventHandler(this.btnUpdateNotify_Click);
+            // 
             // RNGWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(415, 410);
+            this.Controls.Add(this.btnUpdateNotify);
             this.Controls.Add(this.txt_Halp);
             this.Controls.Add(this.txt_IRCManual);
             this.Controls.Add(this.text_log);
@@ -206,6 +219,7 @@
         private System.Windows.Forms.ToolStripMenuItem ts_Matinence_on;
         private System.Windows.Forms.ToolStripMenuItem ts_Matinence_off;
         public System.Windows.Forms.ToolStripStatusLabel ts_MatinenceLevel;
+        private System.Windows.Forms.Button btnUpdateNotify;
     }
 }
 

@@ -89,6 +89,9 @@ namespace SayingsBot
              btn_RestartIRC.Top = txt_Halp.Top;
              txt_IRCManual.Top = txt_Halp.Top - 26;
              text_log.Height = this.Height - (this.Height - txt_IRCManual.Top);
+             btnUpdateNotify.Top = btn_RestartIRC.Top;
+             btnUpdateNotify.Left = ((btn_RestartIRC.Left - btnUpdateNotify.Width) - 6);
+
 
          }
 
@@ -191,6 +194,11 @@ namespace SayingsBot
             Program.RNGLogger.WriteLine("Silence has been set to: Off");
             ts_MatinenceLevel.Text = "Off";
             HB.sendMess(HB.channels, "/me is back! Enjoy the cake!");
+        }
+
+        private void btnUpdateNotify_Click(object sender, EventArgs e)
+        {
+            HB.say("I've been updated! I think I'm now version " + Application.ProductVersion + ". Ask dude22072 for the changes or check the changelog!");
         }
     }
 }
