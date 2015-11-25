@@ -556,7 +556,23 @@ namespace SayingsBot
                             }
                             else if (function == "edit")
                             {
-                                return ("Editing quotes unimplimented. Bug dude to change it.");
+                                int numberToChange = Convert.ToInt32(fParam.Substring(0, 1));
+                                SQLiteCommand isItAQuoteCommand = new SQLiteCommand("SELECT * FROM userdata WHERE user=@par1 AND datatype='1' AND dataID=@par2;",dbConn);
+                                isItAQuoteCommand.Parameters.AddWithValue("@par1", quser);
+                                isItAQuoteCommand.Parameters.AddWithValue("@par2", numberToChange);
+                                SQLiteDataReader isItAQuoteReader = isItAQuoteCommand.ExecuteReader();
+                                if(isItAQuoteReader.Read()) {
+                                    SQLiteCommand editQuote = new SQLiteCommand("UPDATE userdata SET data=@par1 WHERE user=@par2 AND datatype = 1 AND dataID=@par3",dbConn);
+                                    editQuote.Parameters.AddWithValue("@par1", fParam.Substring(2,fParam.Length-2));
+                                    editQuote.Parameters.AddWithValue("@par2", quser);
+                                    editQuote.Parameters.AddWithValue("@par3", numberToChange);
+                                    editQuote.ExecuteNonQuery();
+                                    return ("Updated quote " + numberToChange + " for " + quser + ".");
+                                }
+                                else
+                                {
+                                    return("Quote number " + numberToChange + " does not exist for " + quser + ".");
+                                }
                                 break;
                             }
                             else
