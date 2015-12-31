@@ -1,9 +1,0 @@
-D:\TWIRC\TWIRC.exe.config
-D:\TWIRC\TWIRC.exe
-D:\TWIRC\TWIRC.pdb
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csprojResolveAssemblyReference.cache
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.RNGWindow.resources
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.Properties.Resources.resources
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.csproj.GenerateResource.Cache
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.exe
-E:\RNGPP\Programs\TWIRC\TWIRC\TWIRC\obj\x86\Debug\TWIRC.pdb
