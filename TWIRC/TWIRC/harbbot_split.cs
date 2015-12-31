@@ -602,7 +602,7 @@ namespace TWIRC
                         case "!goal": sendMess(channel, goal); break;
                         #endregion
                         #region setgoal
-                        case "!setgoal": goal = str[1]; insertIntoSettings("goal", "string", goal); break;
+                        case "!setgoal": goal = str[1]; insertIntoSettings("goal", "string", goal); sendMess(channel, "Goal set: \""+goal+"\"."); break;
                         #endregion
                         #endregion
                         #endregion
