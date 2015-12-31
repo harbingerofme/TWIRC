@@ -33,6 +33,18 @@ namespace SayingsBot
         /// <returns>True if profanity, else false.</returns>
         public bool isProfanity(string toFilter)
         {
+            shouldRebuildPrfanity();
+            return Regex.Match(toFilter.ToLower(), @"((^(" + profanityA + ")$)|(^(" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + ")$))", RegexOptions.IgnoreCase).Success;
+        }
+
+        public string[] getProfanity()
+        {
+            shouldRebuildPrfanity();
+            return profanityA.Split(new char[]{'|'});
+        }
+
+        void shouldRebuildPrfanity()
+        {
             if (hb.shouldRebuildProf)
             {
                 foreach (string build in hb.swearList)
@@ -40,7 +52,6 @@ namespace SayingsBot
                     profanityA += "|" + build;
                 }
             }
-            return Regex.Match(toFilter.ToLower(), @"((^(" + profanityA + ")$)|(^(" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + @")[ ?!\.,\-_])|( (" + profanityA + ")$))", RegexOptions.IgnoreCase).Success;
         }
     }
 }

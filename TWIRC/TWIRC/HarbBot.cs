@@ -396,7 +396,7 @@ namespace SayingsBot
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Such</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version "+Application.ProductVersion+".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<ul>\n    <li><a href=\"#commands\">Commands</a></li>\n    <li><a href=\"#aliases\">Aliases</a></li>\n    <li><a href=\"#classics\">Classics</a></li>\n    <li><a href=\"#quotes\">Quotes</a></li>\n    <li><a href=\"#leaderboard\">Leaderboard</a></li>\n    <li><a href=\"#whoisuser\">!whoisuser Responses</a></li>\n</ul>\n<h2 id=\"commands\">Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
+            writeFile(commandsPATH, "<DOCTYPE html>\n<head>\n<title>Sayingsbot Commands and Such</title>\n<script src=\"https://dl.dropboxusercontent.com/s/qwvnaeigartecp2/sorttable.js\" type=\"text/javascript\"></script>\n<style>\ntr:nth-of-type(odd) {\nbackground-color:#ccc;\n}\ntr:nth-of-type(even) {\nbackground-color:#aaa;\n}\n</style>\n</head>\n<h1>Sayingsbot</h1>\nSayingsbot Version " + Application.ProductVersion + ".<br>If this page looks sloppy, it is because it is. I've paid no attention to any standards whatsoever.\n<ul>\n    <li><a href=\"#commands\">Commands</a></li>\n    <li><a href=\"#aliases\">Aliases</a></li>\n    <li><a href=\"#classics\">Classics</a></li>\n    <li><a href=\"#quotes\">Quotes</a></li>\n    <li><a href=\"#leaderboard\">Leaderboard</a></li>\n    <li><a href=\"#whoisuser\">!whoisuser Responses</a></li>\n    <li><a href=\"#profanity\">Profanity</a>\n        <ul>\n            <li><a href=\"#profanityleaderboard\">Leaderboard</a></li>\n        </ul>\n    </li>\n</ul>\n<h2 id=\"commands\">Commands</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Keyword</b></td>\n    <td><b>Level required</b>(0 = user, 1 = regular, 2 = trusted, 3 = mod, 4 = broadcaster, 5 = secret)</td>\n    <td><b>Output<b></td>\n</tr></thead>\n");
             foreach (hardCom h in hardList)
             {
                 #region  HardComm
@@ -511,13 +511,21 @@ namespace SayingsBot
             SQLiteDataReader sqldr = new SQLiteCommand("SELECT name,alltime FROM users ORDER BY alltime DESC LIMIT 25;", dbConn).ExecuteReader();
             while (sqldr.Read())
             {
-                appendFile(commandsPATH, "<tr>\n    <td>" + sqldr.GetString(0) + "</td>\n    <td>" + cstr(sqldr.GetInt32(1)) + "</td>\n</tr>\n");
+                appendFile(commandsPATH, "<tr>\n    <td>" + sqldr.GetString(0) + "</td>\n    <td>" + cstr(sqldr.GetInt32(1)) + "</td>\n</tr>");
             }
             appendFile(commandsPATH, "</table>\n<h2 id=\"whoisuser\">!whoisuser responses</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Response<b></td>\n</tr></thead>\n");
             foreach (string[] w in whoisList)
             {
-                appendFile(commandsPATH, "<tr>\n    <td>"+w[0]+"</td>\n    <td>"+w[1]+"</td>\n</tr>\n");
+                appendFile(commandsPATH, "<tr>\n    <td>"+w[0]+"</td>\n    <td>"+w[1]+"</td>\n</tr>");
             }
+            appendFile(commandsPATH, "</table>\n<h2 id=\"profanity\">Profanity</h2>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>Word</b></td>\n</tr></thead>\n");
+            string[] profanity = pf.getProfanity();
+            foreach (string p in profanity)
+            {
+                appendFile(commandsPATH, "<tr>\n    <td>" + p + "</td>\n</tr>");
+            }
+            appendFile(commandsPATH, "</table>\n<h3 id=\"profanityleaderboard\">Leaderboard</h3>\n<table border='1px' cellspacing='0px' class=\"sortable\">\n<thead><tr>\n    <td><b>User</b></td>\n    <td><b>Points<b></td>\n</tr></thead>\n");
+
             appendFile(commandsPATH, "</table>\nBOOTIFUL!");
         }
         /// <summary>
