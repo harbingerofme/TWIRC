@@ -605,7 +605,7 @@ namespace TWIRC
                         case "!setgoal": goal = str[1]; insertIntoSettings("goal", "string", goal); break;
                         #endregion
                         #endregion
-
+                        #endregion
                         #region bias and economy
                         #region bias
                         case "!bias":

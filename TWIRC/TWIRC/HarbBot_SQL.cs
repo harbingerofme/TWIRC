@@ -235,6 +235,8 @@ namespace TWIRC
             hardList.Add(new hardCom("!poll", 3, 1));
             hardList.Add(new hardCom("!vote", 0, 0));
             hardList.Add(new hardCom("!addsetting", 4, 2));
+            hardList.Add(new hardCom("!goal", 0, 0));
+            hardList.Add(new hardCom("!setgoal", 2, 1));
         }
 
         void setUpIRC()
