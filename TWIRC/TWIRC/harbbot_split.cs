@@ -176,6 +176,7 @@ namespace TWIRC
             bool done = false; int auth = pullAuth(user);
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
+            SQLiteCommand cmd;
             foreach (hardCom h in hardList)//hardcoded command
             {
                 if (h.hardMatch(user, message, auth))
@@ -200,7 +201,7 @@ namespace TWIRC
                                 else { tempVar2 = str[2] + " " + str[3]; }
                                 tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                 comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                SQLiteCommand cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);", dbConn);
+                                cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);", dbConn);
                                 cmd.Parameters.AddWithValue("@par1", str[1].ToLower());
                                 cmd.Parameters.AddWithValue("@par2", tempVar2);
                                 cmd.ExecuteNonQuery();
@@ -221,7 +222,7 @@ namespace TWIRC
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist[a].setResponse(tempVar3);
                                     comlist[a].setAuth(tempVar1);
-                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET response = @par1, authlevel=@par3 WHERE keyword=@par2;", dbConn);
+                                    cmd = new SQLiteCommand("UPDATE commands SET response = @par1, authlevel=@par3 WHERE keyword=@par2;", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
@@ -243,7 +244,7 @@ namespace TWIRC
                                 {
                                     comlist.RemoveAt(a);
                                     fail = false;
-                                    SQLiteCommand cmd = new SQLiteCommand("DELETE FROM commands WHERE keyword=@par1;", dbConn);
+                                    cmd = new SQLiteCommand("DELETE FROM commands WHERE keyword=@par1;", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", str[1]);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
@@ -270,7 +271,7 @@ namespace TWIRC
                                 {
                                     fail = false;
                                     c.setCount(int.Parse(str[2]));
-                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
+                                    cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", str[1]);
                                     cmd.ExecuteNonQuery();
                                     sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
@@ -302,7 +303,7 @@ namespace TWIRC
                                             gatherer += tempAli + " ";
                                         }
                                         gatherer = gatherer.TrimEnd();
-                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
+                                        cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", str[2]);
                                         cmd.ExecuteNonQuery();
                                         break;
@@ -311,7 +312,7 @@ namespace TWIRC
                                 if (fail)
                                 {
                                     aliList.Add(new ali(str[1], str[2]));
-                                    SQLiteCommand cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
+                                    cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
                                     cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
                                     cmd.ExecuteNonQuery();
                                 }
@@ -330,7 +331,7 @@ namespace TWIRC
                                     if (c.getFroms().Count() == 0)
                                     {
                                         aliList.Remove(c);
-                                        SQLiteCommand cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
+                                        cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", str[1]); cmd.ExecuteNonQuery();
                                     }
                                     else
@@ -341,7 +342,7 @@ namespace TWIRC
                                             gatherer += tempAli + " ";
                                         }
                                         gatherer = gatherer.TrimEnd();
-                                        SQLiteCommand cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
+                                        cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
                                         cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", c.getTo());
                                         cmd.ExecuteNonQuery();
                                         break;
@@ -602,7 +603,12 @@ namespace TWIRC
                         case "!goal": sendMess(channel, goal); break;
                         #endregion
                         #region setgoal
-                        case "!setgoal": goal = str[1]; insertIntoSettings("goal", "string", goal); sendMess(channel, "Goal set: \""+goal+"\"."); break;
+                        case "!setgoal": 
+                            goal = str[1];
+                            cmd = new SQLiteCommand("UPDATE childWindows SET value = @par1 WHERE name = 'goal' AND varname = 'goal';",dbConn);
+                            cmd.Parameters.AddWithValue("@par1", goal);
+                            sendMess(channel, "Goal set: \""+goal+"\"."); 
+                            break;
                         #endregion
                         #endregion
                         #endregion
@@ -1037,7 +1043,7 @@ namespace TWIRC
                         done = true;
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
+                        cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
                         cmd.Parameters.AddWithValue("@par1", c.getKey());
                         cmd.ExecuteNonQuery();
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }

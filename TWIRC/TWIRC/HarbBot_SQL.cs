@@ -119,17 +119,27 @@ namespace TWIRC
 
         bool setSetting(string variable, string type, string value, bool force=false)
         {
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable FROM newsettings WHERE variable='" + variable + "';", dbConn).ExecuteReader();
+            SQLiteCommand cmd = new SQLiteCommand("SELECT variable FROM newsettings WHERE variable= @par1;", dbConn);
+            cmd.Parameters.AddWithValue("@par1", variable);
+            SQLiteDataReader sqldr = cmd.ExecuteReader();
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE newsettings SET type = '"+type+"', value = '"+value+"' WHERE variable='" + variable + "';", dbConn).ExecuteNonQuery();
+                cmd = new SQLiteCommand("UPDATE newsettings SET type = @par1, value = @par2 WHERE variable=@par3;", dbConn);
+                cmd.Parameters.AddWithValue("@par1", type);
+                cmd.Parameters.AddWithValue("@par2", value);
+                cmd.Parameters.AddWithValue("@par3", variable);
+                cmd.ExecuteNonQuery();
                 return true;
             }
             else
             {
                 if (force)
                 {
-                    new SQLiteCommand("INSERT INTO newsettings (variable,type,value) VALUES ('" + variable + "','" + type + "','" + value + "');", dbConn).ExecuteNonQuery();
+                    cmd = new SQLiteCommand("INSERT INTO newsettings (variable,type,value) VALUES (@par3,@par1,@par2);", dbConn);
+                    cmd.Parameters.AddWithValue("@par1", type);
+                    cmd.Parameters.AddWithValue("@par2", value);
+                    cmd.Parameters.AddWithValue("@par3", variable);
+                    cmd.ExecuteNonQuery();
                     return true;
                 }
                 return false;
