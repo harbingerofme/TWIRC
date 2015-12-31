@@ -148,14 +148,7 @@ namespace TWIRC
 
         bool bitToBool(double i)
         {
-            if (i == 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return (i == 0) ? false : true;
             
         }
 
