@@ -597,6 +597,13 @@ namespace TWIRC
 
                             break;
                         #endregion
+                        #region goal related
+                        #region goal
+                        case "!goal": sendMess(channel, goal); break;
+                        #endregion
+                        #region setgoal
+                        case "!setgoal": goal = str[1]; insertIntoSettings("goal", "string", goal); break;
+                        #endregion
                         #endregion
 
                         #region bias and economy

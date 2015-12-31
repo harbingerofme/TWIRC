@@ -205,6 +205,7 @@ namespace TWIRC
             settings.Add(createSetting("channel", "Channel we are connecting to", false, true));
             settings.Add(createSetting("oauth", "Our oauth key", false, true));
             settings.Add(createSetting("antispam", "Autoban people whose first message contains a link?", true, false));
+            settings.Add(createSetting("antistreambot", "Autoban people whose first message contains 'streambot'?", true, false));
             settings.Add(createSetting("silence", "Must I be quiet?", true, false));
             settings.Add(createSetting("logpath", "Path for !addlog"));
             settings.Add(createSetting("backgroundspath", "Path to the backgrounds folder (may take up to 30 min to update)"));
@@ -221,7 +222,7 @@ namespace TWIRC
             settings.Add(createSetting("defaultbias","Default bias, please use !setdefaultbias instead!",true,true));
             settings.Add(createSetting("biasmaxdiff", "Maximum addition if full bias in one direction"));
             settings.Add(createSetting("biaspointspread","Rate how much these votes matter (10 = normal, 0 = not at all)"));
-
+            
 
             for(int i = 0; i<settings.Count; i++)
             {

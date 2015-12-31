@@ -53,6 +53,7 @@ namespace TWIRC
                 insertIntoSettings("biaspointspread", "string", "10:10:10:10:9:8:6.5");
                 insertIntoSettings("poll", "string", "");
                 insertIntoSettings("antistreambot", "string", "1");
+                insertIntoSettings("goal", "string", "Set a goal!");
 
                 loadSettings();
 
@@ -106,6 +107,7 @@ namespace TWIRC
                     case "biaspointspread": tempDoubleArray = new List<double>(); tempStringArray = sqldr.GetString(2).Split(':'); foreach (string s in tempStringArray) { tempDoubleArray.Add(double.Parse(s)); } tempDoubleArray.CopyTo(newBias,0); break;
                     case "poll": if (sqldr.GetString(2) != "") { tempStringArray = sqldr.GetString(2).Split('|'); poll_name = tempStringArray[0]; poll = new string[tempStringArray.Length - 1]; for (int i = 1; i < tempStringArray.Length; i++) { poll[i - 1] = tempStringArray[i]; } } break;
                     case "antistreambot": antistreambot = bitToBool(a); break;
+                    case "goal": goal = sqldr.GetString(2); break;
                 }
             }
             sqldr = new SQLiteCommand("SELECT name,choice FROM poll;", dbConn).ExecuteReader();
@@ -194,14 +196,12 @@ namespace TWIRC
         void loadHardComs()
         {
             //Here we add some hardcoded commands and stuff (while we do have to write out their responses hardocded too, it's a small price to pay for persistency)
-
-            hardList.Add(new hardCom("!ac", 3, 2));//addcom (reduced now, so it doesn't conflict with nightbot)
-            hardList.Add(new hardCom("!dc", 3, 1));//delcom
-            hardList.Add(new hardCom("!ec", 3, 2));//editcom
-            hardList.Add(new hardCom("!addalias", 3, 2));//addalias
-            hardList.Add(new hardCom("!delalias", 3, 1));//delete alias
-
-            hardList.Add(new hardCom("!set", 2, 2));//elevate another user
+            hardList.Add(new hardCom("!ac", 3, 2));
+            hardList.Add(new hardCom("!dc", 3, 1));
+            hardList.Add(new hardCom("!ec", 3, 2));
+            hardList.Add(new hardCom("!addalias", 3, 2));
+            hardList.Add(new hardCom("!delalias", 3, 1));
+            hardList.Add(new hardCom("!set", 2, 2));
             hardList.Add(new hardCom("!editcount", 3, 2));
             hardList.Add(new hardCom("!banuser", 3, 1));
             hardList.Add(new hardCom("!unbanuser", 4, 1));
@@ -211,8 +211,6 @@ namespace TWIRC
             hardList.Add(new hardCom("!whitelist", 0, 0));
             hardList.Add(new hardCom("!rngppcommands", 0, 0, 120));
             hardList.Add(new hardCom("!calculate", 0, 1));
-
-            //RNGPP catered commands, commented out means no way of implementing that yet or no idea.
             hardList.Add(new hardCom("!setbias", 4, 7));
             hardList.Add(new hardCom("!setdefaultbias", 4, 7));
             hardList.Add(new hardCom("!setbiasmaxdiff", 4, 1));
@@ -223,10 +221,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!addlog", 0, 1, 5));
             hardList.Add(new hardCom("!setpoints", 4, 2));
             hardList.Add(new hardCom("!voting", 3, 1));
-            //hardList.Add(new hardCom("!maintenance", 3, 1));
             hardList.Add(new hardCom("!background", 0, 1));
-            //hardList.Add(new hardCom("!song",0,1));
-            //hardList.Add(new hardCom("!seriousmode",3,1);
             hardList.Add(new hardCom("!save", 3, 1));
             hardList.Add(new hardCom("!funmode", 3, 0));//   >:)
             hardList.Add(new hardCom("!givemoney", 0, 0));
@@ -236,9 +231,10 @@ namespace TWIRC
             hardList.Add(new hardCom("!expall", 0, 1));
             hardList.Add(new hardCom("!repel", 3, 1));
             hardList.Add(new hardCom("!reloadsettings", 3, 0));
-            hardList.Add(new hardCom("!changesetting", 5, 2));
+            hardList.Add(new hardCom("!changesetting", 4, 2));
             hardList.Add(new hardCom("!poll", 3, 1));
             hardList.Add(new hardCom("!vote", 0, 0));
+            hardList.Add(new hardCom("!addsetting", 4, 2));
         }
 
         void setUpIRC()
