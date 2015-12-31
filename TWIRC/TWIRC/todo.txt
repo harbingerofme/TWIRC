@@ -6,6 +6,7 @@ Make definable constants
 
 (could have)
  create constraints
+ degree based bias.
 
 (last) database
 

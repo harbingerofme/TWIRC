@@ -111,10 +111,29 @@ namespace TWIRC
 #endif
         }
 
+        #region banMessages
+        string[] banMessages = {
+                                           "And another one down, and another one down, another one bites the dust! (TB)",
+                                           "Piece of cake! (TB)",
+                                           "There's only room for so many bots here. (TB)",
+                                           "How about no? (TB)",
+                                           "That makes TB.",
+                                           "OMN NOM NOM! (TB)","And out goes the TBth candle.",
+                                           "I am having none of that. (TB)",
+                                           "My rule over this channel is supreme, you will not interfere. (TB)",
+                                           "Error 403.2: Write access forbidden. (TB)",
+                                           "Error 401.4: Authorization failed by filter.. (TB)",
+                                           "Nonintellligent life detected... Assuming hostile intend... Purged. (TB)",
+                                           "Trifling gnome! Your arrogance will be your undoing! (TB)",
+                                           "CRUSH. KILL. DESTROY. (TB)",
+                                           "Guess what belongs in the trash: it's you! (TB)",
+                                           "-_- (TB)"
+                                       };
+        #endregion
         bool noBOTS(string nick, string message)
         {
             message = message.ToLower();
-            if (Regex.Match(message, @".*([\w_\.-]+\.[\w]{2,}|bit_ly)[/\w]*\b.*").Success)
+            if (Regex.Match(message, @".*([\w_\.-]+\.[\w]{2,}|bit_ly)[/\w]*\b.*").Success || (antistreambot && Regex.Match(message,"streambot").Success))
             {
                 sendMess(channel, ".ban "+nick, 3);
                 
@@ -132,24 +151,7 @@ namespace TWIRC
                 {
                     new SQLiteCommand("INSERT INTO users (name, lines) VALUES ('#autoBans',1);",chatDbConn).ExecuteNonQuery();
                 }
-                int mType = new Random().Next(11);
-                if(mType == 8)
-                     mType = new Random().Next(11);
-                string returnMessage ="";
-                switch(mType)
-                {
-                    case 0: returnMessage = "And another one down, and another one down, another one bites the dust! (" + totalbans + ")"; break;
-                    case 1: returnMessage = "Piece of cake! (" + totalbans + ")"; break;
-                    case 2: returnMessage = "There's only room for so many bots here. (" + totalbans + ")"; break;
-                    case 3: returnMessage = "How about no? (" + totalbans + ")"; break;
-                    case 4: returnMessage = "That makes " + totalbans +"."; break;
-                    case 5: returnMessage = "OMN NOM NOM! (" + totalbans + ")"; break;
-                    case 6: returnMessage = "And out goes the " + totalbans + "th candle.";break;
-                    case 7: returnMessage = "I am having none of that. (" + totalbans + ")"; break;
-                    case 8: returnMessage = "My rule over this channel is supreme, you will not interfere. (" + totalbans + ")"; break;
-                    case 9: returnMessage = "Error 401: Access denied. (" + totalbans + ")"; break;
-                    case 10: returnMessage = "Nonintellligent life detected... Assuming hostile intend... Purged. (" + totalbans + ")"; break;
-                }
+                string returnMessage = banMessages[new Random().Next(banMessages.Length)].Replace("(TB)","("+totalbans+")");
                 sendMess(channel, returnMessage+" (If you are not a bot, say \"I'm not a bot\" in my channel.)");
                 return true;
             }
@@ -182,6 +184,8 @@ namespace TWIRC
                     str = h.returnPars(message);
                     switch (h.returnKeyword())
                     {
+                        #region commands
+                        #region addcom
                         case "!ac":
                             fail = false;
 
@@ -203,6 +207,8 @@ namespace TWIRC
                                 sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                             }
                             break;
+                        #endregion
+                        #region editcom
                         case "!ec":
                             fail = true;
                             for (int a = 0; a < comlist.Count() && fail; a++)
@@ -227,6 +233,8 @@ namespace TWIRC
                                 sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                             }
                             break;
+                        #endregion
+                        #region delcom
                         case "!dc"://delete command
                             fail = true;
                             for (int a = 0; a < comlist.Count() && fail; a++)
@@ -248,6 +256,31 @@ namespace TWIRC
                                 sendMess(channel, "I'm sorry, " + User + ". I can't find a command named that way. (maybe it's an alias?)");
                             }
                             break;
+                        #endregion
+                        #region editcount
+                        case "!editcount":
+                            fail = true;
+                            if (!Regex.Match(str[2], @"^\d+$").Success)
+                            {
+                                break;
+                            }
+                            foreach (command c in comlist)
+                            {
+                                if (c.doesMatch(str[1]))
+                                {
+                                    fail = false;
+                                    c.setCount(int.Parse(str[2]));
+                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
+                                    cmd.Parameters.AddWithValue("@par1", str[1]);
+                                    cmd.ExecuteNonQuery();
+                                    sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
+                                }
+                            }
+                            break;
+                        #endregion
+                        #endregion
+                        #region aliases
+                        #region addalias
                         case "!addalias": //add alias
                             fail = false;
                             foreach (command c in comlist) { if (c.doesMatch(str[1])) { fail = true; break; } }
@@ -285,6 +318,8 @@ namespace TWIRC
                                 sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                             }
                             break;
+                        #endregion
+                        #region delalias
                         case "!delalias":
                             fail = true;
                             foreach (ali c in aliList)
@@ -317,6 +352,10 @@ namespace TWIRC
                             }
                             if (fail) { sendMess(channel, "I'm sorry, " + User + ". I couldn't find any aliases that match it. (maybe it's a command?)"); }
                             break;
+                        #endregion
+                        #endregion
+                        #region userlevels
+                        #region set
                         case "!set"://!set <name> <level>
                             if (!Regex.Match(str[1].ToLower(), @"^[a-z0-9_]+$").Success) { sendMess(channel, "I'm sorry, " + User + ". That's not a valid name."); }
                             else
@@ -332,25 +371,8 @@ namespace TWIRC
                                 }
                             }
                             break;
-                        case "!editcount":
-                            fail = true;
-                            if (!Regex.Match(str[2], @"^\d+$").Success)
-                            {
-                                break;
-                            }
-                            foreach (command c in comlist)
-                            {
-                                if (c.doesMatch(str[1]))
-                                {
-                                    fail = false;
-                                    c.setCount(int.Parse(str[2]));
-                                    SQLiteCommand cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", str[1]);
-                                    cmd.ExecuteNonQuery();
-                                    sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
-                                }
-                            }
-                            break;
+                        #endregion
+                        #region banuser
                         case "!banuser":
                             if (auth > pullAuth(str[1]))//should prevent mods from banning other mods, etc.
                             {
@@ -359,6 +381,8 @@ namespace TWIRC
                             }
 
                             break;
+                        #endregion
+                        #region unbanuser
                         case "!unbanuser":
                             if (pullAuth(str[1]) == -1)
                             {
@@ -367,13 +391,8 @@ namespace TWIRC
                             }
 
                             break;
-                        case "!silence":
-                            if (Regex.Match(str[1], "^((on)|(off)|1|0|(true)|(false)|(yes)|(no))$", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
-                            if (Regex.Match(str[1], "^((on)|1|(true)|(yes))$", RegexOptions.IgnoreCase).Success) { silence = true; setSetting("silence", "bit", "1"); }
-                            if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { silence = false; setSetting("silence", "bit", "0"); }
-
-                            break;
-
+                        #endregion
+                        #region rank
                         case "!rank":
                             string text = "";
                             switch (auth)
@@ -388,52 +407,101 @@ namespace TWIRC
                             }
                             sendMess(channel, User + ", you are " + text + ".");
                             break;
-
-                        case "!calculate":
-                            tempVar2 = str[1] + str[2];
-                            Calculation calc = calculator.Parse(tempVar2);
-                            if (calc.Valid)
+                        #endregion
+                        #endregion
+                        #region poll stuff
+                        #region poll
+                        case "!poll": switch (str[1].ToLower())
                             {
-                                sendMess(channel, "Answer: "+ calc.Answer+". Interpreted as: "+calc.Input+".");
+                                case "open":
+                                    if (!poll_active)
+                                    {
+                                        if (str[2] != "")
+                                        {
+                                            tempVar3 = str[2].Split('|');
+                                            poll_name = tempVar3[0];
+                                            tempVar2 = User + " opened a poll for: '" + poll_name + "', with the options:";
+                                            poll = new string[tempVar3.Length - 1];
+                                            for (int i = 1; i < tempVar3.Length; i++)
+                                            {
+                                                poll[i - 1] = tempVar3[i];
+                                                tempVar2 += " (" + i + ") '" + tempVar3[i] + "'.";
+                                            }
+                                            tempVar2 += " Use !vote X to cast your vote!";
+                                            pollOpen();
+                                            poll_active = true;
+                                            sendMess(channel, tempVar2);
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel, "The poll for '" + poll_name + "' has been re-opened! Type !vote X to vote!");
+                                            poll_active = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, User + ", there's already a poll going for '" + poll_name + "', try closing that one first.");
+                                    }
+
+                                    break;
+                                case "close": poll_active = false; sendMess(channel, "Poll has been closed."); sendMess(channel, "Results were: " + pollResults()); break;
+                                case "results": if (poll_active) { sendMess(channel, "Current results are: " + pollResults()); } else { sendMess(channel, "Results were: " + pollResults()); } break;
+                            }
+                            break;
+                        #endregion
+                        #region vote
+                        case "!vote":
+                            if (poll_active)
+                            {
+                                if (int.TryParse(str[1], out tempVar1) && str[1] != "")
+                                {
+                                    if (tempVar1 <= poll.Length && tempVar1 > 0)
+                                    {
+                                        if (pollVote(user, tempVar1))
+                                        {
+                                            sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
+                                            h.cdlist.Add(new intStr(user, 5));
+                                        }
+                                        else
+                                        {
+                                            sendMess(channel, User + ", you've already cast your vote for this option.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sendMess(channel, "Not a valid option");
+                                    }
+                                }
+                                else
+                                {
+                                    tempVar2 = "There's currently a poll running for: ' " + poll_name + "'. The options are:";
+                                    for (int i = 0; i < poll.Length; i++)
+                                    {
+                                        tempVar2 += " (" + (i + 1) + ") '" + poll[i] + "'.";
+                                    }
+                                    tempVar2 += " Use !vote X to cast your vote!";
+                                    sendMess(channel, tempVar2);
+                                }
                             }
                             else
                             {
-                                sendMess(channel,"I'm sorry, either your calculation is wrong, or I am not programmed yet to be able to read it.");
+                                sendMess(channel, "No poll active.");
                             }
                             break;
+                        #endregion
+                        #endregion
+                        
+                        #region lua
                         case "!addlua"://<keyword> <command> [default (if parameter is omitted)]
 
                             break;
                         case "!dellua"://<keyword>
 
                             break;
-                        ///////////////////////////////////begin RNGPP catered stuff                    //////////////////////////////////
-                        case "!setbias":
-                            double[] tobebias = new double[7]; fail = false;
-                            for (int a = 1; a < 8; a++)
-                            {
-                                str[a] = str[a].Replace(',', '.');//So people for who 0,1 == 0.1 also can do stuff (like me)
-                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
-                                {
-                                    fail = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    tobebias[a - 1] = double.Parse(str[a]);
-                                }
-                            }
-                            if (!fail)
-                            {
-                                biasControl.setBias(tobebias);
-                                luaServer.send_to_all("SETBIAS", "MANUAL");
-                                sendMess(channel, User + "-> Bias set!");
-                            }
-                            else
-                            {
-                                sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
-                            }
-                            break;
+                        #endregion
+
+                        #region settings
+                        #region setdefaultbias
                         case "!setdefaultbias":
                             double[] tobedefaultbias = new double[7]; fail = false;
                             for (int a = 1; a < 8; a++)
@@ -466,6 +534,8 @@ namespace TWIRC
                                 sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
                             }
                             break;
+                        #endregion
+                        #region setbiasmaxdiff
                         case "!setbiasmaxdiff":
                             str[1] = str[1].Replace(",", ".");//make it accessible for dutchies ( we use commas to define floating points here (and dots for thousands).)
                             if (Regex.Match(str[1], @"^([01]\.[0-9]{1,9})|(1)").Success)
@@ -479,6 +549,58 @@ namespace TWIRC
                                 sendMess(channel, User + "-> Value in incorrect format, no changes made.");
                             }
                             break;
+#endregion
+                        #region individual settings
+                        case "!reloadsettings": loadSettings(); break;
+                        case "!changesetting": if (setSetting(str[1], str[2], str[3])) { sendMess(channel, "Setting changed! Reloading settings.."); loadSettings(); } else { sendMess(channel, "Setting not found!"); }; break;
+                        case "!addsetting": setSetting(str[1], str[2], str[3], true); sendMess(channel, "Setting added (following checks not preformed: validity, duplicate)."); break;
+#endregion
+                        #region voting
+                        case "!voting":
+                            if (Regex.Match(str[1], @"^(1)|(on)|(true)|(yes)|(positive)$").Success)
+                            {
+                                if (voteStatus == -1)
+                                {
+                                    voteStatus = 1;
+                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your PokeDollars)");
+                                    voteTimer2.Start();
+                                }
+                                else
+                                {
+                                    try { voteTimer.Stop(); voteTimer2.Stop(); }
+                                    catch { }
+                                    voteStatus = 1;
+                                    voteTimer2.Start();
+                                    sendMess(channel, "Voting started by " + User + ".");
+                                }
+                            }
+                            else
+                            {
+                                if (Regex.Match(str[1], @"^(0)|(off)|(false)|(no)|(negative)$").Success)
+                                {
+                                    if (voteStatus != -1)
+                                    {
+                                        voteStatus = -1;
+                                        sendMess(channel, "Voting disabled until bot or chat restart.");
+                                        try { voteTimer.Stop(); voteTimer2.Stop(); }
+                                        catch { }
+                                    }
+                                }
+                            }
+                            break;
+#endregion
+                        #region silence
+                        case "!silence":
+                            if (Regex.Match(str[1], "^((on)|(off)|1|0|(true)|(false)|(yes)|(no))$", RegexOptions.IgnoreCase).Success) { sendMess(channel, "Silence has been set to: " + str[1]); }
+                            if (Regex.Match(str[1], "^((on)|1|(true)|(yes))$", RegexOptions.IgnoreCase).Success) { silence = true; setSetting("silence", "bit", "1"); }
+                            if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { silence = false; setSetting("silence", "bit", "0"); }
+
+                            break;
+                        #endregion
+                        #endregion
+
+                        #region bias and economy
+                        #region bias
                         case "!bias":
                             if (voteStatus == 1)
                             {
@@ -582,6 +704,42 @@ namespace TWIRC
                                 sendMess(channel, "Voting is disabled.");
                             }
                             break;
+                        #endregion
+                        #region setbias
+                        case "!setbias":
+                            double[] tobebias = new double[7]; fail = false;
+                            for (int a = 1; a < 8; a++)
+                            {
+                                str[a] = str[a].Replace(',', '.');//So people for who 0,1 == 0.1 also can do stuff (like me)
+                                if (!Regex.Match(str[a], @"^([01][\.][0-9]{1,9})|(1)$").Success)
+                                {
+                                    fail = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    tobebias[a - 1] = double.Parse(str[a]);
+                                }
+                            }
+                            if (!fail)
+                            {
+                                biasControl.setBias(tobebias);
+                                luaServer.send_to_all("SETBIAS", "MANUAL");
+                                sendMess(channel, User + "-> Bias set!");
+                            }
+                            else
+                            {
+                                sendMess(channel, User + "-> Atleast one of the values wasn't correct. Nothing has been changed.");
+                            }
+                            break;
+                        #endregion
+                        #region resetbias
+                        case "!resetbias":
+                            biasControl.setBias(biasControl.getDefaultBias());
+                            sendMess(channel, User + "-> Bias reset.");
+                            break;
+                        #endregion
+                        #region balance
                         case "!balance":
                             tempVar1 = getPoints(user); tempVar2 = "";
                             if (tempVar1 == 0)
@@ -599,6 +757,8 @@ namespace TWIRC
                             tempVar1 = getAllTime(user);
                             sendMess(channel, User + ", your balance is " + tempVar2 + ". (" + tempVar1 + ")");
                             break;
+                        #endregion
+                        #region setpoints
                         case "!setpoints":
                             if (Regex.Match(str[2], "^([1-9][0-9]{1,8}|[0-9])$").Success)
                             {
@@ -606,63 +766,14 @@ namespace TWIRC
                                 sendMess(channel, "Points have been changed.");
                             }
                             break;
+                        #endregion
+                        #region check
                         case "!check":
                             sendMess(channel, str[1].Substring(0, 1).ToUpper() + str[1].Substring(1).ToLower() + " has " + getPoints(str[1].ToLower()) + " PokeDollars. (" + getAllTime(str[1]) + ")");
                             break;
-
-                        case "!addlog":
-                            appendFile(progressLogPATH, "\n" + getNowExtended() + " " + User + " " + str[1] + " " + str[2]);
-                            sendMess(channel, "Affirmative, " + User + "!");
-                            break;
-
-                        case "!resetbias":
-                            biasControl.setBias(biasControl.getDefaultBias());
-                            sendMess(channel, User + "-> Bias reset.");
-                            break;
-
-                        case "!voting":
-                            if (Regex.Match(str[1], @"^(1)|(on)|(true)|(yes)|(positive)$").Success)
-                            {
-                                if (voteStatus == -1)
-                                {
-                                    voteStatus = 1;
-                                    sendMess(channel, "Voting for bias now possible again! Type !bias <direction> [amount of votes] to vote! (For example \"!bias 3\" to vote once for down-right, \"!bias up 20\" would put 20 votes for up at the cost of some of your PokeDollars)");
-                                    voteTimer2.Start();
-                                }
-                                else
-                                {
-                                    try { voteTimer.Stop(); voteTimer2.Stop(); }
-                                    catch { }
-                                    voteStatus = 1;
-                                    voteTimer2.Start();
-                                    sendMess(channel, "Voting started by " + User + ".");
-                                }
-                            }
-                            else
-                            {
-                                if (Regex.Match(str[1], @"^(0)|(off)|(false)|(no)|(negative)$").Success)
-                                {
-                                    if (voteStatus != -1)
-                                    {
-                                        voteStatus = -1;
-                                        sendMess(channel, "Voting disabled until bot or chat restart.");
-                                        try { voteTimer.Stop(); voteTimer2.Stop(); }
-                                        catch { }
-                                    }
-                                }
-                            }
-                            break;
-
-                        case "!save":
-                            tempVar2 = str[1];
-                            luaServer.send_to_all("SAVE", tempVar2);
-                            sendMess(channel, User + "-> Saved game with parameter '" + tempVar2 + "'.");
-                            break;
-
-                        case "!rngppcommands":
-                            sendMess(channel, User + "-> commands are located at " + commandsURL + " .");
-                            break;
-
+                        #endregion
+                        #region bias adding and removing
+                        #region delbias
                         case "!delbias":
                             if (delBias(str[1]))
                             {
@@ -673,7 +784,8 @@ namespace TWIRC
                                 sendMess(channel, "No bias by that name exists");
                             }
                             break;
-
+                        #endregion
+                        #region addbias
                         case "!addbias":
                             fail = false;
                             for (int i = 2; i < 9; i++)
@@ -714,7 +826,10 @@ namespace TWIRC
                             }
 
                             break;
-
+                        #endregion
+                        #endregion
+                        #region purchasable stuff
+                        #region givemoney
                         case "!givemoney":
 
                             bool givemoneysucces = false;
@@ -741,6 +856,8 @@ namespace TWIRC
                                 h.removeFromCD(user);
                             }
                             break;
+                        #endregion
+                        #region giveball
                         case "!giveball":
                             bool giveballsucces = false;
                             if (1500 <= getPoints(user))
@@ -759,6 +876,8 @@ namespace TWIRC
                                 h.removeFromCD(user);
                             }
                             break;
+                        #endregion
+                        #region background
                         case "!background":
                             if (backgrounds_enabled)
                             {
@@ -820,15 +939,16 @@ namespace TWIRC
                                     sendMess(channel, "There are no backgrounds, WINSANE PLS!");
                                 }
                             }
-                                break;
-
-                        case "!expall": 
-                            int.TryParse(str[1], out tempVar1); 
-                            if (tempVar1 > 0) 
+                            break;
+                        #endregion
+                        #region expall
+                        case "!expall":
+                            int.TryParse(str[1], out tempVar1);
+                            if (tempVar1 > 0)
                             {
                                 tempVar2 = expAllFunc.Replace("X", tempVar1 + "");
-                                int expAllMoney = (int)calculator.Parse(tempVar2).Answer; 
-                                if (expAllMoney <= getPoints(user)) 
+                                int expAllMoney = (int)calculator.Parse(tempVar2).Answer;
+                                if (expAllMoney <= getPoints(user))
                                 {
                                     addPoints(user, -1 * expAllMoney, "EXP ALL (" + str[1] + ")");
                                     if (exp_allTimer.Enabled)
@@ -836,12 +956,13 @@ namespace TWIRC
                                         expTime += tempVar1;
                                         expTimeEnd += tempVar1;
                                         luaServer.send_to_all("EXPON", "" + (expTimeEnd - getNow()));
-                                    }else
+                                    }
+                                    else
                                     {
-                                        luaServer.send_to_all("EXPON", ""+tempVar1);
+                                        luaServer.send_to_all("EXPON", "" + tempVar1);
                                         expTimeEnd = getNow() + tempVar1;
                                         exp_allTimer.Dispose();
-                                        exp_allTimer = new System.Timers.Timer(tempVar1*1000);
+                                        exp_allTimer = new System.Timers.Timer(tempVar1 * 1000);
                                         exp_allTimer.AutoReset = false;
                                         exp_allTimer.Elapsed += exp_allTimer_Elapsed;
                                         exp_allTimer.Start();
@@ -854,97 +975,55 @@ namespace TWIRC
                                 }
                             };
                             break;
+                        #endregion
+                        #endregion
+                        #endregion
+
+                        #region calculate
+                        case "!calculate":
+                            tempVar2 = str[1] + str[2];
+                            Calculation calc = calculator.Parse(tempVar2);
+                            if (calc.Valid)
+                            {
+                                sendMess(channel, "Answer: " + calc.Answer + ".");
+                            }
+                            else
+                            {
+                                sendMess(channel, "I'm sorry, either your calculation is wrong, or I am not programmed yet to be able to read it.");
+                            }
+                            break;
+                        #endregion
+                        #region addlog
+                        case "!addlog":
+                            appendFile(progressLogPATH, "\n" + getNowExtended() + " " + User + " " + str[1] + " " + str[2]);
+                            sendMess(channel, "Affirmative, " + User + "!");
+                            break;
+                        #endregion
+                        #region save
+                        case "!save":
+                            tempVar2 = str[1];
+                            luaServer.send_to_all("SAVE", tempVar2);
+                            sendMess(channel, User + "-> Saved game with parameter '" + tempVar2 + "'.");
+                            break;
+                        #endregion
+                        #region commands (rngppcommands)
+                        case "!rngppcommands":
+                            sendMess(channel, User + "-> commands are located at " + commandsURL + " .");
+                            break;
+                        #endregion
+                        #region repel
                         case "!repel":
                             if (Regex.Match(str[1], "^((on)|1|(true)|(yes))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELON", ""); sendMess(channel, "Repel ON"); }
                             if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELOFF", ""); sendMess(channel, "Repel OFF"); }
                                 break;
-                        case "!reloadSettings": loadSettings(); break;
-                        case "!changesetting": if (setSetting(str[1], str[2], str[3])) { sendMess(channel, "Setting changed! Reloading settings.."); loadSettings(); } else { sendMess(channel, "Setting not found!"); }; break;
-                        case "!poll": switch (str[1].ToLower())
-                            {
-                                case "open": 
-                                    if (!poll_active)
-                                    {
-                                        if (str[2] != "")
-                                        {
-                                            tempVar3 = str[2].Split('|');
-                                            poll_name = tempVar3[0];
-                                            tempVar2 = User + " opened a poll for: '" + poll_name + "', with the options:";
-                                            poll = new string[tempVar3.Length - 1];
-                                            for (int i = 1; i < tempVar3.Length; i++)
-                                            {
-                                                poll[i - 1] = tempVar3[i];
-                                                tempVar2 += " (" + i + ") '" + tempVar3[i] + "'.";
-                                            }
-                                            tempVar2 += " Use !vote X to cast your vote!";
-                                            pollOpen();
-                                            poll_active = true;
-                                            sendMess(channel, tempVar2);
-                                        }
-                                        else
-                                        {
-                                            sendMess(channel, "The poll for '" + poll_name + "' has been re-opened! Type !vote X to vote!");
-                                            poll_active = true;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        sendMess(channel, User + ", there's already a poll going for '" + poll_name + "', try closing that one first.");
-                                    }
-
-                                    break;
-                                case "close": poll_active = false; sendMess(channel, "Poll has been closed.");sendMess(channel,"Results were: "+pollResults()); break;
-                                case "results": if (poll_active) { sendMess(channel, "Current results are: " + pollResults()); } else { sendMess(channel, "Results were: " + pollResults()); } break;
-                            }
-                            break;
-                        case "!vote": 
-                            if (poll_active)
-                            {
-                                if(int.TryParse(str[1], out tempVar1) && str[1] != "")
-                                {
-                                    if(tempVar1 <= poll.Length&&tempVar1>0)
-                                    {
-                                        if (pollVote(user, tempVar1))
-                                        {
-                                            sendMess(channel, User + ", your vote has been cast for '" + poll[tempVar1 - 1] + "'.");
-                                            h.cdlist.Add(new intStr(user, 5));
-                                        }
-                                        else
-                                        {
-                                            sendMess(channel, User + ", you've already cast your vote for this option.");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        sendMess(channel, "Not a valid option");
-                                    }
-                                }
-                                else
-                                {
-                                    tempVar2 = "There's currently a poll running for: ' " + poll_name + "'. The options are:";
-                                    for (int i = 0; i < poll.Length; i++)
-                                    {
-                                        tempVar2 += " (" + (i+1) + ") '" + poll[i] + "'.";
-                                    }
-                                    tempVar2 += " Use !vote X to cast your vote!";
-                                    sendMess(channel,tempVar2);
-                                }
-                            }
-                            else
-                            {
-                                sendMess(channel, "No poll active.");
-                            }
-                            break;
+                        #endregion
                     }
                     break;
-
-
                 }
             }
-
             if (!done)
             {
-                foreach (command c in comlist)//flexible commands
+                foreach (command c in comlist)//check for softcoms
                 {
                     if (c.doesMatch(message) && c.canTrigger() && c.getAuth() <= auth)
                     {

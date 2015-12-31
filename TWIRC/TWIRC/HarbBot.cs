@@ -41,7 +41,7 @@ namespace TWIRC
         Calculator calculator =  new Calculator();
 
         //antispam
-        bool antispam;
+        bool antispam; bool antistreambot;
         
         //some settings
         bool silence,isMod = false;

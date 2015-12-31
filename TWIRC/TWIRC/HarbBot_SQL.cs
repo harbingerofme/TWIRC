@@ -52,6 +52,7 @@ namespace TWIRC
                 insertIntoSettings("commandspath", "string", @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html");
                 insertIntoSettings("biaspointspread", "string", "10:10:10:10:9:8:6.5");
                 insertIntoSettings("poll", "string", "");
+                insertIntoSettings("antistreambot", "string", "1");
 
                 loadSettings();
 
@@ -104,6 +105,7 @@ namespace TWIRC
                     case "commandspath": commandsPATH = sqldr.GetString(2); break;
                     case "biaspointspread": tempDoubleArray = new List<double>(); tempStringArray = sqldr.GetString(2).Split(':'); foreach (string s in tempStringArray) { tempDoubleArray.Add(double.Parse(s)); } tempDoubleArray.CopyTo(newBias,0); break;
                     case "poll": if (sqldr.GetString(2) != "") { tempStringArray = sqldr.GetString(2).Split('|'); poll_name = tempStringArray[0]; poll = new string[tempStringArray.Length - 1]; for (int i = 1; i < tempStringArray.Length; i++) { poll[i - 1] = tempStringArray[i]; } } break;
+                    case "antistreambot": antistreambot = bitToBool(a); break;
                 }
             }
             sqldr = new SQLiteCommand("SELECT name,choice FROM poll;", dbConn).ExecuteReader();
