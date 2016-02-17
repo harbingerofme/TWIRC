@@ -84,6 +84,9 @@
     </Compile>
     <Compile Include="DatabaseConnector.cs" />
     <Compile Include="DatabaseScheduler.cs" />
+    <Compile Include="goalWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="HarbBot.cs" />
     <Compile Include="harbbot_split.cs" />
     <Compile Include="HarbBot_SQL.cs" />

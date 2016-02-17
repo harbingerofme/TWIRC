@@ -149,7 +149,6 @@ namespace TWIRC
         bool bitToBool(double i)
         {
             return (i == 0) ? false : true;
-            
         }
 
         void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.

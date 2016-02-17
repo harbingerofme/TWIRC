@@ -28,7 +28,7 @@ namespace TWIRC
         int tbv = 0;
         int voting = 0;
         Thread one;
-        bool clicked = false; bool running = true;
+        bool running = true;
         int cntr = 0;
 
         Label title;

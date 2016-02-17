@@ -118,8 +118,8 @@ namespace TWIRC
             multipleWindows.Size = new Size(120, 20);
             multipleWindows.CheckedChanged += multipleWindows_CheckedChanged;
 
-            string[] windowNames = new string[] { "Timer", "VoteTimer", "Leaderboards" };
-            childWindows = new CHILDFORM[3];
+            string[] windowNames = new string[] { "Timer", "VoteTimer", "Leaderboards", "GoalWindow" };
+            childWindows = new CHILDFORM[4];
             for(int i = 0; i< windowNames.Length; i++)
             {
                 string s = windowNames[i];
@@ -155,7 +155,6 @@ namespace TWIRC
                 tabs[1].Controls.Add(windowSaveOn);
                 windowSaveOn.SelectedValueChanged += windowSaveOn_CheckedChanged;
 
-                CHILDFORM q = null;
                 if(windowStartWith.Checked)
                 {
                     startChild(s);
@@ -594,6 +593,7 @@ namespace TWIRC
                 case 0: name = "Timer"; break;
                 case 1: name = "VoteTimer"; break;
                 case 2: name = "Leaderboards"; break;
+                case 3: name = "GoalWindow"; break;
             }
             return name;
         }
@@ -605,6 +605,7 @@ namespace TWIRC
                 case "Timer": id = 0; break;
                 case "VoteTimer": id = 1; break;
                 case "Leaderboards": id = 2; break;
+                case "GoalWindow": id = 3; break;
             }
             return id;
         }
@@ -651,6 +652,9 @@ namespace TWIRC
                     break;
                 case "Leaderboards":
                     returnal = new highscores(irc);
+                    break;
+                case "GoalWindow":
+                    returnal = new goalWindow(irc);
                     break;
             }
             int[] stuff = childWindow_settings(name);

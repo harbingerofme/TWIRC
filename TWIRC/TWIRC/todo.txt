@@ -1,14 +1,1 @@
-﻿(must have)
-music window (add setting for file location)
-
-(also must, but lower priority)
-Make definable constants
-
-(could have)
- create constraints
- degree based bias.
-
-(last) database
-
-(do slightly later than that)
-Make luaclients have comprehensible names so we can communicate with them.
+﻿

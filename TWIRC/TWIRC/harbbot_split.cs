@@ -604,9 +604,8 @@ namespace TWIRC
                         #endregion
                         #region setgoal
                         case "!setgoal": 
-                            goal = str[1];
-                            cmd = new SQLiteCommand("UPDATE childWindows SET value = @par1 WHERE name = 'goal' AND varname = 'goal';",dbConn);
-                            cmd.Parameters.AddWithValue("@par1", goal);
+                            goal = str[1]+" "+str[2];
+                            setSetting("goal", "string", goal, true);
                             sendMess(channel, "Goal set: \""+goal+"\"."); 
                             break;
                         #endregion

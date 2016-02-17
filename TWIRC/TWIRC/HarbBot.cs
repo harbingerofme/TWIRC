@@ -60,7 +60,7 @@ namespace TWIRC
 
         int moneyPerVote = 50; double moneyconversionrate = 0.5; string expAllFunc = "2*X+50";
 
-        string goal;
+        public string goal;
 
         public bool backgrounds_enabled = true;
 
