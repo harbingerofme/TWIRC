@@ -81,7 +81,7 @@ namespace TWIRC
             setUpIRC(); log(1, "Done setting up parameters.");
 
             initialiseDatabase(); log(1, "Loaded settings.");
-            channels = new string[] { channel, "#" + bot_name };
+            channels = (channel != "#"+bot_name)? new string[] {  channel, "#" + bot_name} : new string[] { "#"+bot_name };
             initialiseChat(); log(1, "Chat database connection established.");
             initialiseButtons(); log(1, "button database connection established.");
 
@@ -164,7 +164,6 @@ namespace TWIRC
 
         void connection()
         {
-            channels = new string[] {channel, "#"+bot_name};
             irc.RfcJoin(channels);
             irc.Listen();
 

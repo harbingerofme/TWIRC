@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-//using System.Threading;
+using System.Globalization;
+using System.Threading;
 
 namespace TWIRC
 {
@@ -27,15 +28,16 @@ namespace TWIRC
 
         [STAThread] static void Main()
         {
-
+            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
 
 
             RNGLogger = new Logger();
             RNGLogger.addLog("PROGRAM", 0, "Logger object created");
             RNGLogger.addLog("PROGRAM", 0, "Running TWIRC " + VERSION + ".");
-#if OFFLINE
-            RNGLogger.addLog("Main()", 0, "Working in offline mode, no IRC connection will be made!");
-#endif
 
             RNGEmulators = new Dictionary<string, LuaServer.EmuClientHandler>(); //List of connected emulators
             
