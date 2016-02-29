@@ -386,14 +386,18 @@ namespace TWIRC
                     timerWindow timer = childWindows[0] as timerWindow;
                     timer.switchRunMain(2);
                 }
-                if (irc.voteStatus != -2)
+                if (irc.voteStatus != -2 && (but.Text == "START!" && irc.voteStatus == -1) == false) //votestatus not -2, AND not the first time click with voting disabled.
                 {
                     if (sendOutMainMessage.Checked)
                         irc.say("Maintenance is over, go vote! (yadda yadda !bias up etc. you know the drill)", 3);
                     irc.toggleVoting(1);
                 }
                 else
+                {
                     irc.voteStatus = -1;
+                    if (sendOutMainMessage.Checked)
+                        irc.say("Maintenance is over. voting is DISABLED.",3);
+                }
                 biasControl.timer_RNG.Enabled = true;
                 but.Text = "Maintenance";
                 but.Font = new Font("arial", 20);
@@ -413,6 +417,8 @@ namespace TWIRC
                 else
                 {
                     irc.voteStatus = -2;
+                    if (sendOutMainMessage.Checked)
+                        irc.say("Maintenance! Go picnic!", 3);
                 }
                 irc.voteTimer.Stop();  // stop the vote timers while we're down
                 irc.voteTimer2.Stop();
