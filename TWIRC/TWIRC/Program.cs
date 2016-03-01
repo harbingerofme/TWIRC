@@ -46,10 +46,10 @@ namespace TWIRC
 
             RNGesus = new ButtonMasher(RNGLogger, 7,RNGLuaServer,RNGEmulators); // 6 buttons
 
-            HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer);
-
             dbConn = new DatabaseConnector(RNGLogger);
             dbSched = new DatabaseScheduler(dbConn);
+
+            HarbBot = new HarbBot(RNGLogger, RNGesus,RNGLuaServer, dbConn);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

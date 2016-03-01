@@ -21,7 +21,7 @@ namespace TWIRC
             if (!silence || type == 1)
             {
                 irc.SendMessage(SendType.Message, channel, message);
-                storeMessage(bot_name, message,type);
+                //storeMessage(bot_name, message,type);
             }
         }
 
@@ -46,6 +46,8 @@ namespace TWIRC
                         newMessage(nick);
                         notNew(nick);
                         storeMessage(nick, "/me " + message, 0);
+                        if (bettingEnabled)
+                            bettingChat(nick);
                     }
                 }
                 else
@@ -56,7 +58,7 @@ namespace TWIRC
 
         void ircChanMess(object sender, IrcEventArgs e)
         {
-            bool a = false, b = false; int i = 0;
+            bool b = false; int i = 0;
             string channel = e.Data.Channel;
             string nick = e.Data.Nick;
             string message = e.Data.Message;
@@ -86,6 +88,8 @@ namespace TWIRC
                     message = filter(message);
                     if (checkCommand(channel, nick, message))
                         i = 4;
+                    if (bettingEnabled)
+                        bettingChat(nick);
                 }
                 if (!b)
                     storeMessage(nick, message, i);
@@ -137,19 +141,19 @@ namespace TWIRC
             {
                 sendMess(channel, ".ban "+nick, 3);
                 
-                new SQLiteCommand("UPDATE users SET rank = -2 WHERE name = '" + nick + "' ;", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("DELETE FROM messages WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
-                new SQLiteCommand("DELETE FROM users WHERE name = '" + nick + "';", chatDbConn).ExecuteNonQuery();
-                new SQLiteCommand("UPDATE users SET lines = lines + 1 WHERE name = '#autoBans';",chatDbConn).ExecuteNonQuery();
+                db.Execute(db.main,"UPDATE users SET rank = -2 WHERE name = '" + nick + "' ;");
+                db.Execute(db.chat,"DELETE FROM messages WHERE name = '" + nick + "';");
+                db.Execute(db.chat,"DELETE FROM users WHERE name = '" + nick + "';");
+                db.Execute(db.chat,"UPDATE users SET lines = lines + 1 WHERE name = '#autoBans';");
                 int totalbans = 1;
-                SQLiteDataReader sqldr = new SQLiteCommand("SELECT lines FROM users WHERE name = '#autoBans';",chatDbConn).ExecuteReader();
+                SQLiteDataReader sqldr = db.Reader(db.chat,"SELECT lines FROM users WHERE name = '#autoBans';");
                 if(sqldr.Read())
                 {
                     totalbans = sqldr.GetInt32(0);
                 }
                 else
                 {
-                    new SQLiteCommand("INSERT INTO users (name, lines) VALUES ('#autoBans',1);",chatDbConn).ExecuteNonQuery();
+                    db.Execute(db.chat,"INSERT INTO users (name, lines) VALUES ('#autoBans',1);");
                 }
                 string returnMessage = banMessages[new Random().Next(banMessages.Length)].Replace("(TB)","("+totalbans+")");
                 sendMess(channel, returnMessage+" (If you are not a bot, say \"I'm not a bot\" in my channel.)");
@@ -157,6 +161,72 @@ namespace TWIRC
             }
             else
                 return false;
+        }
+
+        void bettingChat(string user)
+        {
+            if(bettingChatters.Contains(user) == false)
+            {
+                bettingChatters.Add(user);
+                addPoints(user, bettingAwards, "talking during bet");
+            }
+        }
+
+        public void matchElapsed(object sender, bettingEventArgs e)
+        {
+            bettingChatters.Clear();
+            string output = e.winName + " has won! ";
+            string winners = "";
+            if(e.losses==0)
+                e.losses =1;
+            double returnRate = 1 + (e.wins/e.losses);
+            for(int i = 0; i<betters.Count; i++)
+            {
+                if (betAmounts[i][0] == e.winner)
+                {
+                    addPoints(betters[i], (int)Math.Ceiling((double)betAmounts[i][1] * returnRate), "Won a bet!");
+                    winners += ", " + betters[i];
+                }
+                else
+                    addPoints(betters[i], -1 * betAmounts[i][1], "Lost a bet!");
+            }
+            if (winners != "")
+            {
+                winners = winners.Substring(1);
+                output += "Winners are:" + winners;
+            }
+            else
+            {
+                if (betters.Count > 0)
+                    output += "Nobody won a bet. NotLikeThis";
+                else
+                    output += "ResidentSleeper";
+            }
+            sendMess(channel,output,2);
+            sendMess(channel,"New bidding pool is opened! Type \"!bet <contestant> <amount>\" to place a bet. Betting closes in 5 minutes.",2);
+            betters.Clear();
+            betAmounts.Clear();
+            acceptBets = true;
+
+            System.Timers.Timer betTimer = new System.Timers.Timer(5 * 60 * 1000);
+            betTimer.AutoReset = false;
+            betTimer.Elapsed += placeBetTimerElapsed;
+            betTimer.Start();
+        }
+
+        void placeBetTimerElapsed(object sender, EventArgs e)
+        {
+            System.Timers.Timer a = sender as System.Timers.Timer;
+            try
+            {
+                a.Dispose();
+            }
+            catch { }
+            acceptBets = false;
+            string output = "Bidding pool closed.";
+            if (betters.Count > 0)
+                output += " " + betters.Count + "people got in.";
+            say(output);
         }
 
         string filter(string message)
@@ -176,7 +246,6 @@ namespace TWIRC
             bool done = false; int auth = pullAuth(user);
             bool fail; int tempVar1 = 0; string tempVar2 = "";
             string User = user.Substring(0, 1).ToUpper() + user.Substring(1);
-            SQLiteCommand cmd;
             foreach (hardCom h in hardList)//hardcoded command
             {
                 if (h.hardMatch(user, message, auth))
@@ -201,10 +270,7 @@ namespace TWIRC
                                 else { tempVar2 = str[2] + " " + str[3]; }
                                 tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                 comlist.Add(new command(str[1], tempVar3, tempVar1));
-                                cmd = new SQLiteCommand("INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par1,'" + tempVar1 + "','" + 0 + "',@par2);", dbConn);
-                                cmd.Parameters.AddWithValue("@par1", str[1].ToLower());
-                                cmd.Parameters.AddWithValue("@par2", tempVar2);
-                                cmd.ExecuteNonQuery();
+                                db.safeExecute(db.main,"INSERT INTO commands (keyword,authlevel,count,response) VALUES (@par0,'" + tempVar1 + "','" + 0 + "',@par1);",new object[] {str[1].ToLower(),tempVar2});
                                 sendMess(channel, User + " -> command \"" + str[1] + "\" added. Please try it out to make sure it's correct.");
                             }
                             break;
@@ -222,9 +288,7 @@ namespace TWIRC
                                     tempVar3 = tempVar2.Split(new string[] { "\\n" }, StringSplitOptions.RemoveEmptyEntries);
                                     comlist[a].setResponse(tempVar3);
                                     comlist[a].setAuth(tempVar1);
-                                    cmd = new SQLiteCommand("UPDATE commands SET response = @par1, authlevel=@par3 WHERE keyword=@par2;", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", tempVar2); cmd.Parameters.AddWithValue("@par2", str[1]); cmd.Parameters.AddWithValue("@par3", tempVar1);
-                                    cmd.ExecuteNonQuery();
+                                    db.safeExecute(db.main, "UPDATE commands SET response = @par0, authlevel=@par1 WHERE keyword=@par2;", new object[] { tempVar2, tempVar1, str[1] });
                                     sendMess(channel, User + "-> command \"" + str[1] + "\" has been edited.");
                                     fail = false;
                                 }
@@ -244,9 +308,7 @@ namespace TWIRC
                                 {
                                     comlist.RemoveAt(a);
                                     fail = false;
-                                    cmd = new SQLiteCommand("DELETE FROM commands WHERE keyword=@par1;", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", str[1]);
-                                    cmd.ExecuteNonQuery();
+                                    db.safeExecute(db.main,"DELETE FROM commands WHERE keyword=@par0;",new object[] {str[1]});
                                     sendMess(channel, User + "-> command \"" + str[1] + "\" has been deleted.");
                                     break;
                                 }
@@ -271,9 +333,7 @@ namespace TWIRC
                                 {
                                     fail = false;
                                     c.setCount(int.Parse(str[2]));
-                                    cmd = new SQLiteCommand("UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par1;", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", str[1]);
-                                    cmd.ExecuteNonQuery();
+                                    db.safeExecute(db.main,"UPDATE commands SET count='" + str[2] + "' WHERE keyword = @par0;",new object[] {str[1]});
                                     sendMess(channel, user + "-> the count of \"" + str[1] + "\" has been updated to " + str[2] + ".");
                                 }
                             }
@@ -303,18 +363,14 @@ namespace TWIRC
                                             gatherer += tempAli + " ";
                                         }
                                         gatherer = gatherer.TrimEnd();
-                                        cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
-                                        cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", str[2]);
-                                        cmd.ExecuteNonQuery();
+                                        db.safeExecute(db.main,"UPDATE aliases SET keyword = @par1 WHERE toword = @par0;", new object[]{str[2]});
                                         break;
                                     }
                                 }
                                 if (fail)
                                 {
                                     aliList.Add(new ali(str[1], str[2]));
-                                    cmd = new SQLiteCommand("INSERT INTO aliases (keyword,toword) VALUES (@par1,@par2);", dbConn);
-                                    cmd.Parameters.AddWithValue("@par1", str[1]); cmd.Parameters.AddWithValue("@par2", str[2]);
-                                    cmd.ExecuteNonQuery();
+                                    db.safeExecute(db.main,"INSERT INTO aliases (keyword,toword) VALUES (@par0,@par1);", new object[] {str[1],str[2]});
                                 }
                                 sendMess(channel, User + " -> alias \"" + str[1] + "\" pointing to \"" + str[2] + "\" has been added.");
                             }
@@ -331,8 +387,7 @@ namespace TWIRC
                                     if (c.getFroms().Count() == 0)
                                     {
                                         aliList.Remove(c);
-                                        cmd = new SQLiteCommand("DELETE FROM aliases WHERE keyword=@par1;", dbConn);
-                                        cmd.Parameters.AddWithValue("@par1", str[1]); cmd.ExecuteNonQuery();
+                                        db.safeExecute(db.main,"DELETE FROM aliases WHERE keyword=@par0;",new object[] {str[1]});
                                     }
                                     else
                                     {
@@ -342,9 +397,7 @@ namespace TWIRC
                                             gatherer += tempAli + " ";
                                         }
                                         gatherer = gatherer.TrimEnd();
-                                        cmd = new SQLiteCommand("UPDATE aliases SET keyword = @par1 WHERE toword = @par2;", dbConn);
-                                        cmd.Parameters.AddWithValue("@par1", gatherer); cmd.Parameters.AddWithValue("@par2", c.getTo());
-                                        cmd.ExecuteNonQuery();
+                                        db.safeExecute(db.main,"UPDATE aliases SET keyword = @par0 WHERE toword = @par1;", new object[] {gatherer, c.getTo()});
                                         break;
                                     }
                                     fail = false;
@@ -1029,6 +1082,43 @@ namespace TWIRC
                             if (Regex.Match(str[1], "^((off)|0|(false)|(no))$", RegexOptions.IgnoreCase).Success) { luaServer.send_to_all("REPELOFF", ""); sendMess(channel, "Repel OFF"); }
                                 break;
                         #endregion
+                        #region : betting
+                        case "!bet":
+                                if (bettingEnabled)
+                                {
+                                    if (acceptBets)
+                                    {
+                                        if (Regex.Match(str[1], "^1|2$").Success && Regex.Match(str[2], @"^\d+$").Success)
+                                        {
+                                            if (getPoints(user) >= 0)
+                                            {
+                                                if (getPoints(user) >= int.Parse(str[2]))
+                                                {
+                                                    if (betters.Contains(user))
+                                                    {
+                                                        betAmounts[betters.FindIndex(x => x == user)] = new int[] { int.Parse(str[1]), int.Parse(str[2]) };
+                                                    }
+                                                    else
+                                                    {
+                                                        betters.Add(user);
+                                                        betAmounts.Add(new int[] { int.Parse(str[1]), int.Parse(str[2]) });
+                                                    }
+                                                    sendMess(channel, User+" -> Bet accepted!");
+                                                }
+                                                else
+                                                    sendMess(channel, "You don't have enough money for this bet.");
+                                            }
+                                            else
+                                                sendMess(channel, "You've managed to spend more than you have. HARB, someone abused the system! Anyway, "+ User+", since you are a filthy freeloader, you don't get to bet!");
+                                        }
+                                        else
+                                            sendMess(channel, "Invalid bet.");
+                                    }
+                                    else
+                                        sendMess(channel, "We are currently awaiting current round results, bidding pool is closed.");
+                                }
+                        break;
+                        #endregion
                     }
                     break;
                 }
@@ -1042,9 +1132,7 @@ namespace TWIRC
                         done = true;
                         str = c.getResponse(message, user);
                         c.addCount(1);
-                        cmd = new SQLiteCommand("UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par1;", dbConn);
-                        cmd.Parameters.AddWithValue("@par1", c.getKey());
-                        cmd.ExecuteNonQuery();
+                        db.safeExecute(db.main,"UPDATE commands SET count = '" + c.getCount() + "' WHERE keyword = @par0;", new object[] {c.getKey()});
                         if (str.Count() != 0) { if (str[0] != "") { c.updateTime(); } }
                         foreach (string b in str)
                         {
