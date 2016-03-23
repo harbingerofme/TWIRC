@@ -67,6 +67,7 @@ namespace TWIRC
                     case "poll": if (sqldr.GetString(2) != "") { tempStringArray = sqldr.GetString(2).Split('|'); poll_name = tempStringArray[0]; poll = new string[tempStringArray.Length - 1]; for (int i = 1; i < tempStringArray.Length; i++) { poll[i - 1] = tempStringArray[i]; } } break;
                     case "antistreambot": antistreambot = bitToBool(a); break;
                     case "goal": goal = sqldr.GetString(2); break;
+                    case "ircServer": server = sqldr.GetString(2); break;
                 }
             }
             sqldr = db.Reader(db.main,"SELECT name,choice FROM poll;");

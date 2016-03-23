@@ -27,6 +27,7 @@ namespace TWIRC
         //important stuff
         string bot_name, oauth, channel;
         string[] channels;
+        string server = "irc.chat.twitch.tv";
 
         //commands and aliases
         List<command> comlist = new List<command>();
@@ -102,12 +103,13 @@ namespace TWIRC
 
             prepareTimers(); log(1, "Started timers.");
 
-            checkBackgrounds(); log(1, "All done, connecting now!");
+            checkBackgrounds(); log(1, "All done, connecting to "+server);
 
             try
             {
                 //irc.Connect("irc.chat.twitch.tv", 6667);
-                irc.Connect("irc.twitch.tv", 6667);
+                //irc.Connect("irc.twitch.tv", 6667);
+                irc.Connect(server, 6667);
             }
             catch { }
         }
