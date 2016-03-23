@@ -37,7 +37,7 @@ namespace TWIRC
         //tab3
         OpenFileDialog bettingFile1, bettingFile2;
         Label bettingLabelFile1, bettingLabelFile2;
-        bool bettingEnabled = false;
+        public bool bettingEnabled = false;
         System.Timers.Timer betChecker;
         int[] betValues;
         //tab4
@@ -169,7 +169,7 @@ namespace TWIRC
             List<object[]> windowTemp = dbConn.Read(dbConn.main, "SELECT value FROM childWindows WHERE name = 'Timer' and varname='autoSaveInterval';");
             if(windowTemp.Count == 0||windowTemp[0][0].Equals(-1))
             {
-                dbConn.Execute("INSERT INTO childWindows (name,varname,value) VALUES ('Timer','autoSaveInterval','60');");
+                dbSched.Add("INSERT INTO childWindows (name,varname,value) VALUES ('Timer','autoSaveInterval','60');");
                 if (windowTemp.Count == 0)
                     windowTemp.Add(new object[1]);
                 windowTemp[0][0] = "60";
@@ -206,6 +206,7 @@ namespace TWIRC
             #region tab2: SETTINGS
             tabs[2].AutoScroll = true;
             List<Control[]> settings = new List<Control[]>(); ;
+            settings.Add(createSetting("ircServer", "Twitch chat server", true, false));
             settings.Add(createSetting("name", "Name of the bot", false, true));
             settings.Add(createSetting("channel", "Channel we are connecting to", false, true));
             settings.Add(createSetting("oauth", "Our oauth key", false, true));
@@ -570,6 +571,7 @@ namespace TWIRC
             bettingEnabled = !bettingEnabled;
             a.Text = (bettingEnabled) ? "DISABLE" : "ENABLE";
             irc.bettingEnabled = bettingEnabled;
+
             if (bettingEnabled)
             {
                 betValues = betFileReader();  
@@ -578,6 +580,8 @@ namespace TWIRC
             }
             else
                 betChecker.Stop();
+
+            dbConn.setSetting("bettingEnabled", "bit", bettingEnabled);
         }
 
         private void bettingNameBox2_TextChanged(object sender, EventArgs e)
@@ -659,8 +663,10 @@ namespace TWIRC
                     if (sendOutMainMessage.Checked)
                         irc.say("Maintenance! Go picnic!", 3);
                 }
-                irc.voteTimer.Stop();  // stop the vote timers while we're down
-                irc.voteTimer2.Stop();
+                if(irc.voteTimer != null)
+                    irc.voteTimer.Stop();  // stop the vote timers while we're down
+                if(irc.voteTimer2 != null)
+                    irc.voteTimer2.Stop();
                 biasControl.timer_RNG.Enabled = false;
                 but.Text = "Resume!";
                 but.Font = new Font("arial", 30);
@@ -693,6 +699,8 @@ namespace TWIRC
 
             luaServer.shutdown();
             luaServer.serverSocket.Stop();
+
+            dbSched.closing = true;
 
              //irc.doDisconnect();
              irc.Close();
@@ -893,7 +901,7 @@ namespace TWIRC
                     returnal = new timerWindow(hours, minutes, seconds, countdown,countUp,locked,blackHeight);
                     break;
                 case "VoteTimer":
-                    returnal = new votetimer(irc);
+                    returnal = new votetimer(this,irc);
                     break;
                 case "Leaderboards":
                     returnal = new highscores(irc);
@@ -910,11 +918,13 @@ namespace TWIRC
             returnal.Location = new Point(stuff[0], stuff[1]);
             if (stuff[2] != -1)
                 returnal.Size = new Size(stuff[2], stuff[3]);
+                //returnal.
             if(stuff[4] == -1 || stuff[4] == 0)
                 returnal.saveOnClose = true;
             if (stuff[4] == 1)
                 returnal.autoSave = true;
             childWindows[id] = returnal;
+            returnal.forceRedraw();
             return returnal;
         }
 
@@ -942,10 +952,10 @@ namespace TWIRC
             CheckBox b = sender as CheckBox;
             string value ="";
             if(b.Checked)
-                value = "'true'";
+                value = "true";
             else
-                value = "'false'";
-            dbConn.Execute(dbConn.main,"UPDATE childWindows SET value = "+value+" WHERE name = '"+b.Name+"' AND varname = 'startWith';");
+                value = "false";
+            dbSched.Add(dbConn.main,"UPDATE childWindows SET value = @par0 WHERE name = @par1 AND varname = 'startWith';",new object[] {value,b.Name});
         }
 
         void multipleWindows_CheckedChanged(object sender, EventArgs e)
@@ -1061,7 +1071,6 @@ namespace TWIRC
             return returnal;
         }
 
-
         void childWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
             CHILDFORM q = sender as CHILDFORM;
@@ -1082,8 +1091,6 @@ namespace TWIRC
                 }
             }
         }
-
-
 
         void logSlider_Scroll(object sender, EventArgs e)
         {
@@ -1229,6 +1236,7 @@ namespace TWIRC
             //gr.FillRectangle()
         }
 
+
         private class callBackButton : Button
         {
             public Control callBack;
@@ -1269,6 +1277,12 @@ namespace TWIRC
     {
         public bool saveOnClose;
         public bool autoSave;
+
+        public void forceRedraw()
+        {
+            this.OnResizeEnd(EventArgs.Empty);
+            this.Invalidate();
+        }
     }
 
     public class bettingEventArgs : EventArgs

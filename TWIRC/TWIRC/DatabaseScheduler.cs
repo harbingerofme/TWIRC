@@ -12,6 +12,7 @@ namespace TWIRC
         DatabaseConnector db;
         List<task> taskList;
         Thread child;
+        bool _closing = false;
 
         public DatabaseScheduler(DatabaseConnector _databaseConnection)
         {
@@ -19,8 +20,14 @@ namespace TWIRC
             taskList = new List<task>();
 
             child = new Thread(workingThreadFunction);
-            child.IsBackground = true;
+            child.IsBackground = false;
             child.Start();
+        }
+
+        public bool closing
+        {
+            get { return _closing; }
+            set { _closing = value; }
         }
 
         public int Count
@@ -29,14 +36,14 @@ namespace TWIRC
         }
 
 
-        public int Add(string s)
+        public int Add(string s, object[] v = null)
         {
-            return Add(db.main, s);
+            return Add(db.main, s, v);
         }
 
-        public int Add(SQLiteConnection _database, string s)
+        public int Add(SQLiteConnection _database, string s, object[] v = null)
         {
-            taskList.Add(new task(_database, s));
+            taskList.Add(new task(_database, s, v));
             return taskList.Count;
         }
 
@@ -46,12 +53,26 @@ namespace TWIRC
             {
                 while (taskList.Count > 0)
                 {
-                    db.Execute(taskList[0].C, taskList[0].S);
+                    if (taskList[0].V == null)
+                    {
+                        db.Execute(taskList[0].C, taskList[0].S);
+                    }
+                    else
+                    {
+                        db.safeExecute(taskList[0].C, taskList[0].S, taskList[0].V);
+                    }
                     taskList.RemoveAt(0);
-                    Thread.Sleep(1000); //Sleep for a second to reduce database load;
+                    if(!closing)
+                        Thread.Sleep(1000); //Sleep for a second to reduce database load;
                 }
-                for (int x = 0; x < 10;x++ )
-                    Thread.Sleep(1000);//list is empty, wait 10 seconds. (the reason we do intervals of 1 second is because it doesn't stall the program for 10 seconds when closing then.)
+                for (int x = 0; x < 10; x++)
+                {
+                    Thread.Sleep(100);//list is empty, wait 10 seconds. (the reason we do intervals of 1 second is because it doesn't stall the program for 10 seconds when closing then.)
+                    if(closing && taskList.Count == 0)
+                    {
+                        Thread.CurrentThread.Abort();
+                    }
+                }
             }
         }
 
@@ -59,11 +80,20 @@ namespace TWIRC
         {
             public SQLiteConnection C;
             public string S;
+            public object[] V;
 
-            public task(SQLiteConnection _connection,string _command)
+            public task(SQLiteConnection connection,string command)
             {
-                C = _connection;
-                S = _command;
+                C = connection;
+                S = command;
+                V = null;
+            }
+
+            public task(SQLiteConnection connection,string command, object[] values)
+            {
+                C = connection;
+                S = command;
+                V = values;
             }
         }
     }

@@ -42,6 +42,8 @@ namespace TWIRC
 
             ResizeEnd += goalWindow_ResizeEnd;
             KeyPress += goalWindow_KeyPress;
+
+            goalWindow_ResizeEnd(null, null);
         }
 
         void goalWindow_KeyPress(object sender, KeyPressEventArgs e)

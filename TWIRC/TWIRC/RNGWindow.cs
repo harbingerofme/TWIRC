@@ -11,6 +11,7 @@ using System.Reflection;
 
 
 //Kept around for legacy purposes.
+/*
 
 namespace TWIRC
 {
@@ -510,3 +511,4 @@ namespace TWIRC
         
     }
 }
+*/

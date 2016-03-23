@@ -106,6 +106,7 @@ namespace TWIRC
 
             try
             {
+                //irc.Connect("irc.chat.twitch.tv", 6667);
                 irc.Connect("irc.twitch.tv", 6667);
             }
             catch { }

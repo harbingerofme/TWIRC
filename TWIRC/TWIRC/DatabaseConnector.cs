@@ -46,7 +46,7 @@ namespace TWIRC
                 setSetting("antispam", "bit", "1");
                 setSetting("silence", "bit", "1");
                 setSetting("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
-                setSetting("votingenabled", "bool", "0");
+                setSetting("votingenabled", "bit", "0");
                 setSetting("cooldown", "int", "20");
                 setSetting("logpath", "string", @"C:\Users\Zack\Dropbox\Public\rnglog.txt");
                 setSetting("timebetweenvote", "calc", "15*60");
@@ -64,6 +64,7 @@ namespace TWIRC
                 setSetting("poll", "string", "");
                 setSetting("antistreambot", "string", "1");
                 setSetting("goal", "string", "Set a goal!");
+                setSetting("ircserver", "string", "irc.chat.twitch.tv");
             }
             else
             {

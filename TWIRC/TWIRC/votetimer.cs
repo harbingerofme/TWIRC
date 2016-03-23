@@ -21,12 +21,14 @@ namespace TWIRC
 
 
         HarbBot HB = null;
+        MainWindow MW = null;
         int w = 217;
         int h = 71;
         int lvt = 0;
         int ttv = 0;
         int tbv = 0;
         int voting = 0;
+        public bool betting = false;
         Thread one;
         bool running = true;
         int cntr = 0;
@@ -36,7 +38,7 @@ namespace TWIRC
 
         Form me;
 
-        public votetimer(HarbBot bot)
+        public votetimer(MainWindow mainwindow,HarbBot bot)
         {
             Height = h;
             Width = w;
@@ -46,9 +48,10 @@ namespace TWIRC
             DoubleBuffered = true;
             Name = "votetimer";
             Text = "VoteTimer";
-            if (bot != null)
+            if (bot != null && mainwindow != null)
             {
                 HB = bot;
+                MW = mainwindow;
 
                 title = new Label();
                 title.Location = new Point(11, 6);
@@ -95,8 +98,9 @@ namespace TWIRC
         {
             while (running)
             {
-                if (voting != HB.voteStatus)
+                if (voting != HB.voteStatus || HB.acceptBets != betting)
                 {
+                    betting = HB.acceptBets;
                     voting = HB.voteStatus;
                     cntr = 0;
                 }
@@ -133,29 +137,47 @@ namespace TWIRC
         {
             e.Graphics.FillRectangle(Brushes.DarkGray, 6, Height-16, 205, 10);
             string tit= "",tim="";int m= 0,s =0;
-            if (voting == 1)
+            if (MW.bettingEnabled == false)
             {
-                tit = "VOTE NOW!";
-                s = (ttv - cntr);
-                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int) (205 * ((double)cntr / (double)ttv)), 10);
+                if (voting == 1)
+                {
+                    tit = "VOTE NOW!";
+                    s = (ttv - cntr);
+                    e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int)(205 * ((double)cntr / (double)ttv)), 10);
+                }
+                if (voting == 0)
+                {
+                    tit = "NEW VOTE IN:";
+                    s = (tbv - cntr);
+                    e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int)(205 * ((double)cntr / (double)tbv)), 10);
+                }
             }
-             if (voting == 0)
-             {
-                tit = "NEW VOTE IN:";
-                s = (tbv - cntr);
-                e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int) (205 * ((double) cntr / (double) tbv)), 10);
+            else
+            {
+                if(betting)
+                {
+                    tit = "BET NOW!";
+                    s = (300 - cntr);
+                    e.Graphics.FillRectangle(Brushes.White, 6, Height - 16, (int)(205 *(double)cntr / (double)300), 10);
+                }
+                else
+                {
+                    tit = "MATCH IN PROGRESS";
+                    e.Graphics.FillRectangle(Brushes.Black, 6, Height - 16, 205, 10);
+                }
+            }
 
-             }
-             m = (int)Math.Floor((double)(s) / 60);
-             s = s % 60;
-             tim += m;
-             tim += ":";
-             if (s < 10)
-             {
-                 tim += "0";
-             }
-             tim += s;
-            if ( voting == -1)
+
+            m = (int)Math.Floor((double)(s) / 60);
+            s = s % 60;
+            tim += m;
+            tim += ":";
+            if (s < 10)
+            {
+                tim += "0";
+            }
+            tim += s;
+            if ((voting == -1 || voting == -2) && MW.bettingEnabled == false)
             {
                 time.Text = "";
                 title.Text = "VOTING DISABLED";
@@ -163,7 +185,10 @@ namespace TWIRC
             else
             {
                 if (m < 0) { tim = "error, fixed soon!"; }
-                time.Text = tim;
+                if ((voting == -1 || voting == -2) && (MW.bettingEnabled == true && betting == false))
+                { time.Text = ""; }
+                else
+                { time.Text = tim; }
                 title.Text = tit;
             }
         }
