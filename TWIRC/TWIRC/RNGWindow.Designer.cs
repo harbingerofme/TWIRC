@@ -1,4 +1,5 @@
-﻿namespace TWIRC
+﻿/*
+namespace TWIRC
 {
     partial class RNGWindow
     {
@@ -383,3 +384,4 @@
     }
 }
 
+*/

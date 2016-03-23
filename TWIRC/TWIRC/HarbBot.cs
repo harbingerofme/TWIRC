@@ -18,11 +18,11 @@ namespace TWIRC
         //really important stuff
         static IrcClient irc = new IrcClient();
         public bool running = true;
-        SQLiteConnection dbConn,chatDbConn,butDbConn;
         public Logger logger;
         public Chat chatter;
         public ButtonMasher biasControl;
         public LuaServer luaServer;
+        private DatabaseConnector db;
 
         //important stuff
         string bot_name, oauth, channel;
@@ -64,14 +64,23 @@ namespace TWIRC
 
         public bool backgrounds_enabled = true;
 
+        //Betting stuff
+        public bool bettingEnabled = false;
+        public int bettingAwards = 0;
+        public List<string> bettingChatters;
+        public bool acceptBets = false;
+        public List<string> betters;
+        public List<int[]> betAmounts;
+
         public Thread one;
 
-        public HarbBot(Logger logLogger, ButtonMasher buttMuncher,LuaServer luaSurfer)
+        public HarbBot(Logger logLogger, ButtonMasher buttMuncher,LuaServer luaSurfer, DatabaseConnector databaseConnection)
         {
             lastVoteTime = getNow();
             logger = logLogger;
             biasControl = buttMuncher;
             luaServer = luaSurfer;
+            db = databaseConnection;
 
             luaServer.send_to_all("EXPOFF", "");
             luaServer.send_to_all("REPELOFF", "");
@@ -80,15 +89,15 @@ namespace TWIRC
             log(0, "Created.");
             setUpIRC(); log(1, "Done setting up parameters.");
 
-            initialiseDatabase(); log(1, "Loaded settings.");
+            loadSettings(); log(1, "Loaded Settings.");
+            initialiseDatabase();
             channels = (channel != "#"+bot_name)? new string[] {  channel, "#" + bot_name} : new string[] { "#"+bot_name };
-            initialiseChat(); log(1, "Chat database connection established.");
-            initialiseButtons(); log(1, "button database connection established.");
 
             loadCommands(); log(1, "Loaded commands ("+comlist.Count.ToString()+").");
             loadAliases(); log(1, "Loaded aliases (" + aliList.Count.ToString() + ").");
             loadBiases(); log(1, "Loaded biases (" + biasList.Count.ToString() + ").");
 
+            
             loadHardComs(); log(1, "Prepared " + hardList.Count + " hardcoded commands.");
 
             prepareTimers(); log(1, "Started timers.");
@@ -97,6 +106,7 @@ namespace TWIRC
 
             try
             {
+                //irc.Connect("irc.chat.twitch.tv", 6667);
                 irc.Connect("irc.twitch.tv", 6667);
             }
             catch { }
@@ -141,7 +151,7 @@ namespace TWIRC
                 }
                 s = s.Substring(0, s.Length - 1);
                 s += ");";
-                new SQLiteCommand(s, butDbConn).ExecuteNonQuery();
+                db.Execute(db.buttons, s);
                 biasControl.stats = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 
                 irc.RfcPrivmsg(channel, ".mods");
@@ -169,7 +179,7 @@ namespace TWIRC
 
         }
 
-        public void say(string message, int type = 2)
+        public void say(string message, int type = 2)//types: 0 = normal,1 = me, 2= auto, 3 = response, 4 = command, 5 = spam.
         {   
             sendMess(channel, message, type);
             checkCommand(channel, channel.Substring(1), filter(message));//I guess?

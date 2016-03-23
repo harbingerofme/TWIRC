@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.Timers;
 using System.Linq;
+using System.IO;
 
 namespace TWIRC
 {
@@ -32,8 +33,13 @@ namespace TWIRC
         System.Timers.Timer timeSaver;
         NumericUpDown windowTimerSaveInterval;
         //tab2
-        //tab3
 
+        //tab3
+        OpenFileDialog bettingFile1, bettingFile2;
+        Label bettingLabelFile1, bettingLabelFile2;
+        public bool bettingEnabled = false;
+        System.Timers.Timer betChecker;
+        int[] betValues;
         //tab4
         Chat Chatter;
         TextBox chatBox;
@@ -64,7 +70,7 @@ namespace TWIRC
             Width = width;
             Height = height;
             DoubleBuffered = true;
-            tabs_label = new Label[6]; tabs_text = new string[6] { "MAIN", "WINDOWS", "SETTINGS", "DATABASE", "CHAT", "LOGS" };
+            tabs_label = new Label[6]; tabs_text = new string[6] { "MAIN", "WINDOWS", "SETTINGS", "BETTING", "CHAT", "LOGS" };
             SuspendLayout();
             tabs = new Panel[6];
             for (int i = 0; i < 6; i++)
@@ -163,7 +169,7 @@ namespace TWIRC
             List<object[]> windowTemp = dbConn.Read(dbConn.main, "SELECT value FROM childWindows WHERE name = 'Timer' and varname='autoSaveInterval';");
             if(windowTemp.Count == 0||windowTemp[0][0].Equals(-1))
             {
-                dbConn.Execute("INSERT INTO childWindows (name,varname,value) VALUES ('Timer','autoSaveInterval','60');");
+                dbSched.Add("INSERT INTO childWindows (name,varname,value) VALUES ('Timer','autoSaveInterval','60');");
                 if (windowTemp.Count == 0)
                     windowTemp.Add(new object[1]);
                 windowTemp[0][0] = "60";
@@ -200,6 +206,7 @@ namespace TWIRC
             #region tab2: SETTINGS
             tabs[2].AutoScroll = true;
             List<Control[]> settings = new List<Control[]>(); ;
+            settings.Add(createSetting("ircServer", "Twitch chat server", true, false));
             settings.Add(createSetting("name", "Name of the bot", false, true));
             settings.Add(createSetting("channel", "Channel we are connecting to", false, true));
             settings.Add(createSetting("oauth", "Our oauth key", false, true));
@@ -235,14 +242,135 @@ namespace TWIRC
 
             #endregion
             
-            #region tab3: DATABASE
-            Label dbLabel = new Label();
-            dbLabel.Text = "Coming soon!";
-            dbLabel.Location = new Point(0, 0);
-            dbLabel.Size = new Size(400, 400);
-            tabs[3].Controls.Add(dbLabel);
-            dbLabel.Font = new System.Drawing.Font("arial", 40);
-            dbLabel.TextAlign = ContentAlignment.MiddleCenter;
+            #region tab3: BETTING
+            dbConn.addSetting("bettingFile1", "string", "undef_");
+            dbConn.addSetting("bettingFile2", "string", "undef_");
+            dbConn.addSetting("bettingName1", "string", "WHY DIDN'T YOU CHANGE THIS YOU FOOL!");
+            dbConn.addSetting("bettingName2", "string", "YELL AT THE MOD WHO SET UP BETTING!");
+            dbConn.addSetting("bettingEnabled", "bit", 0);
+            dbConn.addSetting("bettingMoneyAward", "int", 10);
+
+            bettingFile1 = new OpenFileDialog();
+            bettingFile1.Filter = "Text Files (.txt)|*.txt|All Files (*.*)|*.*";
+            bettingFile1.FilterIndex = 1;
+            object bettingTemp = dbConn.getSetting("bettingFile1");
+            if (bettingTemp != null && bettingTemp as string != "undef_")
+                bettingFile1.FileName = bettingTemp as string;
+            bettingFile1.FileOk += bettingFile1_FileOk;
+
+            bettingFile2 = new OpenFileDialog();
+            bettingFile2.Filter = "Text Files (.txt)|*.txt|All Files (*.*)|*.*";
+            bettingFile2.FilterIndex = 2;
+            bettingTemp = dbConn.getSetting("bettingFile2");
+            if (bettingTemp != null && bettingTemp as string != "undef_")
+                bettingFile2.FileName = bettingTemp as string;
+            bettingFile2.FileOk += bettingFile2_FileOk;
+
+            int bettingCurY = 10;
+
+            Label bettingLabelFile1Desc = new Label();
+            bettingLabelFile1Desc.Text = "File 1:";
+            bettingLabelFile1Desc.Location = new Point(10, bettingCurY);
+            bettingLabelFile1Desc.Size = new Size(40, 16);
+            tabs[3].Controls.Add(bettingLabelFile1Desc);
+
+            bettingLabelFile1 = new Label();
+            bettingLabelFile1.Text = bettingFile1.FileName;
+            bettingLabelFile1.BackColor = Color.White;
+            bettingLabelFile1.ForeColor = Color.Black;
+            bettingLabelFile1.Size = new Size(200, 16);
+            bettingLabelFile1.Location = new Point(50, bettingCurY);
+            bettingLabelFile1.TextAlign = ContentAlignment.MiddleRight;
+            bettingLabelFile1.Click += bettingLabelFile1_Click;
+            tabs[3].Controls.Add(bettingLabelFile1);
+
+            Label bettingLabelName1 = new Label();
+            bettingLabelName1.Text = "Charactername:";
+            bettingLabelName1.Location = new Point(255, bettingCurY);
+            bettingLabelName1.Size = new Size(85, 16);
+            tabs[3].Controls.Add(bettingLabelName1);
+
+            bettingTemp = dbConn.getSetting("bettingName1");
+            TextBox bettingNameBox1 = new TextBox();
+            if (bettingTemp != null)
+                bettingNameBox1.Text = bettingTemp as string;
+            bettingNameBox1.Location = new Point(340, bettingCurY);
+            bettingNameBox1.Size = new Size(170, 16);
+            bettingNameBox1.TextChanged += bettingNameBox1_TextChanged;
+            tabs[3].Controls.Add(bettingNameBox1);
+
+            bettingCurY += 30;
+
+            Label bettingLabelFile2Desc = new Label();
+            bettingLabelFile2Desc.Text = "File 2:";
+            bettingLabelFile2Desc.Location = new Point(10, bettingCurY);
+            bettingLabelFile2Desc.Size = new Size(40, 16);
+            tabs[3].Controls.Add(bettingLabelFile2Desc);
+
+            bettingLabelFile2 = new Label();
+            bettingLabelFile2.Text = bettingFile2.FileName;
+            bettingLabelFile2.BackColor = Color.White;
+            bettingLabelFile2.ForeColor = Color.Black;
+            bettingLabelFile2.Size = new Size(200, 16);
+            bettingLabelFile2.Location = new Point(50, bettingCurY);
+            bettingLabelFile2.TextAlign = ContentAlignment.MiddleRight;
+            bettingLabelFile2.Click += bettingLabelFile2_Click;
+            tabs[3].Controls.Add(bettingLabelFile2);
+
+            Label bettingLabelName2 = new Label();
+            bettingLabelName2.Text = "Charactername:";
+            bettingLabelName2.Location = new Point(255, bettingCurY);
+            bettingLabelName2.Size = new Size(85, 16);
+            tabs[3].Controls.Add(bettingLabelName2);
+
+            bettingTemp = dbConn.getSetting("bettingName2");
+            TextBox bettingNameBox2 = new TextBox();
+            if (bettingTemp != null)
+                bettingNameBox2.Text = bettingTemp as string;
+            bettingNameBox2.Location = new Point(340, bettingCurY);
+            bettingNameBox2.Size = new Size(170, 16);
+            bettingNameBox2.TextChanged += bettingNameBox2_TextChanged;
+            tabs[3].Controls.Add(bettingNameBox2);
+
+            bettingCurY += 30;
+
+            Label bettingLabelMoney = new Label();
+            bettingLabelMoney.Text = "Money we award to active chatters between bets:";
+            bettingLabelMoney.Location = new Point(10, bettingCurY);
+            bettingLabelMoney.Size = new Size(245, 16);
+            tabs[3].Controls.Add(bettingLabelMoney);
+
+            NumericUpDown bettingFieldMoney = new NumericUpDown();
+            bettingTemp = dbConn.getSetting("bettingMoneyAwarded");
+            if (bettingTemp != null)
+                bettingFieldMoney.Value = Convert.ToInt32(bettingTemp);
+            bettingFieldMoney.Location = new Point(260, bettingCurY);
+            bettingFieldMoney.Width = 50;
+            bettingFieldMoney.ValueChanged += bettingFieldMoney_ValueChanged;
+            tabs[3].Controls.Add(bettingFieldMoney);
+
+            bettingCurY += 30;
+
+            Button bettingButton = new Button();
+            bettingButton.Size = new Size(200, 100);
+            bettingButton.Location = new Point(tabs[3].Width / 2 - bettingButton.Width / 2, bettingCurY);
+            bettingTemp = dbConn.getSetting("bettingEnabled");
+            if (bettingTemp != null)
+                bettingEnabled = Convert.ToBoolean(bettingTemp);
+            bettingButton.Text = (bettingEnabled) ? "DISABLE" : "ENABLE";
+            bettingButton.Font = new Font("Arial", 30);
+            bettingButton.Click += bettingButton_Click;
+            tabs[3].Controls.Add(bettingButton);
+
+            betChecker = new System.Timers.Timer(5000);
+            betChecker.AutoReset = true;
+            betChecker.Elapsed += betChecker_Elapsed;
+            if (bettingEnabled)
+            {
+                betValues = betFileReader();  
+                if(bettingEnabled)//Yeah, yeah I know....
+                    betChecker.Start();
+            }
 
             #endregion
             
@@ -375,6 +503,121 @@ namespace TWIRC
             Text = "RNGPPBot";
         }
 
+        void betChecker_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            int[] temp = betFileReader();
+            if (temp != null)
+            {
+                int[] temp2 = betValues;
+                betValues = temp;
+                bool victory = false;
+                int winner = 0;
+                if (temp2[0] != temp[0])
+                {
+                    victory = true;
+                    winner = 2;
+                }
+                else if (temp2[1] != temp[1])
+                {
+                    victory = true;
+                    winner = 1;
+                }
+                if (victory)
+                {
+                    logger.parent.addLog("BETTING", 2, "WE HAVE A WINNER!");
+                    object tempObj = dbConn.getSetting("bettingName" + winner);
+                    bettingEventArgs EAG = new bettingEventArgs();
+                    EAG.winName = "ERROR";
+                    if (tempObj != null)
+                        EAG.winName = tempObj as string;
+                    EAG.winner = winner;
+                    EAG.wins = temp2[winner - 1];
+                    EAG.losses = temp2[Math.Abs(winner - 2)];
+                    irc.matchElapsed(sender, EAG);
+                    
+                }
+            }
+        }
+
+        int[] betFileReader()
+        {
+            try
+            {
+                int[] returnal = new int[2];
+                returnal[0] = int.Parse(File.ReadAllText(bettingFile1.FileName));
+                returnal[1] = int.Parse(File.ReadAllText(bettingFile2.FileName));
+                return returnal;
+            }
+            catch
+            {
+                logger.parent.addLog("MAIN", 0, "betting files reading error!");
+                bettingEnabled = false;
+                irc.bettingEnabled = false;
+                betChecker.Stop();
+                return null;
+            }
+        }
+
+        void bettingFieldMoney_ValueChanged(object sender, EventArgs e)
+        {
+            NumericUpDown a = sender as NumericUpDown;
+            irc.bettingAwards = (int) a.Value;
+            dbConn.setSetting("bettingMoneyAwarded", "int", a.Value);
+        }
+
+        void bettingButton_Click(object sender, EventArgs e)
+        {
+            Button a = sender as Button;
+            bettingEnabled = !bettingEnabled;
+            a.Text = (bettingEnabled) ? "DISABLE" : "ENABLE";
+            irc.bettingEnabled = bettingEnabled;
+
+            if (bettingEnabled)
+            {
+                betValues = betFileReader();  
+                if(bettingEnabled)
+                betChecker.Start();
+            }
+            else
+                betChecker.Stop();
+
+            dbConn.setSetting("bettingEnabled", "bit", bettingEnabled);
+        }
+
+        private void bettingNameBox2_TextChanged(object sender, EventArgs e)
+        {
+            TextBox a = sender as TextBox;
+            dbConn.setSetting("bettingName2", "string", a.Text);
+        }
+
+        void bettingNameBox1_TextChanged(object sender, EventArgs e)
+        {
+            TextBox a = sender as TextBox;
+            dbConn.setSetting("bettingName1", "string", a.Text);
+        }
+
+        void bettingLabelFile1_Click(object sender, EventArgs e)
+        {
+            bettingFile1.ShowDialog();
+        }
+
+        void bettingLabelFile2_Click(object sender, EventArgs e)
+        {
+            bettingFile2.ShowDialog();
+        }
+
+        void bettingFile2_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            bettingLabelFile2.Text = bettingFile2.FileName;
+            dbConn.setSetting("bettingFile2", "string", bettingFile2.FileName);
+        }
+
+        void bettingFile1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            bettingLabelFile1.Text = bettingFile1.FileName;
+            dbConn.setSetting("bettingFile1", "string", bettingFile1.FileName);
+        }
+
         void mainButton_Click(object sender, EventArgs e)
         {
             running = !running;
@@ -420,8 +663,10 @@ namespace TWIRC
                     if (sendOutMainMessage.Checked)
                         irc.say("Maintenance! Go picnic!", 3);
                 }
-                irc.voteTimer.Stop();  // stop the vote timers while we're down
-                irc.voteTimer2.Stop();
+                if(irc.voteTimer != null)
+                    irc.voteTimer.Stop();  // stop the vote timers while we're down
+                if(irc.voteTimer2 != null)
+                    irc.voteTimer2.Stop();
                 biasControl.timer_RNG.Enabled = false;
                 but.Text = "Resume!";
                 but.Font = new Font("arial", 30);
@@ -454,6 +699,8 @@ namespace TWIRC
 
             luaServer.shutdown();
             luaServer.serverSocket.Stop();
+
+            dbSched.closing = true;
 
              //irc.doDisconnect();
              irc.Close();
@@ -654,7 +901,7 @@ namespace TWIRC
                     returnal = new timerWindow(hours, minutes, seconds, countdown,countUp,locked,blackHeight);
                     break;
                 case "VoteTimer":
-                    returnal = new votetimer(irc);
+                    returnal = new votetimer(this,irc);
                     break;
                 case "Leaderboards":
                     returnal = new highscores(irc);
@@ -671,11 +918,13 @@ namespace TWIRC
             returnal.Location = new Point(stuff[0], stuff[1]);
             if (stuff[2] != -1)
                 returnal.Size = new Size(stuff[2], stuff[3]);
+                //returnal.
             if(stuff[4] == -1 || stuff[4] == 0)
                 returnal.saveOnClose = true;
             if (stuff[4] == 1)
                 returnal.autoSave = true;
             childWindows[id] = returnal;
+            returnal.forceRedraw();
             return returnal;
         }
 
@@ -703,10 +952,10 @@ namespace TWIRC
             CheckBox b = sender as CheckBox;
             string value ="";
             if(b.Checked)
-                value = "'true'";
+                value = "true";
             else
-                value = "'false'";
-            dbConn.Execute(dbConn.main,"UPDATE childWindows SET value = "+value+" WHERE name = '"+b.Name+"' AND varname = 'startWith';");
+                value = "false";
+            dbSched.Add(dbConn.main,"UPDATE childWindows SET value = @par0 WHERE name = @par1 AND varname = 'startWith';",new object[] {value,b.Name});
         }
 
         void multipleWindows_CheckedChanged(object sender, EventArgs e)
@@ -732,7 +981,7 @@ namespace TWIRC
             if(li.Count == 1)
             {
                 if (li[0][0].Equals(-1))//table does not exist
-                    dbConn.Execute(dbConn.main, "CREATE TABLE childWindows (name VARCHAR(64) ,varname VARCHAR(64) ,value VARCHAR(256)  );");
+                    dbConn.Execute(dbConn.main, "CREATE TABLE IF NOT EXISTS childWindows (name VARCHAR(64) ,varname VARCHAR(64) ,value VARCHAR(256)  );");
                 else
                     if (li[0][0].Equals("true"))
                         return true;
@@ -751,7 +1000,7 @@ namespace TWIRC
             List<object[]> li = dbConn.Read(dbConn.main, "SELECT varname, value FROM childWindows WHERE name = '" + name+"';");
             if(li.Count == 1 && li[0][0].Equals(-1))//error!
             {
-                dbConn.Execute(dbConn.main, "CREATE TABLE childWindows (name VARCHAR(64) ,varname VARCHAR(64) ,value VARCHAR(256)  );");
+                dbConn.Execute(dbConn.main, "CREATE TABLE IF NOT EXISTS childWindows (name VARCHAR(64) ,varname VARCHAR(64) ,value VARCHAR(256)  );");
                 li = new List<object[]>();
             }
             foreach(object[] entry in li)
@@ -822,7 +1071,6 @@ namespace TWIRC
             return returnal;
         }
 
-
         void childWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
             CHILDFORM q = sender as CHILDFORM;
@@ -843,8 +1091,6 @@ namespace TWIRC
                 }
             }
         }
-
-
 
         void logSlider_Scroll(object sender, EventArgs e)
         {
@@ -990,6 +1236,7 @@ namespace TWIRC
             //gr.FillRectangle()
         }
 
+
         private class callBackButton : Button
         {
             public Control callBack;
@@ -1030,7 +1277,19 @@ namespace TWIRC
     {
         public bool saveOnClose;
         public bool autoSave;
+
+        public void forceRedraw()
+        {
+            this.OnResizeEnd(EventArgs.Empty);
+            this.Invalidate();
+        }
     }
 
-
+    public class bettingEventArgs : EventArgs
+    {
+        public string winName;
+        public int winner;
+        public int wins;
+        public int losses;
+    }
 }

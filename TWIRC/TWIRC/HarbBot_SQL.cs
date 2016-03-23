@@ -13,66 +13,25 @@ namespace TWIRC
     {
         public void initialiseDatabase()
         {
-            if (!File.Exists("db.sqlite"))
+            SQLiteDataReader sqdlr = db.Reader(db.main, "SELECT Count(*) FROM users WHERE name = '" + channel.Substring(1) + "' OR name = '" + bot_name + "';");
+            if (sqdlr.Read() && sqdlr.GetInt32(0) == ((bot_name == channel.Substring(1)) ? 1 : 2))
             {
-                SQLiteConnection.CreateFile("db.sqlite");
-                dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
-                dbConn.Open();
-                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";",dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, rank INT DEFAULT 0, lastseen VARCHAR(7), points INT DEFAULT 0, alltime INT DEFAULT 0, isnew INTEGER DEFAULT 1);", dbConn).ExecuteNonQuery();//lastseen is done in yyyyddd format. day as in day of year
-                new SQLiteCommand("CREATE TABLE commands (keyword VARCHAR(60) NOT NULL, authlevel INT DEFAULT 0, count INT DEFAULT 0, response VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE aliases (keyword VARCHAR(60) NOT NULL, toword VARCHAR(1000) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE transactions (name VARCHAR(25) NOT NULL, amount INT NOT NULL,item VARCHAR(1024) NOT NULL,prevMoney INT NOT NULL,date VARCHAR(7) NOT NULL);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE luacoms (keyword VARCHAR(60) NOT NULL, command VARCHAR(60) NOT NULL, defult VARCHAR(60), response VARCHAR(1000));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE biases (keyword VARCHAR(50),numbers VARCHAR(50));", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE IF NOT EXISTS 'poll' ('name' TEXT(25), 'choice' INTEGER(1));", dbConn).ExecuteNonQuery();
-
-                new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' left ', '10 0 0 0 0 0 0'),(' up ','0 0 10 0 0 0 0'),(' down ', '0 10 0 0 0 0 0'),(' right ', '0 0 0 10 0 0 0'),(' start ', '0 0 0 0 0 0 10')", dbConn).ExecuteNonQuery();
-                SQLiteCommand cmd;
-
-                new SQLiteCommand("CREATE TABLE IF NOT EXISTS newsettings (variable VARCHAR(128), type VARCHAR(64), value VARCHAR(128));", dbConn).ExecuteNonQuery();
-                insertIntoSettings("name", "string", "rngppbot");
-                insertIntoSettings("channel", "string", "#harbbot");
-                insertIntoSettings("antispam", "bit", "1");
-                insertIntoSettings("silence", "bit", "1");
-                insertIntoSettings("oauth", "string", "oauth:67h2n5dny6xf2ho6j7oj3xugu7uurd");
-                insertIntoSettings("votingenabled", "bool", "0");
-                insertIntoSettings("cooldown", "int", "20");
-                insertIntoSettings("logpath", "string", @"C:\Users\Zack\Dropbox\Public\rnglog.txt");
-                insertIntoSettings("timebetweenvote", "calc", "15*60");
-                insertIntoSettings("timetovote", "calc", "4*60");
-                insertIntoSettings("defaultbias", "string", "1.00:1.00:1.00:1.00:0.96:0.92:0.82");
-                insertIntoSettings("biasmaxdiff", "double", "0.05");
-                insertIntoSettings("moneypervote", "int", "50");
-                insertIntoSettings("moneyconversionrate", "double", "0.5");
-                insertIntoSettings("expallfunction", "string", "8X");
-                insertIntoSettings("welcomemessagecd", "int", "60");
-                insertIntoSettings("backgroundspath", "string", @"C:\Users\Zack\Desktop\rngpp\backgrounds\");
-                insertIntoSettings("commandsurl", "string", @"https://dl.dropboxusercontent.com/u/273135957/commands.html");
-                insertIntoSettings("commandspath", "string", @"C:\Users\Zack\Desktop\RNGPPDropbox\Dropbox\Public\commands.html");
-                insertIntoSettings("biaspointspread", "string", "10:10:10:10:9:8:6.5");
-                insertIntoSettings("poll", "string", "");
-                insertIntoSettings("antistreambot", "string", "1");
-                insertIntoSettings("goal", "string", "Set a goal!");
-
-                loadSettings();
-
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channel.Substring(1) + "','4','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "',0);", dbConn).ExecuteNonQuery();
-
+                db.Execute("UPDATE users SET rank = 4  WHERE name='" + channel.Substring(1) + "';");
+                if (bot_name != channel.Substring(1))
+                    db.Execute("UPDATE users SET rank = -1 WHERE name = '" + bot_name + "'");
             }
             else
             {
-                dbConn = new SQLiteConnection("Data Source=db.sqlite;Version=3;");
-                dbConn.Open();
-                loadSettings();
+                db.Execute("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + channel.Substring(1) + "','4','" + getNowSQL() + "',0);");
+                if (bot_name != channel.Substring(1))
+                    db.Execute("INSERT INTO users (name,rank,lastseen,isnew) VALUES ('" + bot_name + "','-1','" + getNowSQL() + "',0);");
             }
             
         }
 
         public void loadSettings()
         {
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT variable, type ,value FROM newsettings GROUP BY variable;",dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT variable, type ,value FROM newsettings GROUP BY variable;");
             while (sqldr.Read())
             {
                 double a = 0; string debug = sqldr.GetString(0);
@@ -110,7 +69,7 @@ namespace TWIRC
                     case "goal": goal = sqldr.GetString(2); break;
                 }
             }
-            sqldr = new SQLiteCommand("SELECT name,choice FROM poll;", dbConn).ExecuteReader();
+            sqldr = db.Reader(db.main,"SELECT name,choice FROM poll;");
             while (sqldr.Read())
             {
                 poll_votes.Add(new intStr(sqldr.GetInt32(1), sqldr.GetString(0)));
@@ -119,31 +78,7 @@ namespace TWIRC
 
         bool setSetting(string variable, string type, string value, bool force=false)
         {
-            SQLiteCommand cmd = new SQLiteCommand("SELECT variable FROM newsettings WHERE variable= @par1;", dbConn);
-            cmd.Parameters.AddWithValue("@par1", variable);
-            SQLiteDataReader sqldr = cmd.ExecuteReader();
-            if (sqldr.Read())
-            {
-                cmd = new SQLiteCommand("UPDATE newsettings SET type = @par1, value = @par2 WHERE variable=@par3;", dbConn);
-                cmd.Parameters.AddWithValue("@par1", type);
-                cmd.Parameters.AddWithValue("@par2", value);
-                cmd.Parameters.AddWithValue("@par3", variable);
-                cmd.ExecuteNonQuery();
-                return true;
-            }
-            else
-            {
-                if (force)
-                {
-                    cmd = new SQLiteCommand("INSERT INTO newsettings (variable,type,value) VALUES (@par3,@par1,@par2);", dbConn);
-                    cmd.Parameters.AddWithValue("@par1", type);
-                    cmd.Parameters.AddWithValue("@par2", value);
-                    cmd.Parameters.AddWithValue("@par3", variable);
-                    cmd.ExecuteNonQuery();
-                    return true;
-                }
-                return false;
-            }
+            return db.setSetting(variable, type, value, force);
         }
 
         bool bitToBool(double i)
@@ -153,46 +88,7 @@ namespace TWIRC
 
         void insertIntoSettings(string variable, string type, string value)//escapes values, woo! Except for types, but those really shouldn't be able to.
         {
-            SQLiteCommand cmd = new SQLiteCommand("INSERT INTO newsettings (variable, type, value) VALUES ( @par0, '"+type+"', @par1);", dbConn);
-            cmd.Parameters.AddWithValue("@par0", variable);
-            cmd.Parameters.AddWithValue("@par1", value);
-            cmd.ExecuteNonQuery();
-        }
-
-        public void initialiseButtons()
-        {
-            if (!File.Exists("buttons.sqlite"))
-            {
-                SQLiteConnection.CreateFile("buttons.sqlite");
-                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
-                butDbConn.Open();
-                new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", butDbConn).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE buttons (id INT, left INT, down INT, up INT, right INT, a INT, b INT, start INT);", butDbConn).ExecuteNonQuery();
-            }
-            else
-            {
-                butDbConn = new SQLiteConnection("Data Source=buttons.sqlite;Version=3;");
-                butDbConn.Open();
-            }
-        }
-
-        void initialiseChat()
-        {
-            if(!File.Exists("chat.sqlite"))
-            {
-            SQLiteConnection.CreateFile("chat.sqlite");
-            chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
-            chatDbConn.Open();
-            new SQLiteCommand("PRAGMA auto_vacuum = \"1\";", chatDbConn).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE messages (name VARCHAR(25) NOT NULL, message VARCHAR(1024) NOT NULL, time INT(13) NOT NULL);", chatDbConn).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE users (name VARCHAR(25) NOT NULL, lines INT DEFAULT 1);", chatDbConn).ExecuteNonQuery();
-        
-            }
-            else
-            {
-                chatDbConn = new SQLiteConnection("Data Source=chat.sqlite;Version=3;");
-                chatDbConn.Open();
-            }
+            db.addSetting(variable, type, value);
         }
 
         void loadHardComs()
@@ -239,6 +135,7 @@ namespace TWIRC
             hardList.Add(new hardCom("!addsetting", 4, 2));
             hardList.Add(new hardCom("!goal", 0, 0));
             hardList.Add(new hardCom("!setgoal", 2, 1));
+            hardList.Add(new hardCom("!bet", 0, 2));
         }
 
         void setUpIRC()
@@ -305,11 +202,15 @@ namespace TWIRC
             pollTimer.AutoReset = true;
             pollTimer.Elapsed += pollTimer_Elapsed;
             pollTimer.Start();
+
+            bettingChatters = new List<string>();
+            betters = new List<string>();
+            betAmounts = new List<int[]>();
         }
 
         void loadAliases()
         {
-            SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM aliases;", dbConn).ExecuteReader();
+            SQLiteDataReader rdr = db.Reader(db.main,"SELECT * FROM aliases;");
             while (rdr.Read())
             {
                 string[] a = rdr.GetString(0).Split(' ');
@@ -320,7 +221,7 @@ namespace TWIRC
 
        void loadCommands()
         {
-            SQLiteDataReader rdr = new SQLiteCommand("SELECT * FROM commands;", dbConn).ExecuteReader();
+            SQLiteDataReader rdr = db.Reader(db.main,"SELECT * FROM commands;");
             while (rdr.Read())
             {
                 string[] a = rdr.GetString(3).Split(new string[] { @"\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -334,7 +235,7 @@ namespace TWIRC
        void loadBiases()
         {
             List<Bias> biases = new List<Bias>();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM biases;",dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT * FROM biases;");
             while(sqldr.Read())
             {
                 foreach(string s in sqldr.GetString(0).Trim().Split(' '))
@@ -348,21 +249,21 @@ namespace TWIRC
 
         bool addBias(string keyword, string numbers)
         {
-            SQLiteDataReader sql  = new SQLiteCommand("SELECT * FROM biases WHERE keyword LIKE '% "+keyword +" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql  = db.Reader(db.main,"SELECT * FROM biases WHERE keyword LIKE '% "+keyword +" %';");
             if(sql.Read()){
                 return false;
             }
             else
             {
-                sql = new SQLiteCommand("SELECT keyword FROM biases WHERE numbers  = '"+ numbers +"';",dbConn).ExecuteReader();
+                sql = db.Reader(db.main,"SELECT keyword FROM biases WHERE numbers  = '"+ numbers +"';");
                 if (sql.Read())
                 {
                     string str = sql.GetString(0) +" "+ keyword + " ";
-                    new SQLiteCommand("UPDATE biases SET keyword = '" + str + "' WHERE numbers  = '" + numbers + "';",dbConn).ExecuteNonQuery();
+                    db.Execute("UPDATE biases SET keyword = '" + str + "' WHERE numbers  = '" + numbers + "';");
                 }
                 else
                 {
-                    new SQLiteCommand("INSERT INTO biases (keyword,numbers) VALUES (' " + keyword + " ', '" + numbers + "');",dbConn).ExecuteNonQuery();
+                    db.Execute("INSERT INTO biases (keyword,numbers) VALUES (' " + keyword + " ', '" + numbers + "');");
                 }
                 return true;
                
@@ -371,7 +272,7 @@ namespace TWIRC
 
         bool delBias(string keyword)
         {
-            SQLiteDataReader sql = new SQLiteCommand("SELECT keyword,numbers FROM biases WHERE keyword LIKE '% "+keyword+" %';",dbConn).ExecuteReader();
+            SQLiteDataReader sql = db.Reader(db.main,"SELECT keyword,numbers FROM biases WHERE keyword LIKE '% "+keyword+" %';");
             if (sql.Read())
             {
                 string numbers = sql.GetString(1);
@@ -387,11 +288,11 @@ namespace TWIRC
                 }
                 if(newAli.Length > 1)
                 {
-                    new SQLiteCommand("UPDATE biases SET keyword = '"+newAli+"' WHERE numbers = '"+numbers+"';", dbConn).ExecuteNonQuery();
+                   db.Execute("UPDATE biases SET keyword = '"+newAli+"' WHERE numbers = '"+numbers+"';");
                 }
                 else
                 {
-                    new SQLiteCommand("DELETE FROM biases WHERE numbers = '" + numbers + "';", dbConn).ExecuteNonQuery();
+                    db.Execute("DELETE FROM biases WHERE numbers = '" + numbers + "';");
                 }
                 return true;
             }
@@ -405,7 +306,7 @@ namespace TWIRC
         void notNew(string user)
         {
             user = user.ToLower();
-            new SQLiteCommand("UPDATE users SET isnew = 0 WHERE name = '" + user + "';", dbConn).ExecuteNonQuery();
+            db.Execute("UPDATE users SET isnew = 0 WHERE name = '" + user + "';");
         }
 
         int getNow()
@@ -442,60 +343,60 @@ namespace TWIRC
         public int pullAuth(string name)
         {
             name = name.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT rank FROM users WHERE name='" + name + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                db.Execute(db.main,"UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';");
                 return sqldr.GetInt32(0);
             }
             else
             {
 
-                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');");
                 return 0;
             }
         }
         public void setAuth(string user, int level)
         {
             user = user.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT * FROM users WHERE name='" + user + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET rank='" + level + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                db.Execute("UPDATE users SET rank='" + level + "' WHERE name='" + user + "';");
             }
             else
             {
-                new SQLiteCommand("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen,rank) VALUES ('" + user + "','" + getNowSQL() + "','" + level + "');");
             }
         }
         public int getPoints(string name)
         {
             name = name.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT points FROM users WHERE name='" + name + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                db.Execute("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';");
                 return sqldr.GetInt32(0);
             }
             else
             {
 
-                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');");
                 return 0;
             }
         }
         public void setPoints(string user, int amount)
         {
             user = user.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT points FROM users WHERE name='" + user + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET points='" + amount + "' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
-                new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','" + sqldr.GetInt32(0) + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                db.Execute("UPDATE users SET points='" + amount + "' WHERE name='" + user + "';");
+                db.Execute("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + user + "','" + amount + "','FORCED CHANGE TO AMOUNT','" + sqldr.GetInt32(0) + "','" + getNowSQL() + "');");
             }
             else
             {
-                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen,points) VALUES ('" + user + "','" + getNowSQL() + "','" + amount + "');");
             }
         }
         public int addPoints(string name, int amount, string why)
@@ -504,17 +405,17 @@ namespace TWIRC
             if (amount != 0)
             {
                 int things;
-                SQLiteDataReader sqldr = new SQLiteCommand("SELECT points FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+                SQLiteDataReader sqldr = db.Reader(db.main,"SELECT points FROM users WHERE name='" + name + "';");
                 if (sqldr.Read())
                 {
                     things = sqldr.GetInt32(0);
-                    new SQLiteCommand("UPDATE users SET points='" + (things + amount) + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
-                    new SQLiteCommand("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','" + why + "','" + things + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                    db.Execute("UPDATE users SET points='" + (things + amount) + "' WHERE name='" + name + "';");
+                    db.Execute("INSERT INTO transactions (name,amount,item,prevmoney,date) VALUES ('" + name + "','" + amount + "','" + why + "','" + things + "','" + getNowSQL() + "');");
                     return things;
                 }
                 else
                 {
-                    new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+                    db.Execute("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');");
                     return 0;
                 }
             }
@@ -531,14 +432,14 @@ namespace TWIRC
             temp = temp.Substring(0, temp.Length - 1);//remove last delimiter
             setSetting("poll", "string", temp, true);
 
-            new SQLiteCommand("DELETE FROM poll WHERE 1=1;", dbConn).ExecuteNonQuery();
+            db.Execute("DELETE FROM poll WHERE 1=1;");
             poll_votes.Clear();
         }
 
         bool pollVote(string user, int value)
         {
             user = user.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT choice FROM poll WHERE name='" + user + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT choice FROM poll WHERE name='" + user + "';");
             if (sqldr.Read())
             {
                 int a = sqldr.GetInt32(0);
@@ -550,14 +451,14 @@ namespace TWIRC
                 {
                     int index = poll_votes.FindIndex(delegate(intStr InSt) { return InSt.Str == user; });
                     poll_votes.RemoveAt(index);
-                    new SQLiteCommand("UPDATE poll SET choice = '"+value+"' WHERE name='" + user + "';", dbConn).ExecuteNonQuery();
+                    db.Execute("UPDATE poll SET choice = '"+value+"' WHERE name='" + user + "';");
                     poll_votes.Add(new intStr(value, user));
                     return true;
                 }
             }
             else
             {
-                new SQLiteCommand("INSERT INTO poll (name,choice) VALUES ('" + user + "','" + value + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO poll (name,choice) VALUES ('" + user + "','" + value + "');");
                 poll_votes.Add(new intStr(value, user));
                 return true;
             }
@@ -566,7 +467,7 @@ namespace TWIRC
         bool isNew(string user)
         {
             user = user.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT isnew FROM users WHERE name='" + user + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT isnew FROM users WHERE name='" + user + "';");
             if (sqldr.Read())
             {
                 int a = sqldr.GetInt32(0);
@@ -589,18 +490,18 @@ namespace TWIRC
         {
             int things, rank;
             name = name.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime, rank FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT alltime, rank FROM users WHERE name='" + name + "';");
             if (sqldr.Read())
             {
                 things = sqldr.GetInt32(0);
                 rank = sqldr.GetInt32(1);
                 if (rank == 0 && things + amount > 2500) { setAuth(name, 1); }
-                new SQLiteCommand("UPDATE users SET alltime=alltime+" + amount + " WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                db.Execute("UPDATE users SET alltime=alltime+" + amount + " WHERE name='" + name + "';");
                 return things;
             }
             else
             {
-                new SQLiteCommand("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen,points) VALUES ('" + name + "','" + getNowSQL() + "','" + amount + "');");
                 return 0;
             }
         }
@@ -608,16 +509,16 @@ namespace TWIRC
         int getAllTime(string name)
         {
             name = name.ToLower();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT alltime FROM users WHERE name='" + name + "';", dbConn).ExecuteReader();
+            SQLiteDataReader sqldr = db.Reader(db.main,"SELECT alltime FROM users WHERE name='" + name + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';", dbConn).ExecuteNonQuery();
+                db.Execute("UPDATE users SET lastseen='" + getNowSQL() + "' WHERE name='" + name + "';");
                 return sqldr.GetInt32(0);
             }
             else
             {
 
-                new SQLiteCommand("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');", dbConn).ExecuteNonQuery();
+                db.Execute("INSERT INTO users (name,lastseen) VALUES ('" + name + "','" + getNowSQL() + "');");
                 return 0;
             }
         }
@@ -626,19 +527,19 @@ namespace TWIRC
         {
             if (chatter != null)
             {
-                chatter.Add(user, pullAuth(user), message, type);
+              //  chatter.Add(user, pullAuth(user), message, type);
             }
             user = user.ToLower();
-            SQLiteCommand cmd = new SQLiteCommand("INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par1," + getNowExtended() + ");", chatDbConn);
-            cmd.Parameters.AddWithValue("@par1", message); cmd.ExecuteNonQuery();
-            SQLiteDataReader sqldr = new SQLiteCommand("SELECT * FROM users WHERE name= '" + user + "';", chatDbConn).ExecuteReader();
+
+            db.safeExecute(db.chat, "INSERT INTO messages (name,message,time) VALUES ('" + user + "',@par0," + getNowExtended() + ");",new object[] {message});
+            SQLiteDataReader sqldr = db.Reader(db.chat, "SELECT * FROM users WHERE name= '" + user + "';");
             if (sqldr.Read())
             {
-                new SQLiteCommand("UPDATE users SET lines = lines+1 WHERE name = '" + user + "';", chatDbConn).ExecuteNonQuery();
+                db.Execute(db.chat,"UPDATE users SET lines = lines+1 WHERE name = '" + user + "';");
             }
             else
             {
-                new SQLiteCommand("INSERT INTO users (name) VALUES ('" + user + "');", chatDbConn).ExecuteNonQuery();
+                db.Execute(db.chat, "INSERT INTO users (name) VALUES ('" + user + "');");
             }
 
         }
