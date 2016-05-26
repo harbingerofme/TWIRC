@@ -316,7 +316,7 @@ namespace SayingsBot
 
             try
             {
-                irc.Connect("irc.twitch.tv", 6667);
+                irc.Connect("irc.chat.twitch.tv", 6667);
             }
             catch { }
 
@@ -783,7 +783,7 @@ namespace SayingsBot
                 return;
             }
 
-            try { irc.Connect("irc.twitch.tv", 6667); }
+            try { irc.Connect("irc.chat.twitch.tv", 6667); }
             catch (Exception ex) { writeLogger("IRC CONNECT FAILED: " + ex.Message); }
 
             if (!irc.IsConnected)
