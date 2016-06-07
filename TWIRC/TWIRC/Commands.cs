@@ -43,6 +43,17 @@ namespace SayingsBot
                     done = true;
                     str = h.returnPars(message);
                     if (logLevel == 1) { hb.writeLogger("IRC:<- <" + user + "> " + message); }
+                    if (h.returnKeyword() != "!sbgetuserfromalias")
+                    {
+                        for (int it = 0; it < str.Length; it++)
+                        {
+                            if (getUserFromAlias(str[it]) != null)
+                            {
+                                string tmp = getUserFromAlias(str[it]);
+                                str[it] = tmp;
+                            }
+                        }
+                    }
                     switch (h.returnKeyword())
                     {
                         #region Select case...
