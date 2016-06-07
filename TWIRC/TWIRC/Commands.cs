@@ -43,18 +43,6 @@ namespace SayingsBot
                     done = true;
                     str = h.returnPars(message);
                     if (logLevel == 1) { hb.writeLogger("IRC:<- <" + user + "> " + message); }
-
-                    if (h.returnKeyword() != "!sbgetuseraliases")
-                    {
-                        for (int it = 0; it < str.Length; it++)
-                        {
-                            if (getUserFromAlias(str[it]) != null)
-                            {
-                                string tmp = getUserFromAlias(str[it]);
-                                str[it] = tmp;
-                            }
-                        }
-                    }
                     switch (h.returnKeyword())
                     {
                         #region Select case...
@@ -378,13 +366,25 @@ namespace SayingsBot
                             return ("Gave user " + str[1] + " the alias " + str[2] + ".");
                             break;
                         case "!sbgetuseralias":
-                            if (getUserAlias(str[1]) != null)
+                            string alias = getUserAlias(str[1]);
+                            if (alias != null)
                             {
-                                return ("User " + str[1] + " has the aliases " + getUserAlias(str[1]) + ".");
+                                return ("User " + str[1] + " has the alias " + alias + ".");
                             }
                             else
                             {
                                 return ("User " + str[1] + " has no aliases.");
+                            }
+                            break;
+                        case "!sbgetuserfromalias":
+                            string name = getUserFromAlias(str[1]);
+                            if (name != null)
+                            {
+                                return ("Alias " + str[1] + " belongs to the user " + name + ".");
+                            }
+                            else
+                            {
+                                return ("Alias " + str[1] + " is not taken.");
                             }
                             break;
                         case "!swearjar":

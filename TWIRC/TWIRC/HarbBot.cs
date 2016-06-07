@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
+
 namespace SayingsBot
 {
     public class HarbBot
@@ -269,7 +270,8 @@ namespace SayingsBot
             hardList.Add(new hardCom("!sbleaderboard",0,0));
             hardList.Add(new hardCom("sayingsbot",0,0,20));
             hardList.Add(new hardCom("!sbadduseralias", 2, 2, 20));
-            hardList.Add(new hardCom("!sbgetuseraliases", 2, 1, 20));
+            hardList.Add(new hardCom("!sbgetuseralias", 2, 1, 20));
+            hardList.Add(new hardCom("!sbgetuserfromalias", 2, 1, 20));
             hardList.Add(new hardCom("!swearjar", 0, 0));
             hardList.Add(new hardCom("!nightbotisdown", 0, 0));
             hardList.Add(new hardCom("!logbotisdown", 0, 0));
@@ -1120,6 +1122,7 @@ namespace SayingsBot
             SQLiteDataReader profanityReader = new SQLiteCommand("SELECT dataID FROM userdata WHERE user='swear' AND datatype='7' ORDER BY dataID DESC LIMIT 1;", dbConn).ExecuteReader();
             if (profanityReader.Read())
             {
+                swearList.Clear();
                 int ubound = profanityReader.GetInt32(0);
                 for (int i = 0; i < (ubound + 1); i++)
                 {

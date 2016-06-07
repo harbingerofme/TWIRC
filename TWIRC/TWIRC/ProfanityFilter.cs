@@ -18,6 +18,7 @@ namespace SayingsBot
         /// Convinent string containing the prfanity
         /// </summary>
         string profanityA = "ass|bitch|ballocks|cock|damn|damnit|dike|dyke|fag|faggot|fuck|fuckers|fucking|hell|kanker|retard|shit|tard|wanker";
+        string profanityDefault = "ass|bitch|ballocks|cock|damn|damnit|dike|dyke|fag|faggot|fuck|fuckers|fucking|hell|kanker|retard|shit|tard|wanker";
 #endregion
         HarbBot hb = null;
 
@@ -45,6 +46,7 @@ namespace SayingsBot
 
         void shouldRebuildPrfanity()
         {
+            profanityA = profanityDefault;
             if (hb.shouldRebuildProf)
             {
                 foreach (string build in hb.swearList)
