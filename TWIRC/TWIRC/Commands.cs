@@ -765,7 +765,7 @@ namespace SayingsBot
         /// </summary>
         /// <param name="alias">The alias to check for.</param>
         /// <returns>The user, or null if it's not an alias.</returns>
-        string getUserFromAlias(string alias)
+        public string getUserFromAlias(string alias)
         {
             SQLiteCommand getUserFromAliasCommand = new SQLiteCommand("SELECT user FROM userAliases WHERE alias=@par1;", dbConn);
             getUserFromAliasCommand.Parameters.AddWithValue("@par1", alias);

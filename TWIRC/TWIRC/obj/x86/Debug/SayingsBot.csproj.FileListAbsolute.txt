@@ -7,3 +7,14 @@ D:\SayingsBot.exe
 D:\SayingsBot.pdb
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.exe
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.pdb
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.csprojResolveAssemblyReference.cache
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.frmDiscord.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.RNGWindow.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.Properties.Resources.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.csproj.GenerateResource.Cache
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.exe
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.pdb
+E:\SayingsBot.exe.config
+E:\SayingsBot.exe
+E:\SayingsBot.pdb
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Debug\SayingsBot.csproj.CoreCompileInputs.cache

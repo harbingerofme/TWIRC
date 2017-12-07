@@ -191,7 +191,7 @@
             this.MinimumSize = new System.Drawing.Size(431, 448);
             this.Name = "RNGWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "SayingsBot";
+            this.Text = "SayingsBot - IRC";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.RNGWindow_FormClosed);
             this.Load += new System.EventHandler(this.RNGWindow_Load);
             this.LocationChanged += new System.EventHandler(this.RNGWindow_LocationChanged);

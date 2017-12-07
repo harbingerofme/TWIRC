@@ -9,3 +9,16 @@ C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.Pro
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.csproj.GenerateResource.Cache
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.exe
 C:\Users\tammi\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.pdb
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\SayingsBot.exe.config
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\SayingsBot.exe
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\SayingsBot.pdb
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\NetComm.dll
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\System.Data.SQLite.dll
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\bin\Release\System.Data.SQLite.xml
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.csprojResolveAssemblyReference.cache
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.frmDiscord.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.RNGWindow.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.Properties.Resources.resources
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.csproj.GenerateResource.Cache
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.exe
+C:\Users\josep\Documents\GitHub\TWIRC\TWIRC\TWIRC\obj\x86\Release\SayingsBot.pdb

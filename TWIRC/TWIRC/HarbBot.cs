@@ -60,7 +60,7 @@ namespace SayingsBot
         ProfanityFilter pf;
 
 #if DEBUG
-        string commandsPATH = @"D:\SBcommands.html";
+        string commandsPATH = @"E:\SBcommands.html";
 #else
         string commandsPATH = @"C:\Documents and Settings\Administrator\My Documents\Dropbox\New Folder 2\SBcommands.html";
 #endif
@@ -275,7 +275,7 @@ namespace SayingsBot
             hardList.Add(new hardCom("!swearjar", 0, 0));
             hardList.Add(new hardCom("!nightbotisdown", 0, 0));
             hardList.Add(new hardCom("!logbotisdown", 0, 0));
-            hardList.Add(new hardCom("!addswear", 0, 1));
+            hardList.Add(new hardCom("!addswear", 3, 1));
             hardList.Add(new hardCom("!lolcounter", 0, 0));
             hardList.Add(new hardCom("!howmanytimes", 0, 0));
             hardList.Add(new hardCom("!howfar", 0, 0));
@@ -370,8 +370,8 @@ namespace SayingsBot
         /// </summary>
         void colourTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-#if DEBUG
-#else
+//#if DEBUG
+//#else
             Random rnd = new Random();
             RNGWindow rngwin = Program.mainWindow;
             int I;
@@ -393,7 +393,7 @@ namespace SayingsBot
                     case 10: irc.RfcPrivmsg(channels, ".color Coral"); rngwin.setColourText("Coral"); break;
                 }
             }
-#endif
+//#endif
             
         }
         void saveTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -406,7 +406,7 @@ namespace SayingsBot
                 string response = null;
                 if (h.returnAuthLevel() < 5)
                 {
-                    if (keyword == "!sbset" || keyword == "!sbsilence" || keyword == "!delclassic" || keyword == "!count" || keyword == "!newcount"|| keyword == "!serpoints"|| keyword == "!addpoints") { }
+                    if (keyword == "!sbset" || keyword == "!sbsilence" || keyword == "!delclassic" || keyword == "!count" || keyword == "!newcount"|| keyword == "!setpoints"|| keyword == "!addpoints"||keyword == "!addswear") { }
                     else
                     {
                         switch (keyword)
